@@ -1,0 +1,28 @@
+#!/usr/bin/python
+# -*- mode: python; coding: utf-8 -*-
+
+import sys
+import Ice
+
+Ice.loadSlice("slice.ice")
+import Example
+
+
+class Client(Ice.Application):
+    def run(self, args):
+        if len(args) < 2:
+            return self.usage()
+
+        ic = self.communicator()
+        server = ic.stringToProxy(args[1])
+        server = Example.ReaderPrx.uncheckedCast(server)
+
+        message = server.read()
+        print "Read from server: '{0}'".format(message)
+
+    def usage(self):
+        print "USAGE: {0} <proxy>".format(sys.argv[0])
+
+
+if __name__ == '__main__':
+    Client().main(sys.argv)
