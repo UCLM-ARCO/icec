@@ -6,12 +6,12 @@ SLICE2C  = $(BASEDIR)/bin/slice2c
 
 TARGETS ?= reader_server writer_client
 SLICE    = slice.ice
-CFLAGS  += -I $(BASEDIR)
+CFLAGS  += -I $(BASEDIR) IceC.o
 
 vpath %.c $(ICEC_SRC)
 
 
-all: $(SLICE:%.ice=%.h) $(TARGETS)
+all: $(SLICE:%.ice=%.h) IceC.o $(TARGETS)
 
 $(SLICE:%.ice=%.h): $(SLICE)
 	$(RM) -rfv $@

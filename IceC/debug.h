@@ -1,5 +1,8 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
+#ifndef _ICEC_DEBUG_H_
+#define _ICEC_DEBUG_H_
+
 #define RED "\033[01;31m"
 #define CLR "\033[00m"
 
@@ -231,3 +234,4 @@ dissect_message(byte* data, int limit) {
 #undef Ice_Int
 
 #endif  // DEBUG
+#endif  // _ICEC_DEBUG_H_
