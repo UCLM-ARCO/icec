@@ -2,10 +2,12 @@
 
 #include "slice.h"
 
-char*
+int
 Example_ReaderI_read(Example_ReaderPtr this) {
-    static char* message = "the message from server";
-    return message;
+    static int retval = 1441;
+    printf(" - 'read' requested, return: %d\n", retval);
+    return retval++;
+
 }
 
 int
@@ -27,6 +29,7 @@ main(int argc, char* argv[]) {
     Ice_ObjectAdapter_add(&adapter, (Ice_ObjectPtr)&servant, "ReaderServer");
 
     // wait for events (event loop)
+    printf("Proxy ready: 'ReaderServer -e 1.0 -t:tcp -h 127.0.0.1 -p 7891'\n");
     Ice_Communicator_waitForShutdown(&ic);
 
     return 0;

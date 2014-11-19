@@ -17,8 +17,8 @@ class Client(Ice.Application):
         server = ic.stringToProxy(args[1])
         server = Example.ReaderPrx.uncheckedCast(server)
 
-        message = server.read()
-        print "Read from server: '{0}'".format(message)
+        code = server.read()
+        print "Read from server: '{0}'".format(code)
 
     def usage(self):
         print "USAGE: {0} <proxy>".format(sys.argv[0])

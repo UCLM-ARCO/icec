@@ -9,8 +9,8 @@ import Example
 
 
 class WriterI(Example.Writer):
-    def write(self, message, current):
-        print "Write to server: '{0}'".format(message)
+    def write(self, code, current):
+        print " - 'write' request, got: {0}".format(code)
 
 
 class Server(Ice.Application):

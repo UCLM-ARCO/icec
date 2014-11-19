@@ -16,7 +16,7 @@ main(int argc, char* argv[]) {
     Ice_Communicator_stringToProxy(&ic, argv[1], &writer);
 
     // invoke it
-    Example_Writer_write(&writer, "message sent from client");
+    Example_Writer_write(&writer, 1551);
 
     return 0;
 }

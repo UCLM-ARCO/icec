@@ -2,10 +2,10 @@
 
 module Example {
     interface Writer {
-	void write(string message);
+	void write(int code);
     };
 
     interface Reader {
-	string read();
+	int read();
     };
 };
