@@ -5,14 +5,14 @@
 int
 Example_ReaderI_read(Example_ReaderPtr this) {
     static int retval = 1441;
-    printf(" - 'read' requested, return: %d\n", retval);
-    return retval++;
+    printf(" - 'read' request, return: %d\n", retval);
+    fflush(NULL);
 
+    return retval++;
 }
 
 int
 main(int argc, char* argv[]) {
-
     // create communicator
     Ice_Communicator ic;
     Ice_initialize(&ic);
@@ -30,6 +30,8 @@ main(int argc, char* argv[]) {
 
     // wait for events (event loop)
     printf("Proxy ready: 'ReaderServer -e 1.0 -t:tcp -h 127.0.0.1 -p 7891'\n");
+    fflush(NULL);
+
     Ice_Communicator_waitForShutdown(&ic);
 
     return 0;
