@@ -45,11 +45,15 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
     strncpy(proto, s, end);
     proto[end] = 0;
 
+    *result = 0;
     if (streq(proto, "tcp"))
 	*result = Ice_EndpointTypeTCP;
     else if (streq(proto, "udp"))
 	*result = Ice_EndpointTypeUDP;
     else
+	IcePlugin_getProtocolType(proto, result);
+
+    if (*result == 0)
 	assert(false && "Invalid endpoint type!");
 }
 
@@ -112,6 +116,8 @@ Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     case Ice_EndpointTypeUDP: {
 	this->size = read(fd, (byte*)this->data, MAX_MESSAGE_SIZE);
     }
+    default:
+	IcePlugin_InputStream_init(this, fd, type);
     }
 
     this->next = this->data;
@@ -432,6 +438,8 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 	res = send(fd, data, size, 0);
 	break;
     }
+    default:
+	res = IcePlugin_Connection_send(fd, data, size);
     }
 
     if (res == size) {
@@ -472,7 +480,6 @@ Ice_Connection_sendClose(Ice_ConnectionPtr this) {
     trace();
     Ptr_check(this);
 
-    // FIXME: there is no need for OutputStream here
     Ice_OutputStream os;
     Ice_OutputStream_init(&os);
     Ice_OutputStream_writeBlob(&os, Ice_header, 8);
@@ -583,9 +590,16 @@ Ice_EndpointInfo_init(Ice_EndpointInfoPtr this,
     this->type = type;
     Object_init((ObjectPtr)this);
 
-    assert(strlen(host) < MAX_HOST_SIZE);
-    strcpy(this->host, host);
-    this->port = port;
+    switch(type) {
+    case Ice_EndpointTypeUDP:
+    case Ice_EndpointTypeTCP: {
+	assert(strlen(host) < MAX_HOST_SIZE);
+	strcpy(this->host, host);
+	this->port = port;
+    }
+    default:
+	IcePlugin_EndpointInfo_init(this, type, host, port);
+    }
 }
 
 void
@@ -624,10 +638,14 @@ Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
 	Ice_TCPConnection_listen(&(this->connection), info->host, info->port);
 	break;
 
-    default:
-	throw("Ice_NoEndpointException", __FILE__, __LINE__);
-	return;
-    }
+    default: {
+	bool ok = IcePlugin_ObjectAdapter_activate(this);
+
+	if (!ok) {
+	    throw("Ice_NoEndpointException", __FILE__, __LINE__);
+	    return;
+	}
+    }}
 
     Ice_Communicator_registerAdapter(this->communicator, this);
     this->activated = true;
@@ -798,6 +816,9 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
 	    Ice_UDPConnection_connect(&(this->connection),
 				      this->epinfo.host, this->epinfo.port);
 	    break;
+
+	default:
+	    IcePlugin_ObjectPrx_connect(this);
 	}
     }
 
@@ -975,8 +996,88 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this) {
     }
 }
 
+static IcePlugin_PluginListItem _registered_endpoints;
+
 void
 Ice_initialize(Ice_CommunicatorPtr ic) {
     trace();
     Ice_Communicator_init(ic);
+    IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);
 }
+
+
+void
+IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr this, ObjectPtr object) {
+    trace();
+    Object_init((ObjectPtr)this);
+
+    this->object = object;
+    this->next = NULL;
+}
+
+void
+IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this) {
+    trace();
+    Object_init((ObjectPtr)this);
+}
+
+void
+IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item) {
+    trace();
+    Ptr_check(item);
+
+    IcePlugin_PluginListItemPtr last = &_registered_endpoints;
+    while(last->next != NULL)
+	last = last->next;
+
+    last->next = item;
+};
+
+void
+IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
+    trace();
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    while(item != NULL) {
+	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+
+	Ptr_check(endp);
+	if (endp->getProtocolType(proto, result))
+	    break;
+
+	item = item->next;
+    }
+}
+
+void
+IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
+    trace();
+}
+
+int
+IcePlugin_Connection_send(int fd, byte* data, int size) {
+    trace();
+}
+
+void
+IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
+			    const char* host, int port) {
+    trace();
+
+    /* IcePlugin_PluginListItemPtr item = _registered_endpoints.next */
+
+
+}
+
+bool
+IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
+    trace();
+}
+
+void
+IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
+    trace();
+}
+
+
+

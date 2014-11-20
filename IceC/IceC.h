@@ -79,11 +79,11 @@ typedef enum {
     Ice_ReferenceModeBatchDatagram,
 } Ice_ReferenceMode;
 
-typedef enum {
-    Ice_EndpointTypeTCP = 1,
-    Ice_EndpointTypeSSL = 2,
-    Ice_EndpointTypeUDP = 3,
-} Ice_EndpointType;
+#define Ice_EndpointTypeTCP 1
+#define Ice_EndpointTypeSSL 2
+#define Ice_EndpointTypeUDP 3
+
+typedef byte Ice_EndpointType;
 
 static const byte Ice_header[] = {
     magic0,
@@ -113,7 +113,6 @@ void IceUtil_getIdentity(const char* s, char* result);
 void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
 void IceUtil_getHost(const char* s, char* result);
 void IceUtil_getPort(const char* s, int* result);
-
 
 // Forward declaration
 struct Ice_InputStream;
@@ -307,5 +306,39 @@ void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 					   Ice_ObjectPrx* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this);
 void Ice_initialize(Ice_CommunicatorPtr ic);
+
+
+
+
+
+typedef struct IcePlugin_PluginListItem* IcePlugin_PluginListItemPtr;
+
+typedef struct IcePlugin_PluginListItem {
+    Object _base;
+
+    ObjectPtr object;
+    IcePlugin_PluginListItemPtr next;
+} IcePlugin_PluginListItem;
+
+void IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr this, ObjectPtr object);
+
+typedef struct IcePlugin_EndpointObject {
+    Object _base;
+
+    bool (*getProtocolType)(const char*, Ice_EndpointType*);
+} IcePlugin_EndpointObject;
+
+typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
+
+void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
+
+void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
+void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
+int IcePlugin_Connection_send(int fd, byte* data, int size);
+void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
+				 const char* host, int port);
+bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
+void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
+
 
 #endif // _ICE_ICEC_H_
