@@ -8,7 +8,6 @@ void Example_ConfigI_set(Example_ConfigPtr this, int code) {
     fflush(NULL);
 };
 
-
 int
 main(int argc, char* argv[]) {
     // create communicator

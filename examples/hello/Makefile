@@ -22,3 +22,4 @@ $(SLICE:%.ice=%.h): $(SLICE)
 .PHONY: clean
 clean:
 	$(RM) -frv $(TARGETS) $(SLICE:%.ice=%.h)
+	$(RM) -frv *.o
