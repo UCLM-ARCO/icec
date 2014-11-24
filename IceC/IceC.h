@@ -39,7 +39,7 @@
 #define TAG_NULL 0
 
 #define Ptr_check(ptr) assert(ptr); assert(((ObjectPtr)ptr)->tag == TAG_OK);
-#define throw(EXC, FILE, LINE) error(EXC " %s:%d\n", FILE, LINE);
+#define throw(EXC, FILE, LINE) error(EXC " %s:%d\n", FILE, LINE); assert(false);
 
 typedef bool Ice_Bool;
 typedef uint8_t Ice_Byte;
@@ -215,8 +215,10 @@ typedef struct {
     Object _base;
 
     Ice_EndpointType type;
+    Ice_ReferenceMode mode;
     char host[MAX_HOST_SIZE];
     int port;
+    void* options;
 } Ice_EndpointInfo;
 
 typedef Ice_EndpointInfo* Ice_EndpointInfoPtr;
@@ -275,10 +277,10 @@ typedef struct {
 typedef Ice_ObjectPrx* Ice_ObjectPrxPtr;
 
 void Ice_ObjectPrx_init(Ice_ObjectPrxPtr this,
-			       const char* id,
-			       Ice_EndpointType type,
-			       const char* host,
-			       int port);
+			const char* id,
+			Ice_EndpointType type,
+			const char* host,
+			int port);
 
 void Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 void Ice_ObjectPrx_send(Ice_ObjectPrxPtr this);
@@ -319,6 +321,10 @@ typedef struct IcePlugin_EndpointObject {
     bool (*getProtocolType)(const char*, Ice_EndpointType*);
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
+    bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
+    bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, const char*, Ice_EndpointType, const char*);
+    bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, int, int*);
+    bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
 } IcePlugin_EndpointObject;
 
 typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
@@ -327,12 +333,13 @@ void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
 void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-int IcePlugin_Connection_send(int fd, byte* data, int size);
+int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 Ice_EndpointType type,
 				 const char* endpoint);
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
 void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
-
+void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id,
+			      Ice_EndpointType type, const char* strprx);
 
 #endif // _ICE_ICEC_H_

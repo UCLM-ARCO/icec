@@ -429,7 +429,7 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 	break;
     }
     default:
-	res = IcePlugin_Connection_send(fd, data, size);
+	res = IcePlugin_Connection_send(this, fd, data, size);
     }
 
     if (res == size) {
@@ -577,12 +577,14 @@ Ice_EndpointInfo_init(Ice_EndpointInfoPtr this,
 		      int port) {
     trace();
 
-    this->type = type;
-    Object_init((ObjectPtr)this);
-
     assert(strlen(host) < MAX_HOST_SIZE);
     strcpy(this->host, host);
+
+    this->type = type;
+    this->mode = -1;
     this->port = port;
+    this->options = NULL;
+    Object_init((ObjectPtr)this);
 }
 
 void
@@ -931,15 +933,24 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 
     Ice_EndpointType type;
     char identity[MAX_IDENTITY_SIZE];
-    char host[MAX_HOST_SIZE];
-    int port;
-
     IceUtil_getProtocolType(str, &type);
     IceUtil_getIdentity(str, identity);
-    IceUtil_getHost(str, host);
-    IceUtil_getPort(str, &port);
 
-    Ice_ObjectPrx_init(result, identity, type, host, port);
+    switch(type) {
+    case Ice_EndpointTypeTCP:
+    case Ice_EndpointTypeUDP: {
+	char host[MAX_HOST_SIZE];
+	int port;
+	IceUtil_getHost(str, host);
+	IceUtil_getPort(str, &port);
+	Ice_ObjectPrx_init(result, identity, type, host, port);
+	break;
+    }
+
+    default:
+	IcePlugin_ObjectPrx_init(result, identity, type, str);
+	break;
+    }
 }
 
 void
@@ -971,7 +982,7 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this) {
 	}
 
 	if (select(FD_SETSIZE, &read_set, NULL, NULL, NULL) < 0) {
-	    error("Error while reading from sockets: %s\n", strerror(errno));
+	    error("Error while reading from descriptors: %s\n", strerror(errno));
 	    return;
 	}
 
@@ -993,6 +1004,11 @@ Ice_initialize(Ice_CommunicatorPtr ic) {
     Ice_Communicator_init(ic);
     IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);
 }
+
+/*
+  FIXME: IcePlugin, refactor using something like a 'foreach'
+  function to iter over plugins
+*/
 
 void
 IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr this, ObjectPtr object) {
@@ -1040,11 +1056,36 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
 void
 IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     trace();
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->InputStream_init(this, fd, type))
+    	    break;
+
+    	item = item->next;
+    }
 }
 
 int
-IcePlugin_Connection_send(int fd, byte* data, int size) {
+IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size) {
     trace();
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+    int sent = 0;
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->Connection_send(this, fd, data, size, &sent))
+    	    break;
+
+    	item = item->next;
+    }
+    return sent;
 }
 
 void
@@ -1081,8 +1122,38 @@ IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
 }
 
 void
+IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
+			 const char* id,
+			 Ice_EndpointType type,
+			 const char* strprx) {
+    trace();
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->ObjectPrx_init(this, id, type, strprx))
+    	    break;
+
+    	item = item->next;
+    }
+}
+
+void
 IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
     trace();
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->ObjectPrx_connect(this))
+    	    break;
+
+    	item = item->next;
+    }
 }
 
 
