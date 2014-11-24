@@ -216,6 +216,7 @@ class Function(CCode):
         self._retval = "void"
         self._name = "function"
         self._params = []
+        self._vars = []
 
         self += FunctionCall("trace")
 
@@ -240,6 +241,10 @@ class Function(CCode):
 
     def param(self, param):
         self._params.append(param)
+        return self
+
+    def declare_var(self, var):
+        self._vars.append(var)
         return self
 
     def __str__(self):
@@ -268,6 +273,10 @@ class Function(CCode):
         retval += " {\n"
 
         self.tab = 1
+        for i in self._vars:
+            retval += self.tabify(str(i.declare()))
+
+        retval += "\n"
         for i in self:
             retval += self.tabify(str(i))
 
@@ -669,37 +678,37 @@ class ClassDefDecl(BaseDecl, list):
         func.nl()
 
         operationSize = Param("int", "operationSize")
-        func += operationSize.declare()
+        func.declare_var(operationSize)
         func += operationSize.readFromStream("is", opargs=["false"], as_size=True)
+        func += Assert("operationSize <= MAX_OPERATION_NAME_SIZE")
         func.nl()
 
-        operation = ParamArray("char", "operationSize", "operation")
-        func += operation.declare()
+        operation = ParamArray("char", "MAX_OPERATION_NAME_SIZE", "operation")
+        func.declare_var(operation)
         func += operation.readFromStream("is")
         func.nl()
 
         func += Comment(" FIXME: operationMode ignored ")
         mode = Param("byte", "mode")
-        func += mode.declare()
+        func.declare_var(mode)
         func += mode.readFromStream("is")
         func.nl()
 
         func += Comment(" FIXME: Context not supported ")
         contextSize = Param("byte", "contextSize")
-        func += contextSize.declare()
+        func.declare_var(contextSize)
         func += contextSize.readFromStream("is")
         func += Assert("contextSize == 0")
         func.nl()
 
         encapSize = Param("int", "encapSize")
-        func += encapSize.declare()
+        func.declare_var(encapSize)
         func += encapSize.readFromStream("is")
-        func.nl()
 
         major = Param("byte", "major")
         minor = Param("byte", "minor")
-        func += major.declare()
-        func += minor.declare()
+        func.declare_var(major)
+        func.declare_var(minor)
         func += major.readFromStream("is")
         func += minor.readFromStream("is")
 
@@ -811,7 +820,7 @@ class OperationDecl(BaseDecl):
         # unmarshall params
         call_args = ["this"]
         for i in self.params:
-            func += i.declare()
+            func.declare_var(i)
 
             ins = InputStream("is")
             kind = "proxy" if i.is_proxy else i.type.kind
@@ -863,12 +872,12 @@ class OperationDecl(BaseDecl):
         outs.writeBlob("Ice_header", "sizeof(Ice_header)")
 
         outs.nl().comment(" request body ")
-        outs.write("int", 0, toPointer=False)             # request id
-        outs.write("Ice_Identity", "this->identity")      # object identity
-        outs.writeString("")                              # facet, only empty allowed
-        outs.writeString(self.name)                       # operation
-        outs.write("byte", "Ice_Normal", toPointer=False) # operation mode
-        outs.write("byte", 0, toPointer=False)            # context, not supported
+        outs.write("int", 0, toPointer=False)              # request id
+        outs.write("Ice_Identity", "this->identity")       # object identity
+        outs.writeString("")                               # facet, only empty allowed
+        outs.writeString(self.name)                        # operation
+        outs.write("byte", "Ice_Normal", toPointer=False)  # operation mode
+        outs.write("byte", 0, toPointer=False)             # context, not supported
 
         outs.nl().comment(" encapsulated params ")
 
@@ -878,9 +887,9 @@ class OperationDecl(BaseDecl):
             kind = "proxy" if p.is_proxy else p.type.kind
             outs.write(self.cpp2c_name(p.type.typeid), p.name, kind=kind, toPointer=False)
         outs.endWriteEncaps()
-        outs.setMessageSize();
+        outs.setMessageSize()
 
-        func += outs.declare()
+        func.declare_var(outs)
         func += outs
         func.nl()
 

@@ -26,7 +26,7 @@
 
 static char buf[128];
 
-// from: http://stackoverflow.com/a/7776146
+ /* from: http://stackoverflow.com/a/7776146 */
 static void
 hexdump (char *desc, void *addr, int len) {
     int i;
@@ -65,10 +65,11 @@ dissect_string(byte* data, const char* name) {
     byte size = *(data++);
     printf(" - 1 %s.size: %d bytes\n", name, size);
 
-    // bigger strings not supported
+    /* bigger strings not supported */
     assert(size != 255);
 
-    strncpy(buf, data, size); buf[size] = 0;
+    strncpy(buf, (char*)data, size);
+    buf[size] = 0;
     printf(" - %d %s: '%s'\n", size, name, buf);
     return data + size;;
 }
@@ -149,10 +150,10 @@ static byte*
 dissect_byteseq(byte* data, const char* name) {
     byte size = *data;
     printf("   - 1 %s.size: %d\n", name, size);
-    assert(size < 255); // no bigger sequences supported
+    assert(size < 255); /* no bigger sequences supported */
     data++;
 
-    // FIXME: try to print data
+    /* FIXME: try to print data */
 
     return data + size;
 }
@@ -183,13 +184,15 @@ dissect_udp_proxy(byte* data, int limit) {
 
 static void
 dissect_AutoPilot_ParamSeq(byte* data, int limit) {
+    byte size;
+    int i;
+
     hexdump("\nAutoPilot ParamSeq", data, limit);
     printf("\nParamSeq dissection:\n");
 
-    byte size = *data;
+    size = *data;
     data = dissect_byte_lt(data, "paramSeq.size", 255);
 
-    int i;
     for (i=0; i<size; i++) {
 	printf(" ------- param %d\n", i);
 
@@ -201,6 +204,9 @@ dissect_AutoPilot_ParamSeq(byte* data, int limit) {
 
 static void
 dissect_message(byte* data, int limit) {
+    int size;
+    byte* rest;
+
     hexdump("Ice Message", data, limit);
     printf("\nIce Message dissection:\n");
 
@@ -223,9 +229,9 @@ dissect_message(byte* data, int limit) {
     data = dissect_byte(data, "mode");
     data = dissect_byte_eq(data, "context.size", 0);
 
-    int size = *((Ice_Int*)data);
+    size = *((Ice_Int*)data);
     data = dissect_encaps(data, "encapsulation");
-    byte* rest = dissect_udp_proxy(data, size - 6);
+    rest = dissect_udp_proxy(data, size - 6);
     dissect_AutoPilot_ParamSeq(rest, (size - 6) - (rest - data));
 }
 
@@ -233,5 +239,5 @@ dissect_message(byte* data, int limit) {
 #undef Ice_Short
 #undef Ice_Int
 
-#endif  // DEBUG
-#endif  // _ICEC_DEBUG_H_
+#endif  /* DEBUG */
+#endif  /* _ICEC_DEBUG_H_ */

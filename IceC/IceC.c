@@ -9,29 +9,33 @@ Object_init(ObjectPtr this) {
 
 void
 IceUtil_getIdentity(const char* s, char* result) {
+    int end;
+
     trace();
     s += strspn(s, "\n\r\t ");
-    int end = strcspn(s, "\n\r\t ");
+    end = strcspn(s, "\n\r\t ");
     strncpy(result, s, end);
     result[end] = 0;
 }
 
 void
 IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
-    trace();
-
     char proto[MAX_PROTO_SIZE];
+    char* i;
+    int end;
+
+    trace();
     proto[0] = 0;
 
     s += strspn(s, "\n\r\t ");
 
-    char* i = index(s, ':');
+    i = index(s, ':');
     if (i != NULL) {
 	i++;
 	s = i + strspn(i, "\n\r\t ");
     }
 
-    int end = strcspn(s, "\n\r\t ");
+    end = strcspn(s, "\n\r\t ");
     strncpy(proto, s, end);
     proto[end] = 0;
 
@@ -49,6 +53,8 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
 
 void
 IceUtil_getHost(const char* s, char* result) {
+    int end;
+
     trace();
     result[0] = 0;
 
@@ -56,9 +62,9 @@ IceUtil_getHost(const char* s, char* result) {
 	s = index(s, '-');
 	if (s == NULL) return;
 	if (s[1] == 'h') {
-	    s += 2;  // '-h'
+	    s += 2;  /* '-h' */
 	    s += strspn(s, "\n\r\t ");
-	    int end = strcspn(s, "\n\r\t ");
+	    end = strcspn(s, "\n\r\t ");
 	    strncpy(result, s, end);
 	    result[end] = 0;
 	    return;
@@ -69,17 +75,19 @@ IceUtil_getHost(const char* s, char* result) {
 
 void
 IceUtil_getPort(const char* s, int* result) {
+    char strport[10];
+    int end;
+
     trace();
     *result = -1;
-    char strport[10];
 
     while (true) {
 	s = index(s, '-');
 	if (s == NULL) return;
 	if (s[1] == 'p') {
-	    s += 2; // '-p'
+	    s += 2; /* '-p' */
 	    s += strspn(s, "\n\r\t ");
-	    int end = strcspn(s, "\n\r\t ");
+	    end = strcspn(s, "\n\r\t ");
 	    strncpy(strport, s, end);
 	    strport[end] = 0;
 
@@ -124,6 +132,9 @@ Ice_InputStream_readByte(Ice_InputStreamPtr this, Ice_Byte* v) {
 
 void
 Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v) {
+    Ice_Byte* src;
+    Ice_Byte* dest;
+
     trace();
     Ptr_check(this);
 
@@ -132,15 +143,15 @@ Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v) {
 	return;
     }
 
-    Ice_Byte* src = this->next;
+    src = this->next;
     this->next += sizeof(Ice_Short);
 
 #ifdef ICE_BIG_ENDIAN
-    Ice_Byte* dest = (Ice_Byte*)(v + sizeof(Ice_Short) - 1);
+    dest = (Ice_Byte*)(v + sizeof(Ice_Short) - 1);
     *dest-- = *src++;
     *dest = *src;
 #else
-    Ice_Byte* dest = (Ice_Byte*)v;
+    dest = (Ice_Byte*)v;
     *dest++ = *src++;
     *dest = *src;
 #endif
@@ -148,6 +159,9 @@ Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v) {
 
 void
 Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v) {
+    Ice_Byte* src;
+    Ice_Byte* dest;
+
     trace();
     Ptr_check(this);
 
@@ -156,17 +170,17 @@ Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v) {
 	return;
     }
 
-    Ice_Byte* src = this->next;
+    src = this->next;
     this->next += sizeof(Ice_Int);
 
 #ifdef ICE_BIG_ENDIAN
-    Ice_Byte* dest = (Ice_Byte*)(v + sizeof(Ice_Int) - 1);
+    dest = (Ice_Byte*)(v + sizeof(Ice_Int) - 1);
     *dest-- = *src++;
     *dest-- = *src++;
     *dest-- = *src++;
     *dest = *src;
 #else
-    Ice_Byte* dest = (Ice_Byte*)v;
+    dest = (Ice_Byte*)v;
     *dest++ = *src++;
     *dest++ = *src++;
     *dest++ = *src++;
@@ -176,10 +190,11 @@ Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v) {
 
 void
 Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment) {
+    Ice_Byte b;
+
     trace();
     Ptr_check(this);
 
-    Ice_Byte b;
     Ice_InputStream_readByte(this, &b);
     if (b < 255) {
 	*size = b;
@@ -189,18 +204,19 @@ Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment)
 
     Ice_InputStream_readInt(this, size);
     if (! increment) this->next -= sizeof(Ice_Int);
-    assert(size >= 0);
+    assert(*size >= 0);
 }
 
 void
 Ice_InputStream_readString(Ice_InputStreamPtr this, char* v) {
+    int size;
+
     trace();
     Ptr_check(this);
 
-    int size;
     Ice_InputStream_readSize(this, &size, true);
     if (v != NULL)  {
-	strncpy(v, this->next, size);
+	strncpy(v, (char*)this->next, size);
 	v[size] = 0;
     }
     this->next += size;
@@ -222,8 +238,8 @@ Ice_InputStream_readIdentity(Ice_InputStreamPtr this, char* name) {
     trace();
     Ptr_check(this);
 
-    Ice_InputStream_readString(this, name); // name
-    Ice_InputStream_readString(this, NULL); // category (not supported)
+    Ice_InputStream_readString(this, name); /* name */
+    Ice_InputStream_readString(this, NULL); /* category (not supported) */
 }
 
 void
@@ -261,20 +277,24 @@ Ice_OutputStream_writeByte(Ice_OutputStreamPtr this, Ice_Byte v) {
 
 void
 Ice_OutputStream_writeShort(Ice_OutputStreamPtr this, Ice_Short v) {
+    byte size;
+    byte* dest;
+    byte* src;
+
     trace();
     Ptr_check(this);
 
-    byte size = sizeof(Ice_Short);
+    size = sizeof(Ice_Short);
     assert((this->size + size <= MAX_MESSAGE_SIZE));
 
-    byte* dest = this->next;
+    dest = this->next;
 
 #ifdef ICE_BIG_ENDIAN
-    byte* src = (byte*)&v + sizeof(Ice_Short) - 1;
+    src = (byte*)&v + sizeof(Ice_Short) - 1;
     *dest++ = *src--;
     *dest = *src;
 #else
-    byte* src = (byte*)&v;
+    src = (byte*)&v;
     *dest++ = *src++;
     *dest = *src;
 #endif
@@ -285,22 +305,26 @@ Ice_OutputStream_writeShort(Ice_OutputStreamPtr this, Ice_Short v) {
 
 void
 Ice_OutputStream_writeInt(Ice_OutputStreamPtr this, Ice_Int v) {
+    byte size;
+    byte* dest;
+    byte* src;
+
     trace();
     Ptr_check(this);
 
-    byte size = sizeof(Ice_Int);
+    size = sizeof(Ice_Int);
     assert((this->size + size <= MAX_MESSAGE_SIZE) && "Too long message!");
 
-    byte* dest = this->next;
+    dest = this->next;
 
 #ifdef ICE_BIG_ENDIAN
-    byte* src = (byte*)&v + sizeof(Ice_Int) - 1;
+    src = (byte*)&v + sizeof(Ice_Int) - 1;
     *dest++ = *src--;
     *dest++ = *src--;
     *dest++ = *src--;
     *dest = *src;
 #else
-    byte* src = (byte*)&v;
+    src = (byte*)&v;
     *dest++ = *src++;
     *dest++ = *src++;
     *dest++ = *src++;
@@ -340,10 +364,12 @@ Ice_OutputStream_writeSize(Ice_OutputStreamPtr this, int size) {
 
 void
 Ice_OutputStream_writeString(Ice_OutputStreamPtr this, const char* str) {
+    int size;
+
     trace();
     Ptr_check(this);
 
-    int size = strlen(str);
+    size = strlen(str);
     Ice_OutputStream_writeSize(this, size);
     Ice_OutputStream_writeBlob(this, (byte*)str, size);
 }
@@ -357,8 +383,8 @@ Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr this, const char* id) {
 	fixme("category not supported");
     }
 
-    Ice_OutputStream_writeString(this, id); // name
-    Ice_OutputStream_writeByte(this, 0);    // category
+    Ice_OutputStream_writeString(this, id); /* name */
+    Ice_OutputStream_writeByte(this, 0);    /* category */
 }
 
 void
@@ -369,17 +395,19 @@ Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr this) {
     assert(this->current_encaps + 1 < MAX_NESTED_ENCAPS);
     this->encaps[++(this->current_encaps)] = this->next;
 
-    Ice_OutputStream_writeInt(this, 0); // placeholder for encapsulation length
+    Ice_OutputStream_writeInt(this, 0); /* placeholder for encapsulation length */
     Ice_OutputStream_writeByte(this, encodingMajor);
     Ice_OutputStream_writeByte(this, encodingMinor);
 }
 
 void
 Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr this) {
+    Ice_Int* size;
+
     trace();
     Ptr_check(this);
 
-    Ice_Int* size = (Ice_Int*)this->encaps[this->current_encaps];
+    size = (Ice_Int*)this->encaps[this->current_encaps];
     *size = this->next - this->encaps[this->current_encaps];
 
     this->encaps[(this->current_encaps)--] = NULL;
@@ -387,13 +415,16 @@ Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr this) {
 
 void
 Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr this) {
+    byte* next;
+    int size;
+
     trace();
     Ptr_check(this);
 
-    byte* next = this->next;
-    int size = this->size;
+    next = this->next;
+    size = this->size;
 
-    // Ice header is fixed length, size starts at position 11
+    /* Ice header is fixed length, size starts at position 11 */
     this->next = this->data + 10;
     Ice_OutputStream_writeInt(this, size);
 
@@ -413,15 +444,16 @@ Ice_Connection_init(Ice_ConnectionPtr this, Ice_EndpointType type) {
 
 void
 Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
+    int fd, res;
+
     trace();
     Ptr_check(this);
 
-    int fd = this->current_client;
+    fd = this->current_client;
     if (fd == -1) fd = this->fd;
 
     assert(this->fd > -1);
 
-    int res;
     switch (this->type) {
     case Ice_EndpointTypeTCP:
     case Ice_EndpointTypeUDP: {
@@ -451,15 +483,15 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 
 void
 Ice_Connection_sendValidate(Ice_ConnectionPtr this) {
+    Ice_OutputStream os;
+
     trace();
     Ptr_check(this);
 
-    // FIXME: there is no need for OutputStream here
-    Ice_OutputStream os;
     Ice_OutputStream_init(&os);
     Ice_OutputStream_writeBlob(&os, Ice_header, 8);
     Ice_OutputStream_writeByte(&os, Ice_validateConnectionMsg);
-    Ice_OutputStream_writeByte(&os, 0);  // compression
+    Ice_OutputStream_writeByte(&os, 0);  /* compression */
     Ice_OutputStream_writeInt(&os, 14);
 
     Ice_Connection_send(this, os.data, os.size);
@@ -467,14 +499,15 @@ Ice_Connection_sendValidate(Ice_ConnectionPtr this) {
 
 void
 Ice_Connection_sendClose(Ice_ConnectionPtr this) {
+    Ice_OutputStream os;
+
     trace();
     Ptr_check(this);
 
-    Ice_OutputStream os;
     Ice_OutputStream_init(&os);
     Ice_OutputStream_writeBlob(&os, Ice_header, 8);
     Ice_OutputStream_writeByte(&os, Ice_closeConnectionMsg);
-    Ice_OutputStream_writeByte(&os, 0);  // compression
+    Ice_OutputStream_writeByte(&os, 0);  /* compression */
     Ice_OutputStream_writeInt(&os, 14);
 
     Ice_Connection_send(this, os.data, os.size);
@@ -482,10 +515,12 @@ Ice_Connection_sendClose(Ice_ConnectionPtr this) {
 
 void
 Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port) {
+    struct sockaddr_in addr;
+    int res;
+
     trace();
     Ptr_check(this);
 
-    struct sockaddr_in addr;
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
     this->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -502,7 +537,7 @@ Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port) {
         return;
     }
 
-    int res = connect(this->fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
+    res = connect(this->fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
     if (res == -1) {
 	error("Could not connect: %s\n", strerror(errno));
 	return;
@@ -511,10 +546,12 @@ Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port) {
 
 void
 Ice_Connection_listen(Ice_ConnectionPtr this, const char* host, int port) {
+    struct sockaddr_in addr;
+    int optval;
+
     trace();
     Ptr_check(this);
 
-    struct sockaddr_in addr;
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
     if (this->fd == -1) {
@@ -530,7 +567,7 @@ Ice_Connection_listen(Ice_ConnectionPtr this, const char* host, int port) {
         return;
     }
 
-    int optval = 1;
+    optval = 1;
     setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
     if (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 	error("Could not bind socket: %s\n", strerror(errno));
@@ -603,10 +640,13 @@ Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
 
 void
 Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
+    Ice_EndpointInfoPtr info;
+    bool ok;
+
     trace();
     Ptr_check(this);
 
-    Ice_EndpointInfoPtr info = &(this->epinfo);
+    info = &(this->epinfo);
 
     switch (info->type) {
     case Ice_EndpointTypeUDP:
@@ -618,7 +658,7 @@ Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
 	break;
 
     default: {
-	bool ok = IcePlugin_ObjectAdapter_activate(this);
+	ok = IcePlugin_ObjectAdapter_activate(this);
 
 	if (!ok) {
 	    throw("Ice_NoEndpointException", __FILE__, __LINE__);
@@ -634,12 +674,14 @@ void
 Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr this,
 		      Ice_ObjectPtr servant,
 		      const char* identity) {
+    Ice_ServantMapPtr sm;
+
     trace();
     Ptr_check(this);
     Ptr_check(servant);
     assert(strlen(identity) < MAX_IDENTITY_SIZE);
 
-    Ice_ServantMapPtr sm = &(this->servantMap);
+    sm = &(this->servantMap);
     strcpy(sm->ids[sm->count], identity);
     sm->objects[sm->count] = servant;
     sm->count++;
@@ -669,26 +711,30 @@ Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr this) {
 	close(this->connection.current_client);
 	this->connection.current_client = -1;
     }
+    return 0;
 }
 
 void
 Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
+    int fd, size, requestId, i;
+    Ice_InputStream is;
+    char identity[MAX_IDENTITY_SIZE];
+    byte facetSeqSize;
+
+    char header[] = {
+	'I', 'c', 'e', 'P',    /* int  magic */
+	1,                     /* byte protocolMajor */
+	0,                     /* byte protocolMinor */
+	1,                     /* byte encodingMajor */
+	0,                     /* byte encodingMinor */
+	0,                     /* byte messageType (0 -> request) */
+	0};                    /* byte compressionStatus (0 -> no compress) */
+
     trace();
     Ptr_check(this);
 
-    int fd = Ice_ObjectAdapter_getClient(this);
-
-    Ice_InputStream is;
+    fd = Ice_ObjectAdapter_getClient(this);
     Ice_InputStream_init(&is, fd, this->connection.type);
-
-    char header[] = {
-	'I', 'c', 'e', 'P',    // int  magic
-	1,                     // byte protocolMajor
-	0,                     // byte protocolMinor
-	1,                     // byte encodingMajor
-	0,                     // byte encodingMinor
-	0,                     // byte messageType (0 -> request)
-	0};                    // byte compressionStatus (0 -> no compress)
 
     if (memcmp(header, is.next, 10) != 0) {
 	throw("Ice_ProtocolException", __FILE__, __LINE__);
@@ -697,7 +743,6 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
     }
     is.next += 10;
 
-    int size;
     Ice_InputStream_readInt(&is, &size);
     if (size > MAX_MESSAGE_SIZE) {
 	throw("Ice_MemoryLimitException", __FILE__, __LINE__);
@@ -705,40 +750,35 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
 	return;
     }
 
-    int requestId;
     Ice_InputStream_readInt(&is, &requestId);
-
-    char identity[MAX_IDENTITY_SIZE];
     Ice_InputStream_readIdentity(&is, identity);
 
-    // facet not supported
-    byte facetSeqSize;
+    /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
     assert(facetSeqSize == 0);
 
-    int i;
     for (i=0; i<this->servantMap.count; i++) {
 	if (streq(this->servantMap.ids[i], identity)) {
+	    Ice_OutputStream os;
 
 	    Ice_ObjectPtr servant = this->servantMap.objects[i];
 	    assert(servant->handler != NULL);
 
-	    // prepare reply message
-	    Ice_OutputStream os;
+	    /* prepare reply message */
 	    Ice_OutputStream_init(&os);
 
-	    // reply header (if twoway)
+	    /* reply header (if twoway) */
 	    if (requestId > 0) {
 		Ice_OutputStream_writeBlob(&os, Ice_header, 8);
 		Ice_OutputStream_writeByte(&os, Ice_replyMsg);
-		Ice_OutputStream_writeByte(&os, 0);  // compression
-		Ice_OutputStream_writeInt(&os, 0);  // size (placeholder)
+		Ice_OutputStream_writeByte(&os, 0);  /* compression */
+		Ice_OutputStream_writeInt(&os, 0);  /* size (placeholder) */
 
-		// reply data
+		/* reply data */
 		Ice_OutputStream_writeInt(&os, requestId);
-		Ice_OutputStream_writeByte(&os, 0);  // reply status
+		Ice_OutputStream_writeByte(&os, 0);  /* reply status */
 
-		// user data encapsulation
+		/* user data encapsulation */
 		Ice_OutputStream_startWriteEncaps(&os);
 	    }
 
@@ -783,7 +823,7 @@ Ice_ObjectPrx_init(Ice_ObjectPrxPtr this,
 
     strcpy(this->identity, id);
 
-    // FIXME: get mode from stringfied proxy
+    /* FIXME: get mode from stringfied proxy */
     this->mode = Ice_ReferenceModeDatagram;
 
     Object_init((ObjectPtr)this);
@@ -814,36 +854,33 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr this) {
     trace();
     Ptr_check(this);
 
-    // dissect_message(this->stream.data, this->stream.size);
+    /* dissect_message(this->stream.data, this->stream.size); */
     Ice_Connection_send(&(this->connection), this->stream.data, this->stream.size);
 }
 
 void
 Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is) {
+    char identity[MAX_IDENTITY_SIZE];
+    char host[MAX_HOST_SIZE];
+    byte b, facetSeqSize, numOfEndpoints;
+    int port = 0;
+
     trace();
     Ptr_check(is);
 
-    char identity[MAX_IDENTITY_SIZE];
     Ice_InputStream_readIdentity(is, identity);
-
-    byte facetSeqSize;
     Ice_InputStream_readByte(is, &facetSeqSize);
     assert(facetSeqSize == 0);
 
-    byte b;
-    Ice_InputStream_readByte(is, &b); // mode
-    Ice_InputStream_readByte(is, &b); // secure
-
-    byte numOfEndpoints;
-    Ice_InputStream_readByte(is, &b);
+    Ice_InputStream_readByte(is, &b); /* mode */
+    Ice_InputStream_readByte(is, &b); /* secure */
+    Ice_InputStream_readByte(is, &numOfEndpoints);
     assert(numOfEndpoints == 1);
 
     fixme("Not finished implementation");
-    char host[MAX_HOST_SIZE];
     host[0] = 0;
-    int port = 0;
 
-    // FIXME: read endpoint type and use it!
+    /* FIXME: read endpoint type and use it! */
     Ice_ObjectPrx_init(this, identity, Ice_EndpointTypeUDP, host, port);
 }
 
@@ -852,7 +889,7 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os)
     trace();
     Ptr_check(os);
 
-    // if null proxy, write empty Identity (0 0) and return
+    /* if null proxy, write empty Identity (0 0) and return */
     if (! this) {
 	Ice_OutputStream_writeByte(os, 0);
 	Ice_OutputStream_writeByte(os, 0);
@@ -861,22 +898,22 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os)
 
     Ptr_check(this);
 
-    Ice_OutputStream_writeIdentity(os, this->identity);   // identity
-    Ice_OutputStream_writeByte(os, 0);                    // facet
-    Ice_OutputStream_writeByte(os, this->mode);           // mode
-    Ice_OutputStream_writeByte(os, 0);                    // secure
+    Ice_OutputStream_writeIdentity(os, this->identity);   /* identity */
+    Ice_OutputStream_writeByte(os, 0);                    /* facet */
+    Ice_OutputStream_writeByte(os, this->mode);           /* mode */
+    Ice_OutputStream_writeByte(os, 0);                    /* secure */
 
-    Ice_OutputStream_writeByte(os, 1);                    // num of endpoints
-    Ice_OutputStream_writeShort(os, Ice_EndpointTypeUDP); // endpoint type
+    Ice_OutputStream_writeByte(os, 1);                    /* num of endpoints */
+    Ice_OutputStream_writeShort(os, Ice_EndpointTypeUDP); /* endpoint type */
 
     Ice_OutputStream_startWriteEncaps(os);
-    Ice_OutputStream_writeString(os, this->epinfo.host);  // host
-    Ice_OutputStream_writeInt(os, this->epinfo.port);     // port
-    Ice_OutputStream_writeByte(os, protocolMajor);        // protocolMajor
-    Ice_OutputStream_writeByte(os, protocolMinor);        // protocolMinor
-    Ice_OutputStream_writeByte(os, encodingMajor);        // encodingMajor
-    Ice_OutputStream_writeByte(os, encodingMinor);        // encodingMinor
-    Ice_OutputStream_writeByte(os, 0);                    // compress
+    Ice_OutputStream_writeString(os, this->epinfo.host);  /* host */
+    Ice_OutputStream_writeInt(os, this->epinfo.port);     /* port */
+    Ice_OutputStream_writeByte(os, protocolMajor);        /* protocolMajor */
+    Ice_OutputStream_writeByte(os, protocolMinor);        /* protocolMinor */
+    Ice_OutputStream_writeByte(os, encodingMajor);        /* encodingMajor */
+    Ice_OutputStream_writeByte(os, encodingMinor);        /* encodingMinor */
+    Ice_OutputStream_writeByte(os, 0);                    /* compress */
     Ice_OutputStream_endWriteEncaps(os);
 }
 
@@ -893,10 +930,11 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr this,
 						  const char* name,
 						  const char* endpoints,
 						  Ice_ObjectAdapterPtr result) {
+    Ice_EndpointType type;
+
     trace();
     Ptr_check(this);
 
-    Ice_EndpointType type;
     IceUtil_getProtocolType(endpoints, &type);
 
     switch(type) {
@@ -932,11 +970,12 @@ Ice_Communicator_registerAdapter(Ice_CommunicatorPtr this,
 void
 Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 			       Ice_ObjectPrx* result) {
+    Ice_EndpointType type;
+    char identity[MAX_IDENTITY_SIZE];
+
     trace();
     Ptr_check(this);
 
-    Ice_EndpointType type;
-    char identity[MAX_IDENTITY_SIZE];
     IceUtil_getProtocolType(str, &type);
     IceUtil_getIdentity(str, identity);
 
@@ -959,15 +998,15 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 
 void
 Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this) {
-    trace();
-    Ptr_check(this);
-
     int i, count;
     fd_set read_set;
     Ice_ObjectAdapterPtr adapter;
 
     int fds[MAX_NUM_OF_ADAPTERS];
     Ice_ObjectAdapterPtr adapters[MAX_NUM_OF_ADAPTERS];
+
+    trace();
+    Ptr_check(this);
 
     while (true) {
 	FD_ZERO(&read_set);
@@ -1031,21 +1070,23 @@ IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this) {
 
 void
 IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item) {
+    IcePlugin_PluginListItemPtr last = &_registered_endpoints;
+
     trace();
     Ptr_check(item);
 
-    IcePlugin_PluginListItemPtr last = &_registered_endpoints;
     while(last->next != NULL)
 	last = last->next;
 
     last->next = item;
-};
+}
 
 void
 IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
 	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
 	Ptr_check(endp);
@@ -1059,9 +1100,10 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
 void
 IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
@@ -1075,10 +1117,10 @@ IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType typ
 
 int
 IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size) {
-    trace();
-
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     int sent = 0;
+
+    trace();
 
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
@@ -1095,9 +1137,10 @@ IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size) 
 void
 IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
 			    const char* endpoint) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
@@ -1111,18 +1154,20 @@ IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
 
 bool
 IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
 
     	if (endp->ObjectAdapter_activate(this))
-    	    break;
+    	    return true;
 
     	item = item->next;
     }
+    return false;
 }
 
 void
@@ -1130,9 +1175,10 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
 			 const char* id,
 			 Ice_EndpointType type,
 			 const char* strprx) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
@@ -1146,9 +1192,10 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
 
 void
 IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
     trace();
 
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);

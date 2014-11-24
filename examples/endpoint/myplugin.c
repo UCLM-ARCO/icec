@@ -23,12 +23,12 @@ MyPlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
 bool
 MyPlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
+    MyPlugin_EndpointOptionsPtr options =
+	(MyPlugin_EndpointOptionsPtr)this->epinfo.options;
+
     trace();
     if (this->epinfo.type != Ice_EndpointTypeFile)
 	return false;
-
-    MyPlugin_EndpointOptionsPtr options =
-	(MyPlugin_EndpointOptionsPtr)this->epinfo.options;
 
     MyPlugin_Connection_open_file(&(this->connection), options->path, true);
     return true;
@@ -51,12 +51,12 @@ MyPlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
 
 bool
 MyPlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
+    MyPlugin_EndpointOptionsPtr options =
+	(MyPlugin_EndpointOptionsPtr)this->epinfo.options;
+
     trace();
     if (this->epinfo.type != Ice_EndpointTypeFile)
 	return false;
-
-    MyPlugin_EndpointOptionsPtr options =
-	(MyPlugin_EndpointOptionsPtr)this->epinfo.options;
 
     MyPlugin_Connection_open_file(&(this->connection), options->path, false);
     return true;
@@ -75,10 +75,11 @@ MyPlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id, Ice_EndpointType 
     MyPlugin_EndpointInfo_init(&(this->epinfo), type, strprx);
     strcpy(this->identity, id);
 
-    // FIXME: get mode from stringfied proxy
-    this->mode = Ice_ReferenceModeDatagram;
+    /* FIXME: get mode from stringfied proxy */
+    this->mode = Ice_ReferenceModeOneway;
 
     Object_init((ObjectPtr)this);
+    return true;
 }
 
 bool
@@ -95,8 +96,11 @@ MyPlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data,
 bool
 MyPlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     trace();
+    if (type != Ice_EndpointTypeFile)
+	return false;
 
     this->size = read(fd, this->data, MAX_MESSAGE_SIZE);
+    return true;
 }
 
 void
@@ -123,6 +127,8 @@ MyPlugin_init(Ice_CommunicatorPtr ic) {
 
 void
 MyPlugin_Endpoint_getPath(const char* s, char* result) {
+    int end;
+
     trace();
 
     result[0] = 0;
@@ -130,9 +136,9 @@ MyPlugin_Endpoint_getPath(const char* s, char* result) {
     	s = index(s, '-');
     	if (s == NULL) return;
     	if (s[1] == 'p') {
-    	    s += 2;  // '-p'
+    	    s += 2;  /* '-p' */
     	    s += strspn(s, "\n\r\t ");
-    	    int end = strcspn(s, "\n\r\t ");
+    	    end = strcspn(s, "\n\r\t ");
 	    assert(end <= MAX_PATH_SIZE && "Path size too big!");
     	    strncpy(result, s, end);
     	    result[end] = 0;
@@ -155,7 +161,7 @@ MyPlugin_Connection_open_file(Ice_ConnectionPtr this, const char* path, bool oae
 	}
     }
 
-    this->fd = open(path, O_RDWR | O_SYNC, S_IREAD | S_IWRITE);
+    this->fd = open(path, O_RDWR | O_SYNC, S_IRUSR | S_IWUSR);
     if (this->fd == -1) {
 	error("Error openning file: %s\n", strerror(errno));
 	throw("MyPlugin_IOError", __FILE__, __LINE__);

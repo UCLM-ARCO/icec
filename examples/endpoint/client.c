@@ -5,23 +5,24 @@
 
 int
 main(int argc, char* argv[]) {
+    Ice_Communicator ic;
+    Ice_ObjectPrx config;
+
     if (argc < 2) {
 	printf("USAGE: %s <proxy>\n", argv[0]);
 	return -1;
     }
 
-    // create communicator
-    Ice_Communicator ic;
+    /* create communicator */
     Ice_initialize(&ic);
 
-    // init plugin
+    /* init plugin */
     MyPlugin_init(&ic);
 
-    // create proxy to server
-    Ice_ObjectPrx config;
+    /* create proxy to server */
     Ice_Communicator_stringToProxy(&ic, argv[1], &config);
 
-    // invoke it
+    /* invoke it */
     Example_Config_set(&config, 1551);
     return 0;
 }

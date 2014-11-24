@@ -7,7 +7,15 @@ SLICE2C  = $(BASEDIR)/bin/slice2c
 TARGETS ?= server client
 SLICE    = slice.ice
 CFLAGS  += -I $(BASEDIR)
-# CFLAGS  += -DDEBUG -ggdb
+CFLAGS  += -DDEBUG -ggdb
+
+# Uncomment for very strict c code
+CFLAGS  += -Wall -Wextra -std=c89 -pedantic -Wmissing-prototypes \
+	   -Wstrict-prototypes -Wold-style-definition -O3
+
+# Add a bit of sense after that...
+CFLAGS  += -Wno-variadic-macros -Wno-sign-compare -Wno-implicit-function-declaration \
+	   -Wno-unused-parameter -Wno-unused-function
 
 vpath %.c $(ICEC_SRC)
 

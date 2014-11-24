@@ -11,4 +11,5 @@ typedef enum {false=0, true=1} bool;
 
 typedef uint8_t byte;
 
-#endif // _ICEC_TYPES_H_
+
+#endif  /* _ICEC_TYPES_H_ */

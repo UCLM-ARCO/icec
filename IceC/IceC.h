@@ -4,10 +4,18 @@
 #define _ICE_ICEC_H_
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <string.h>
+#include <strings.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
 
 #include "types.h"
 #include "debug.h"
@@ -25,13 +33,14 @@
 #    error "Unknown architecture"
 #endif
 
-#define MAX_MESSAGE_SIZE    128
-#define MAX_IDENTITY_SIZE   16
-#define MAX_HOST_SIZE       16
-#define MAX_NESTED_ENCAPS   5
-#define MAX_NUM_OF_ADAPTERS 5
-#define MAX_NUM_OF_SERVANTS 5
-#define MAX_PROTO_SIZE      16
+#define MAX_MESSAGE_SIZE        128
+#define MAX_IDENTITY_SIZE       16
+#define MAX_HOST_SIZE           16
+#define MAX_NESTED_ENCAPS       5
+#define MAX_NUM_OF_ADAPTERS     5
+#define MAX_NUM_OF_SERVANTS     5
+#define MAX_PROTO_SIZE          16
+#define MAX_OPERATION_NAME_SIZE 16
 
 #define streq(S1, S2) (strcmp(S1, S2) == 0)
 
@@ -47,10 +56,10 @@ typedef int16_t Ice_Short;
 typedef int32_t Ice_Int;
 typedef int64_t Ice_Long;
 
-#define magic0 0x49 // I
-#define magic1 0x63 // c
-#define magic2 0x65 // e
-#define magic3 0x50 // P
+#define magic0 0x49 /* I */
+#define magic1 0x63 /* c */
+#define magic2 0x65 /* e */
+#define magic3 0x50 /* P */
 
 #define protocolMajor 1
 #define protocolMinor 0
@@ -62,13 +71,13 @@ typedef enum {
     Ice_requestBatchMsg,
     Ice_replyMsg,
     Ice_validateConnectionMsg,
-    Ice_closeConnectionMsg,
+    Ice_closeConnectionMsg
 } Ice_MessageType;
 
 typedef enum {
     Ice_Normal,
     Ice_Nonmutating,
-    Ice_Idempotent,
+    Ice_Idempotent
 } Ice_OperationMode;
 
 typedef enum {
@@ -76,7 +85,7 @@ typedef enum {
     Ice_ReferenceModeOneway,
     Ice_ReferenceModeBatchOneway,
     Ice_ReferenceModeDatagram,
-    Ice_ReferenceModeBatchDatagram,
+    Ice_ReferenceModeBatchDatagram
 } Ice_ReferenceMode;
 
 #define Ice_EndpointTypeTCP 1
@@ -95,8 +104,8 @@ static const byte Ice_header[] = {
     encodingMajor,
     encodingMinor,
     Ice_requestMsg,
-    0,               // Compression status
-    0, 0, 0, 0,      // Message size (placeholder)
+    0,               /* Compression status */
+    0, 0, 0, 0,      /* Message size (placeholder) */
 };
 
 typedef struct {
@@ -112,7 +121,7 @@ void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
 void IceUtil_getHost(const char* s, char* result);
 void IceUtil_getPort(const char* s, int* result);
 
-// Forward declaration
+/* Forward declaration */
 struct Ice_InputStream;
 typedef struct Ice_InputStream* Ice_InputStreamPtr;
 
@@ -195,7 +204,7 @@ void Ice_UDPConnection_listen(Ice_ConnectionPtr this, const char* host, int port
 void Ice_TCPConnection_listen(Ice_ConnectionPtr this, const char* host, int port);
 void Ice_TCPConnection_accept(Ice_ConnectionPtr this);
 
-// Forward declaration
+/* Forward declaration */
 struct Ice_Communicator;
 typedef struct Ice_Communicator* Ice_CommunicatorPtr;
 
@@ -242,7 +251,7 @@ typedef Ice_ObjectAdapter* Ice_ObjectAdapterPtr;
 void Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
 			    Ice_CommunicatorPtr communicator);
 
-// Forward declaration
+/* Forward declaration */
 void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr, Ice_ObjectAdapterPtr);
 
 void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
@@ -328,6 +337,7 @@ typedef struct IcePlugin_EndpointObject {
 
 typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
 
+void IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item);
 void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
@@ -341,4 +351,4 @@ void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id,
 			      Ice_EndpointType type, const char* strprx);
 
-#endif // _ICE_ICEC_H_
+#endif  /* _ICE_ICEC_H_ */
