@@ -1,6 +1,8 @@
 # -*- mode: python; coding: utf-8 -*-
 
 import unittest
+import prego
+import hamcrest
 from commodity.testing import wait_that
 from commodity.net import localhost, listen_port
 from commodity.os_ import SubProcess
@@ -48,3 +50,21 @@ class TestExampleReaderServer(unittest.TestCase):
         server.terminate()
         out = server.stdout.readline()
         self.assertIn("'read' request, return: 1441", out)
+
+
+class TestExamplePlugin(prego.TestCase):
+    cwd = "examples/endpoint"
+
+    def test_works(self):
+        server = prego.Task(detach=True)
+        cmd = server.command("./server", cwd=self.cwd, expected=-15)
+        server.wait_that(
+            cmd.stdout.content,
+            hamcrest.contains_string("set called with code: 1551"))
+
+        client = prego.Task()
+        client.wait_that(server, prego.running())
+        client.wait_that(cmd.stdout.content, hamcrest.contains_string("ready:"))
+        client.command(
+            "./client 'ConfigServer -e 1.0 -o:file -p /tmp/myendp'",
+            cwd=self.cwd)

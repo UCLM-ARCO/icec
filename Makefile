@@ -4,9 +4,9 @@ all:
 
 .PHONY: test
 test:
-	make -C examples/hello clean all
+	make -C examples clean all
 	nosetests test/test_*.py -s
 
 .PHONY: clean
 clean:
-	make -C examples/hello $@
+	make -C examples $@

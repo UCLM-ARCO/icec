@@ -215,7 +215,6 @@ typedef struct {
     Object _base;
 
     Ice_EndpointType type;
-    Ice_ReferenceMode mode;
     char host[MAX_HOST_SIZE];
     int port;
     void* options;

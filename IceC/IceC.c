@@ -581,7 +581,6 @@ Ice_EndpointInfo_init(Ice_EndpointInfoPtr this,
     strcpy(this->host, host);
 
     this->type = type;
-    this->mode = -1;
     this->port = port;
     this->options = NULL;
     Object_init((ObjectPtr)this);
@@ -706,7 +705,6 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
 	return;
     }
 
-    // FIXME: this should not be ignored
     int requestId;
     Ice_InputStream_readInt(&is, &requestId);
 
@@ -729,22 +727,28 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
 	    Ice_OutputStream os;
 	    Ice_OutputStream_init(&os);
 
-	    // reply header
-	    Ice_OutputStream_writeBlob(&os, Ice_header, 8);
-	    Ice_OutputStream_writeByte(&os, Ice_replyMsg);
-	    Ice_OutputStream_writeByte(&os, 0);  // compression
-	    Ice_OutputStream_writeInt(&os, 0);  // size (placeholder)
+	    // reply header (if twoway)
+	    if (requestId > 0) {
+		Ice_OutputStream_writeBlob(&os, Ice_header, 8);
+		Ice_OutputStream_writeByte(&os, Ice_replyMsg);
+		Ice_OutputStream_writeByte(&os, 0);  // compression
+		Ice_OutputStream_writeInt(&os, 0);  // size (placeholder)
 
-	    // reply data
-	    Ice_OutputStream_writeInt(&os, requestId);
-	    Ice_OutputStream_writeByte(&os, 0);  // reply status
+		// reply data
+		Ice_OutputStream_writeInt(&os, requestId);
+		Ice_OutputStream_writeByte(&os, 0);  // reply status
 
-	    // user data encapsulation
-	    Ice_OutputStream_startWriteEncaps(&os);
+		// user data encapsulation
+		Ice_OutputStream_startWriteEncaps(&os);
+	    }
+
 	    servant->handler(servant, &is, &os);
-	    Ice_OutputStream_endWriteEncaps(&os);
-	    Ice_OutputStream_setMessageSize(&os);
-	    Ice_Connection_send(&(this->connection), os.data, os.size);
+
+	    if (requestId > 0) {
+		Ice_OutputStream_endWriteEncaps(&os);
+		Ice_OutputStream_setMessageSize(&os);
+		Ice_Connection_send(&(this->connection), os.data, os.size);
+	    }
 
 	    Ice_ObjectAdapter_closeClient(this);
 	    return;
