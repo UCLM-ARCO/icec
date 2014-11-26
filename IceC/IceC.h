@@ -151,6 +151,7 @@ typedef struct Ice_InputStream {
 } Ice_InputStream;
 
 void Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
+void Ice_InputStream_readBool(Ice_InputStreamPtr this, Ice_Bool* v);
 void Ice_InputStream_readByte(Ice_InputStreamPtr this, Ice_Byte* v);
 void Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v);
 void Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v);

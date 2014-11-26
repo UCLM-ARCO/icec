@@ -123,6 +123,14 @@ Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
 }
 
 void
+Ice_InputStream_readBool(Ice_InputStreamPtr this, Ice_Bool* v) {
+    trace();
+    Ptr_check(this);
+
+    *v = *(this->next++) != 0;
+}
+
+void
 Ice_InputStream_readByte(Ice_InputStreamPtr this, Ice_Byte* v) {
     trace();
     Ptr_check(this);
@@ -138,7 +146,7 @@ Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v) {
     trace();
     Ptr_check(this);
 
-    if (this->next - this->data + sizeof(Ice_Short) > this->size) {
+    if (this->next - this->data + sizeof(Ice_Short) > (unsigned int)this->size) {
 	throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
 	return;
     }
@@ -165,7 +173,7 @@ Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v) {
     trace();
     Ptr_check(this);
 
-    if (this->next - this->data + sizeof(Ice_Int) > this->size) {
+    if (this->next - this->data + sizeof(Ice_Int) > (unsigned int)this->size) {
 	throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
 	return;
     }
@@ -931,6 +939,7 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr this,
 						  const char* endpoints,
 						  Ice_ObjectAdapterPtr result) {
     Ice_EndpointType type;
+    (void) name; /* avoid compiler warnings */
 
     trace();
     Ptr_check(this);
@@ -1206,6 +1215,3 @@ IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
     	item = item->next;
     }
 }
-
-
-

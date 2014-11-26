@@ -4,8 +4,7 @@ all:
 
 .PHONY: test
 test:
-	make -C examples clean all
-	-nosetests test/test_*.py -s
+	-nosetests test/$(T) -s
 
 install:
 	install -d $(DESTDIR)/usr/share/icec/bin
@@ -17,8 +16,8 @@ install:
 	install -d $(DESTDIR)/usr/src/IceC
 	install -m 644 IceC/*.c $(DESTDIR)/usr/src/IceC
 
-	install -d $(DESTDIR)/usr/share/include/IceC
-	install -m 644 IceC/*.h $(DESTDIR)/usr/share/include/IceC
+	install -d $(DESTDIR)/usr/include/IceC
+	install -m 644 IceC/*.h $(DESTDIR)/usr/include/IceC
 
 .PHONY: clean
 clean:

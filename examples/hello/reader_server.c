@@ -13,22 +13,23 @@ Example_ReaderI_read(Example_ReaderPtr this) {
 
 int
 main(int argc, char* argv[]) {
-    // create communicator
     Ice_Communicator ic;
+    Ice_ObjectAdapter adapter;
+    Example_Reader servant;
+
+    /* create communicator */
     Ice_initialize(&ic);
 
-    // create object adapter
-    Ice_ObjectAdapter adapter;
+    /* create object adapter */
     Ice_Communicator_createObjectAdapterWithEndpoints
 	(&ic, "Adapter", "tcp -h 127.0.0.1 -p 7891", &adapter);
     Ice_ObjectAdapter_activate(&adapter);
 
-    // register servant
-    Example_Reader servant;
+    /* register servant */
     Example_Reader_init(&servant);
     Ice_ObjectAdapter_add(&adapter, (Ice_ObjectPtr)&servant, "ReaderServer");
 
-    // wait for events (event loop)
+    /* wait for events (event loop) */
     printf("Proxy ready: 'ReaderServer -e 1.0 -t:tcp -h 127.0.0.1 -p 7891'\n");
     fflush(NULL);
 

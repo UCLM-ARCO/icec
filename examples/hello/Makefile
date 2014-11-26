@@ -7,6 +7,7 @@ SLICE2C  = $(BASEDIR)/bin/slice2c
 TARGETS ?= reader_server writer_client
 SLICE    = slice.ice
 CFLAGS  += -I $(BASEDIR)
+CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter
 
 vpath %.c $(ICEC_SRC)
 

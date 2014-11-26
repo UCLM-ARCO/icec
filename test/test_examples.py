@@ -1,70 +1,54 @@
 # -*- mode: python; coding: utf-8 -*-
 
-import unittest
 import prego
 import hamcrest
-from commodity.testing import wait_that
-from commodity.net import localhost, listen_port
-from commodity.os_ import SubProcess
 
 
-class TestExampleWriterClient(unittest.TestCase):
-    cwd = "examples/hello"
+class TestMixin(object):
+    def build_example(self):
+        build = prego.Task("build example using make")
+        build.command("make", cwd=self.cwd)
+        return build
 
+    def run_server(self, cmd, **kwargs):
+        server = prego.Task("server", detach=True)
+        server.command(cmd, cwd=self.cwd, **kwargs)
+        self.server = server
+
+    def run_client(self, cmd, expected):
+        client = prego.Task("client")
+        client.wait_that(self.server, prego.running())
+        client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd)
+        client.wait_that(
+            self.server.lastcmd.stdout.content,
+            hamcrest.contains_string(expected))
+
+
+class TestExampleWriterClient(prego.TestCase, TestMixin):
     def test_works(self):
-        # run python server
-        server = SubProcess("./writer_server.py", cwd=self.cwd)
-        wait_that(localhost, listen_port(7890, proto="udp"))
+        self.cwd = "examples/hello"
+        self.proxy = "WriterServer -d -e 1.0:udp -h 127.0.0.1 -p 7890"
 
-        # get server proxy from output
-        out = server.stdout.readline()
-        str_proxy = out.split("ready: ")[1].strip()[1:-1]
-
-        # run c client
-        client = SubProcess("./writer_client '{0}'".format(str_proxy), cwd=self.cwd)
-        self.assertEqual(client.wait(), 0)
-
-        # check output
-        server.terminate()
-        out = server.stdout.readline()
-        self.assertIn("'write' request, got: 1551", out)
+        self.build_example()
+        self.run_server("./writer_server.py")
+        self.run_client("./writer_client", "'write' request, got: 1551")
 
 
-class TestExampleReaderServer(unittest.TestCase):
-    cwd = "examples/hello"
-
+class TestExampleReaderServer(prego.TestCase, TestMixin):
     def test_works(self):
-        # run c server
-        server = SubProcess("./reader_server", cwd=self.cwd)
-        wait_that(localhost, listen_port(7891))
+        self.cwd = "examples/hello"
+        self.proxy = "ReaderServer -t -e 1.0:tcp -h 127.0.0.1 -p 7891"
 
-        # get server proxy from output
-        out = server.stdout.readline()
-        str_proxy = out.split("ready: ")[1].strip()[1:-1]
-
-        # run python client
-        client = SubProcess("./reader_client.py '{0}'".format(str_proxy), cwd=self.cwd)
-        self.assertEqual(client.wait(), 0)
-
-        # check output
-        server.terminate()
-        out = server.stdout.readline()
-        self.assertIn("'read' request, return: 1441", out)
+        self.build_example()
+        self.run_server("./reader_server", expected=-15)
+        self.run_client("./reader_client.py", "'read' request, return: 1441")
 
 
-class TestExamplePlugin(prego.TestCase):
-    cwd = "examples/endpoint"
-
+class TestExamplePlugin(prego.TestCase, TestMixin):
     def test_works(self):
-        server = prego.Task(detach=True)
-        cmd = server.command("./server", cwd=self.cwd, expected=-15)
-        server.wait_that(
-            cmd.stdout.content,
-            hamcrest.contains_string("set called with code: 1551"))
+        self.cwd = "examples/endpoint"
+        self.proxy = "ConfigServer -e 1.0 -o:file -p /tmp/myendp"
 
-        client = prego.Task()
-        client.wait_that(server, prego.running())
-        client.wait_that(cmd.stdout.content, hamcrest.contains_string("ready:"))
-        client.command(
-            "./client 'ConfigServer -e 1.0 -o:file -p /tmp/myendp'",
-            cwd=self.cwd)
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client", "set called with code: 1551")

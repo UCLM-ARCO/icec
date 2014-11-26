@@ -8,7 +8,7 @@ Homepage: https://bitbucket.org/arco_group/icec
 
 Package: icec
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, sliceparser
 Description: C implementation of ZeroC Ice
  C implementation of the middleware from ZeroC, called Ice. This
  implementations is expected to be highly portable for embedded
