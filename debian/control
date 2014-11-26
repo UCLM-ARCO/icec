@@ -1,0 +1,15 @@
+Source: icec
+Section: net
+Priority: optional
+Maintainer: Oscar Aceña Herrera <oscaracena@gmail.com>
+Build-Depends: debhelper (>= 9.0.0)
+Standards-Version: 3.9.5
+Homepage: https://bitbucket.org/arco_group/icec
+
+Package: icec
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python
+Description: C implementation of ZeroC Ice
+ C implementation of the middleware from ZeroC, called Ice. This
+ implementations is expected to be highly portable for embedded
+ systems, with many restrictions. It does not use dynamic memory
