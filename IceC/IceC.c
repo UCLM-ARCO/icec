@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include "IceC.h"
+#include <IceC/IceC.h>
 
 void
 Object_init(ObjectPtr this) {
