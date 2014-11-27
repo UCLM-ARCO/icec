@@ -290,8 +290,8 @@ class FunctionCall(object):
         self._args = args
         self._result = None
 
-    def result(self, typeid, name="result"):
-        self._result = (typeid, name)
+    def result(self, name="result"):
+        self._result = name
 
     def __str__(self):
         args = ""
@@ -301,7 +301,7 @@ class FunctionCall(object):
 
         retval = ""
         if self._result is not None:
-            retval = "{0} {1} = ".format(*self._result)
+            retval = "{0} = ".format(self._result)
 
         retval += "{0}({1});\n".format(self._name, args)
 
@@ -841,7 +841,9 @@ class OperationDecl(BaseDecl):
         name = self.iface_name + "I_" + self.name
         method = FunctionCall(name, *call_args)
         if self.retval.typeid != "void":
-            method.result(self.retval.typeid, "_retval")
+            method.result("_retval")
+            func.declare_var(Param(self.retval.typeid, "_retval"))
+
         func += method
 
         # write result on output stream
@@ -899,6 +901,7 @@ class OperationDecl(BaseDecl):
         func.nl()
 
         func += FunctionCall("Ice_ObjectPrx_send", "this")
+        func.nl().comment(" FIXME: wait response and return correct value ")
 
         c += func
         c.nl()
