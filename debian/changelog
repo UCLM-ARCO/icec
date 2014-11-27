@@ -1,3 +1,9 @@
+icec (20141127-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 27 Nov 2014 15:54:07 +0100
+
 icec (20141126.1-1) unstable; urgency=low
 
   * Fix some package bugs
