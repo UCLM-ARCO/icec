@@ -1,1 +1,1 @@
-Minimal ZeroC Ice implementation in ANSI C.
+Minimal implementation of ZeroC Ice middleware in ANSI C.
