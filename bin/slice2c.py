@@ -433,13 +433,14 @@ class InputStream(CCode):
 class ForLoop(CCode):
     def __init__(self, varname, initial, condition, increment):
         self.varname = varname
+        self.counter = Param("int", varname)
+
         self.initial = initial
         self.condition = condition
         self.increment = increment
 
     def __str__(self):
-        retval = "int {0};\n".format(self.varname)
-        retval += "for ({0}={1}; {2}; {3}) {{\n".format(
+        retval = "for ({0}={1}; {2}; {3}) {{\n".format(
             self.varname, self.initial, self.condition, self.increment)
 
         self.tab = 1
@@ -961,6 +962,7 @@ class SequenceDecl(BaseDecl):
         loop = ForLoop("i", "0", "i<this->size", "i++")
         loop += outs2
         fn += loop
+        fn.declare_var(loop.counter)
 
         c += fn
         c.nl()
@@ -988,6 +990,7 @@ class SequenceDecl(BaseDecl):
             loop = ForLoop("i", "0", "i<this->size", "i++")
             loop += ins2
             fn += loop
+            fn.declare_var(loop.counter)
 
         c += fn
         c.nl()
