@@ -331,6 +331,10 @@ class OutputStream(CCode):
         retval += ";\n"
         return retval
 
+    def init(self):
+        name = "Ice_OutputStream_init"
+        self.append(FunctionCall(name, self.this))
+
     def writeSize(self, param):
         name = "Ice_OutputStream_writeSize"
         self.append(FunctionCall(name, self.this, param))
@@ -867,6 +871,7 @@ class OperationDecl(BaseDecl):
 
         func += FunctionCall("Ice_ObjectPrx_connect", "this")
         outs = OutputStream("os", "&(this->stream)")
+        outs.init()
 
         outs.nl().comment(" request header ")
         outs.writeBlob("Ice_header", "sizeof(Ice_header)")

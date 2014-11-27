@@ -12,6 +12,7 @@
 #define trace()
 #define error(...)
 #define hexdump(...)
+#define dissect_message(...)
 
 #else
 
@@ -183,29 +184,8 @@ dissect_udp_proxy(byte* data, int limit) {
 }
 
 static void
-dissect_AutoPilot_ParamSeq(byte* data, int limit) {
-    byte size;
-    int i;
-
-    hexdump("\nAutoPilot ParamSeq", data, limit);
-    printf("\nParamSeq dissection:\n");
-
-    size = *data;
-    data = dissect_byte_lt(data, "paramSeq.size", 255);
-
-    for (i=0; i<size; i++) {
-	printf(" ------- param %d\n", i);
-
-	data = dissect_byte(data, "id");
-	data = dissect_byte(data, "type");
-	data = dissect_byteseq(data, "data");
-    }
-}
-
-static void
 dissect_message(byte* data, int limit) {
     int size;
-    byte* rest;
 
     hexdump("Ice Message", data, limit);
     printf("\nIce Message dissection:\n");
@@ -231,8 +211,6 @@ dissect_message(byte* data, int limit) {
 
     size = *((Ice_Int*)data);
     data = dissect_encaps(data, "encapsulation");
-    rest = dissect_udp_proxy(data, size - 6);
-    dissect_AutoPilot_ParamSeq(rest, (size - 6) - (rest - data));
 }
 
 #undef byte

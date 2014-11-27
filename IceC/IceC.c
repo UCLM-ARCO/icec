@@ -744,6 +744,8 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
     fd = Ice_ObjectAdapter_getClient(this);
     Ice_InputStream_init(&is, fd, this->connection.type);
 
+    dissect_message(is.data, is.size);
+
     if (memcmp(header, is.next, 10) != 0) {
 	throw("Ice_ProtocolException", __FILE__, __LINE__);
 	Ice_ObjectAdapter_closeClient(this);
