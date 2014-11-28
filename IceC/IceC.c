@@ -113,9 +113,11 @@ Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     case Ice_EndpointTypeTCP:
     case Ice_EndpointTypeUDP: {
 	this->size = read(fd, (byte*)this->data, MAX_MESSAGE_SIZE);
+	break;
     }
     default:
 	IcePlugin_InputStream_init(this, fd, type);
+	break;
     }
 
     this->next = this->data;
@@ -204,6 +206,7 @@ Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment)
     Ptr_check(this);
 
     Ice_InputStream_readByte(this, &b);
+
     if (b < 255) {
 	*size = b;
 	if (! increment) this->next--;
@@ -211,7 +214,7 @@ Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment)
     }
 
     Ice_InputStream_readInt(this, size);
-    if (! increment) this->next -= sizeof(Ice_Int);
+    if (! increment) this->next -= sizeof(Ice_Int) + 1;
     assert(*size >= 0);
 }
 
@@ -744,7 +747,9 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
     fd = Ice_ObjectAdapter_getClient(this);
     Ice_InputStream_init(&is, fd, this->connection.type);
 
+    #ifdef DISSECT_MESSAGE
     dissect_message(is.data, is.size);
+    #endif
 
     if (memcmp(header, is.next, 10) != 0) {
 	throw("Ice_ProtocolException", __FILE__, __LINE__);

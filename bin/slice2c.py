@@ -151,6 +151,9 @@ class Param(object):
         self.kind = kind
         self.is_proxy = False
 
+    def initialize(self):
+        return CCode()
+
     def declare(self):
         retval = ""
         typeid = self.typeid
@@ -186,6 +189,9 @@ class ParamArray(object):
         self.name = name
         self.count = count
 
+    def initialize(self):
+        return CCode()
+
     def declare(self):
         return "{0} {1}[{2}];\n".format(self.typeid, self.name, self.count)
 
@@ -219,6 +225,7 @@ class Function(CCode):
         self._vars = []
 
         self += FunctionCall("trace")
+        self += "\n"
 
     def static(self):
         self._static = True
@@ -276,6 +283,9 @@ class Function(CCode):
         for i in self._vars:
             retval += self.tabify(str(i.declare()))
 
+        for i in reversed(self._vars):
+            self.insert(1, i.initialize())
+
         retval += "\n"
         for i in self:
             retval += self.tabify(str(i))
@@ -320,6 +330,9 @@ class OutputStream(CCode):
         CCode.__init__(self)
         self.initializer = initializer
         self.this = this
+
+    def initialize(self):
+        return CCode()
 
     def declare(self):
         retval = "Ice_OutputStream"
@@ -476,6 +489,7 @@ class IceCBuilder(object):
     def add_common_includes(self, c):
         includes = Include()
         includes.add_local("IceC/IceC.h")
+        includes.add_system("alloca.h")
         c += includes
         c.nl()
 
@@ -754,6 +768,22 @@ class ParamDecl(BaseDecl):
             prx = "PrxPtr"
         return "{0}{1} {2}".format(str(self.type), prx, self.name)
 
+    def initialize(self):
+        retval = CCode()
+
+        typeid = str(self.type)
+        param = Param(typeid, self.name, kind=self.type.kind)
+        size = Param("int", self.name + "_size")
+
+        retval += size.readFromStream("is", opargs=["false"], as_size=True)
+
+        alloca = FunctionCall(
+            "alloca", "sizeof({0}) * {1}".format(str(self.contained_type), size.name))
+        alloca.result("{0}.items".format(param.name))
+        retval += alloca
+
+        return retval
+
     def declare(self):
         retval = CCode()
 
@@ -768,15 +798,6 @@ class ParamDecl(BaseDecl):
             # get size of data array
             size = Param("int", self.name + "_size")
             retval += size.declare()
-            retval += size.readFromStream("is", opargs=["false"], as_size=True)
-
-            # declare data array of array type
-            items = ParamArray(str(self.contained_type),
-                               self.name + "_size", self.name + "_items")
-            retval += items.declare()
-
-            # set data array on sequence
-            retval += "{0}.items = {1};\n".format(param.name, items.name)
 
         return retval
 

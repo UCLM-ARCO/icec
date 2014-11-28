@@ -185,7 +185,6 @@ dissect_udp_proxy(byte* data, int limit) {
 
 static void
 dissect_message(byte* data, int limit) {
-    int size;
 
     hexdump("Ice Message", data, limit);
     printf("\nIce Message dissection:\n");
@@ -209,7 +208,6 @@ dissect_message(byte* data, int limit) {
     data = dissect_byte(data, "mode");
     data = dissect_byte_eq(data, "context.size", 0);
 
-    size = *((Ice_Int*)data);
     data = dissect_encaps(data, "encapsulation");
 }
 
