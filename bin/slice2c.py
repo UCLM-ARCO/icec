@@ -771,6 +771,9 @@ class ParamDecl(BaseDecl):
     def initialize(self):
         retval = CCode()
 
+        if not self.contained_type:
+            return retval
+
         typeid = str(self.type)
         param = Param(typeid, self.name, kind=self.type.kind)
         size = Param("int", self.name + "_size")
