@@ -5,7 +5,7 @@ ICEC_SRC = $(BASEDIR)/IceC
 SLICE2C  = $(BASEDIR)/bin/slice2c
 
 TARGETS ?= server client
-SLICE    = slice.ice
+SLICE    = example.ice
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -DDEBUG -ggdb
 

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <IceC/IceC.h>
 
-#include "slice.h"
+#include "sequences.h"
 
 #define IMG_SIZE 16
 

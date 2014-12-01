@@ -1,6 +1,7 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
 TARGETS     = client server
+SLICE       = sequences.ice
 PROJECT_DIR = ../..
 
 # CFLAGS  += -ggdb -DDEBUG -DDISSECT_MESSAGE
@@ -12,14 +13,14 @@ LDLIBS  += -lm
 
 vpath %.c $(PROJECT_DIR)/IceC
 
-all: slice.h $(TARGETS)
+all: $(SLICE:%.ice=%.h) $(TARGETS)
 
-slice.h: slice.ice
+$(SLICE:%.ice=%.h): $(SLICE)
 	$(PROJECT_DIR)/bin/slice2c $^
 
 $(TARGETS): IceC.o $@
 
 .PHONY: clean
 clean:
-	$(RM) -frv $(TARGETS) slice.h *.o *~
+	$(RM) -frv $(TARGETS) $(SLICE:%.ice=%.h) *.o *~
 

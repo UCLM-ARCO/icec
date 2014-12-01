@@ -4,7 +4,7 @@
 #include <math.h>
 #include <IceC/IceC.h>
 
-#include "slice.h"
+#include "sequences.h"
 
 void
 Example_VideoFrameI_showImage(Example_VideoFramePtr this, Example_PixelSeq img) {

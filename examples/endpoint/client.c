@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include "slice.h"
+#include "example.h"
 #include "myplugin.h"
 
 int
