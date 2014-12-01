@@ -5,7 +5,7 @@ ICEC_SRC = $(BASEDIR)/IceC
 SLICE2C  = $(BASEDIR)/bin/slice2c
 
 TARGETS ?= reader_server writer_client
-SLICE    = slice.ice
+SLICE    = hello.ice
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 	   -Wno-unused-function

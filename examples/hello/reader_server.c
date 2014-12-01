@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include "slice.h"
+#include "hello.h"
 
 int
 Example_ReaderI_read(Example_ReaderPtr this) {

@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include "slice.h"
+#include "hello.h"
 
 int
 main(int argc, char* argv[]) {

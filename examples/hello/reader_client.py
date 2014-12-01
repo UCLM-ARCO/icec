@@ -4,7 +4,7 @@
 import sys
 import Ice
 
-Ice.loadSlice("slice.ice")
+Ice.loadSlice("hello.ice")
 import Example
 
 
