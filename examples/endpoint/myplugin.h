@@ -25,9 +25,9 @@ bool MyPlugin_EndpointInfo_init(Ice_EndpointInfoPtr this, Ice_EndpointType type,
 bool MyPlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 bool MyPlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id, Ice_EndpointType type,
 			     const char* strprx);
-bool MyPlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data,
-			      int size, int* sent);
-bool MyPlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
+
+bool MyPlugin_write(Ice_EndpointType type, int fd, const byte* data, int* size);
+bool MyPlugin_read(Ice_EndpointType type, int fd, byte* data, int* size);
 
 void MyPlugin_init(Ice_CommunicatorPtr ic);
 void MyPlugin_Endpoint_getPath(const char* s, char* result);

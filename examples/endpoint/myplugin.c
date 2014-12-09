@@ -83,23 +83,22 @@ MyPlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id, Ice_EndpointType 
 }
 
 bool
-MyPlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data,
-			 int size, int* sent) {
-    trace();
-    if (this->type != Ice_EndpointTypeFile)
-	return false;
-
-    *sent = write(fd, data, size);
-    return true;
-}
-
-bool
-MyPlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
+MyPlugin_write(Ice_EndpointType type, int fd, const byte* data, int* size) {
     trace();
     if (type != Ice_EndpointTypeFile)
 	return false;
 
-    this->size = read(fd, this->data, MAX_MESSAGE_SIZE);
+    *size = write(fd, data, *size);
+    return true;
+}
+
+bool
+MyPlugin_read(Ice_EndpointType type, int fd, byte* data, int* size) {
+    trace();
+    if (type != Ice_EndpointTypeFile)
+	return false;
+
+    *size = read(fd, data, *size);
     return true;
 }
 
@@ -119,10 +118,10 @@ MyPlugin_init(Ice_CommunicatorPtr ic) {
     endpoint.getProtocolType = &MyPlugin_getProtocolType;
     endpoint.ObjectAdapter_activate = &MyPlugin_ObjectAdapter_activate;
     endpoint.EndpointInfo_init = &MyPlugin_EndpointInfo_init;
-    endpoint.InputStream_init = &MyPlugin_InputStream_init;
     endpoint.ObjectPrx_init = &MyPlugin_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &MyPlugin_ObjectPrx_connect;
-    endpoint.Connection_send = &MyPlugin_Connection_send;
+    endpoint.read = &MyPlugin_read;
+    endpoint.write = &MyPlugin_write;
 }
 
 void
@@ -168,4 +167,3 @@ MyPlugin_Connection_open_file(Ice_ConnectionPtr this, const char* path, bool oae
 	return;
     }
 }
-
