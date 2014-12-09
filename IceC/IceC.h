@@ -335,8 +335,8 @@ typedef struct IcePlugin_EndpointObject {
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, const char*, Ice_EndpointType, const char*);
-    bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, int, int*);
-    bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
+    bool (*read)(Ice_EndpointType, int, byte*, int*);
+    bool (*write)(Ice_EndpointType, int, const byte*, int*);
 } IcePlugin_EndpointObject;
 
 typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
@@ -345,8 +345,8 @@ void IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item);
 void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
-void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size);
+int IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size);
+int IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 Ice_EndpointType type,
 				 const char* endpoint);

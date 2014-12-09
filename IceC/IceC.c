@@ -115,10 +115,17 @@ Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
 	this->size = read(fd, (byte*)this->data, MAX_MESSAGE_SIZE);
 	break;
     }
-    default:
-	IcePlugin_InputStream_init(this, fd, type);
+    default: {
+	Ice_Int message_size = 0;
+	this->size = IcePlugin_read(type, fd, (byte*)this->data, 14);
+	message_size = (Ice_Int)*(this->data + 10);
+	assert(message_size <= MAX_MESSAGE_SIZE);
+	this->size += IcePlugin_read(type, fd, (byte*)this->data + 14, message_size - 14);
 	break;
     }
+    }
+
+    dissect_message((byte*)this->data, this->size);
 
     this->next = this->data;
     Object_init((ObjectPtr)this);
@@ -472,7 +479,7 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 	break;
     }
     default:
-	res = IcePlugin_Connection_send(this, fd, data, size);
+	res = IcePlugin_write(this->type, fd, data, size);
     }
 
     if (res == size) {
@@ -1114,9 +1121,10 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
     }
 }
 
-void
-IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
+int
+IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+    int got = 0;
 
     trace();
 
@@ -1124,15 +1132,19 @@ IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType typ
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
 
-    	if (endp->InputStream_init(this, fd, type))
+    	if (endp->read(type, fd, data, &size)) {
+	    got = size;
     	    break;
+	}
 
     	item = item->next;
     }
+
+    return got;
 }
 
 int
-IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size) {
+IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
     int sent = 0;
 
@@ -1142,7 +1154,8 @@ IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size) 
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
 
-    	if (endp->Connection_send(this, fd, data, size, &sent))
+	sent = size;
+    	if (endp->write(type, fd, data, &sent))
     	    break;
 
     	item = item->next;
