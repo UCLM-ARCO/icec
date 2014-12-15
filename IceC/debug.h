@@ -16,6 +16,8 @@
 
 #else
 
+#include <stdint.h>
+#include <assert.h>
 #define fixme(MSG) printf(RED "FIXME:" CLR " %s (%s:%d %s)\n", \
 			  MSG, __FILE__, __LINE__, __func__)
 #define trace() printf(" -> %s:%d %s\n", __FILE__, __LINE__, __func__)

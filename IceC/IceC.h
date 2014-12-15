@@ -3,6 +3,8 @@
 #ifndef _ICE_ICEC_H_
 #define _ICE_ICEC_H_
 
+#define _GNU_SOURCE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,9 +14,6 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <sys/select.h>
 
 #include "types.h"
@@ -202,11 +201,11 @@ void Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size);
 void Ice_Connection_sendValidate(Ice_ConnectionPtr this);
 void Ice_Connection_sendClose(Ice_ConnectionPtr this);
 
-void Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port);
-void Ice_UDPConnection_listen(Ice_ConnectionPtr this, const char* host, int port);
+/* void Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port); */
+/* void Ice_UDPConnection_listen(Ice_ConnectionPtr this, const char* host, int port); */
 
-void Ice_TCPConnection_listen(Ice_ConnectionPtr this, const char* host, int port);
-void Ice_TCPConnection_accept(Ice_ConnectionPtr this);
+/* void Ice_TCPConnection_listen(Ice_ConnectionPtr this, const char* host, int port); */
+/* void Ice_TCPConnection_accept(Ice_ConnectionPtr this); */
 
 /* Forward declaration */
 struct Ice_Communicator;
@@ -230,6 +229,7 @@ typedef struct {
     Ice_EndpointType type;
     char host[MAX_HOST_SIZE];
     int port;
+    bool datagram;
     void* options;
 } Ice_EndpointInfo;
 
@@ -347,6 +347,10 @@ void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
 int IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size);
 int IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size);
+void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
+void IcePlugin_Connection_accept(Ice_ConnectionPtr this, Ice_EndpointType type);
+int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size);
+void IcePlugin_Connection_close(Ice_ConnectionPtr this, Ice_EndpointType type);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 Ice_EndpointType type,
 				 const char* endpoint);

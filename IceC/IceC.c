@@ -40,12 +40,7 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
     proto[end] = 0;
 
     *result = 0;
-    if (streq(proto, "tcp"))
-	*result = Ice_EndpointTypeTCP;
-    else if (streq(proto, "udp"))
-	*result = Ice_EndpointTypeUDP;
-    else
-	IcePlugin_getProtocolType(proto, result);
+    IcePlugin_getProtocolType(proto, result);
 
     if (*result == 0)
 	assert(false && "Invalid endpoint type!");
@@ -109,23 +104,7 @@ void
 Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     trace();
 
-    switch (type) {
-    case Ice_EndpointTypeTCP:
-    case Ice_EndpointTypeUDP: {
-	this->size = read(fd, (byte*)this->data, MAX_MESSAGE_SIZE);
-	break;
-    }
-    default: {
-	Ice_Int message_size = 0;
-	this->size = IcePlugin_read(type, fd, (byte*)this->data, 14);
-	message_size = (Ice_Int)*(this->data + 10);
-	assert(message_size <= MAX_MESSAGE_SIZE);
-	this->size += IcePlugin_read(type, fd, (byte*)this->data + 14, message_size - 14);
-	break;
-    }
-    }
-
-    dissect_message((byte*)this->data, this->size);
+    IcePlugin_InputStream_init(this, fd, type);
 
     this->next = this->data;
     Object_init((ObjectPtr)this);
@@ -472,16 +451,7 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 
     assert(this->fd > -1);
 
-    switch (this->type) {
-    case Ice_EndpointTypeTCP:
-    case Ice_EndpointTypeUDP: {
-	res = send(fd, data, size, 0);
-	break;
-    }
-    default:
-	res = IcePlugin_write(this->type, fd, data, size);
-    }
-
+    res = IcePlugin_Connection_send(this, fd, data, size);
     if (res == size) {
 	return;
     }
@@ -532,93 +502,6 @@ Ice_Connection_sendClose(Ice_ConnectionPtr this) {
 }
 
 void
-Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port) {
-    struct sockaddr_in addr;
-    int res;
-
-    trace();
-    Ptr_check(this);
-
-    memset(&addr, 0, sizeof(struct sockaddr_in));
-
-    this->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (this->fd == -1) {
-	error("Could not create socoket: %s\n", strerror(errno));
-	return;
-    }
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-
-    if (! inet_aton(host, &(addr.sin_addr))) {
-	error("Invalid host name: %s\n", host);
-        return;
-    }
-
-    res = connect(this->fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
-    if (res == -1) {
-	error("Could not connect: %s\n", strerror(errno));
-	return;
-    }
-}
-
-void
-Ice_Connection_listen(Ice_ConnectionPtr this, const char* host, int port) {
-    struct sockaddr_in addr;
-    int optval;
-
-    trace();
-    Ptr_check(this);
-
-    memset(&addr, 0, sizeof(struct sockaddr_in));
-
-    if (this->fd == -1) {
-	error("Could not create socoket: %s\n", strerror(errno));
-	return;
-    }
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-
-    if (! inet_aton(host, &(addr.sin_addr))) {
-	error("Invalid host name: %s\n", host);
-        return;
-    }
-
-    optval = 1;
-    setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    if (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-	error("Could not bind socket: %s\n", strerror(errno));
-	return;
-    }
-
-    listen(this->fd, 1);
-}
-
-void
-Ice_UDPConnection_listen(Ice_ConnectionPtr this, const char* host, int port) {
-    trace();
-    Ptr_check(this);
-    this->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    Ice_Connection_listen(this, host, port);
-}
-
-void
-Ice_TCPConnection_listen(Ice_ConnectionPtr this, const char* host, int port) {
-    trace();
-    Ptr_check(this);
-    this->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    Ice_Connection_listen(this, host, port);
-}
-
-void
-Ice_TCPConnection_accept(Ice_ConnectionPtr this) {
-    trace();
-    Ptr_check(this);
-    this->current_client = accept(this->fd, NULL, 0);
-}
-
-void
 Ice_ServantMap_init(Ice_ServantMapPtr this) {
     trace();
     this->count = 0;
@@ -658,31 +541,16 @@ Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
 
 void
 Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
-    Ice_EndpointInfoPtr info;
     bool ok;
 
     trace();
     Ptr_check(this);
 
-    info = &(this->epinfo);
-
-    switch (info->type) {
-    case Ice_EndpointTypeUDP:
-	Ice_UDPConnection_listen(&(this->connection), info->host, info->port);
-	break;
-
-    case Ice_EndpointTypeTCP:
-	Ice_TCPConnection_listen(&(this->connection), info->host, info->port);
-	break;
-
-    default: {
-	ok = IcePlugin_ObjectAdapter_activate(this);
-
-	if (!ok) {
-	    throw("Ice_NoEndpointException", __FILE__, __LINE__);
-	    return;
-	}
-    }}
+    ok = IcePlugin_ObjectAdapter_activate(this);
+    if (! ok) {
+	throw("Ice_NoEndpointException", __FILE__, __LINE__);
+	return;
+    }
 
     Ice_Communicator_registerAdapter(this->communicator, this);
     this->activated = true;
@@ -710,8 +578,8 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr this) {
     trace();
     Ptr_check(this);
 
-    if (this->epinfo.type == Ice_EndpointTypeTCP) {
-	Ice_TCPConnection_accept(&(this->connection));
+    if (! this->epinfo.datagram) {
+	IcePlugin_Connection_accept(&(this->connection), this->epinfo.type);
 	Ice_Connection_sendValidate(&(this->connection));
 	return this->connection.current_client;
     }
@@ -724,11 +592,12 @@ Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr this) {
     trace();
     Ptr_check(this);
 
-    if (this->epinfo.type == Ice_EndpointTypeTCP) {
+    if (! this->epinfo.datagram) {
 	Ice_Connection_sendClose(&(this->connection));
-	close(this->connection.current_client);
+	IcePlugin_Connection_close(&(this->connection), this->epinfo.type);
 	this->connection.current_client = -1;
     }
+
     return 0;
 }
 
@@ -857,15 +726,7 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
     Ptr_check(this);
 
     if (this->connection.fd == -1) {
-	switch (this->epinfo.type) {
-	case Ice_EndpointTypeUDP:
-	    Ice_UDPConnection_connect(&(this->connection),
-				      this->epinfo.host, this->epinfo.port);
-	    break;
-
-	default:
-	    IcePlugin_ObjectPrx_connect(this);
-	}
+	IcePlugin_ObjectPrx_connect(this);
     }
 
     assert(this->connection.fd != -1);
@@ -926,7 +787,7 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os)
     Ice_OutputStream_writeByte(os, 0);                    /* secure */
 
     Ice_OutputStream_writeByte(os, 1);                    /* num of endpoints */
-    Ice_OutputStream_writeShort(os, Ice_EndpointTypeUDP); /* endpoint type */
+    Ice_OutputStream_writeShort(os, this->epinfo.type);   /* endpoint type */
 
     Ice_OutputStream_startWriteEncaps(os);
     Ice_OutputStream_writeString(os, this->epinfo.host);  /* host */
@@ -959,23 +820,7 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr this,
     Ptr_check(this);
 
     IceUtil_getProtocolType(endpoints, &type);
-
-    switch(type) {
-    case Ice_EndpointTypeTCP:
-    case Ice_EndpointTypeUDP: {
-	char host[MAX_HOST_SIZE];
-	int port;
-	IceUtil_getHost(endpoints, host);
-	IceUtil_getPort(endpoints, &port);
-	Ice_EndpointInfo_init(&(result->epinfo), type, host, port);
-	break;
-    }
-
-    default:
-	IcePlugin_EndpointInfo_init(&(result->epinfo), type, endpoints);
-	break;
-    }
-
+    IcePlugin_EndpointInfo_init(&(result->epinfo), type, endpoints);
     Ice_ObjectAdapter_init(result, this);
 }
 
@@ -1001,22 +846,7 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 
     IceUtil_getProtocolType(str, &type);
     IceUtil_getIdentity(str, identity);
-
-    switch(type) {
-    case Ice_EndpointTypeTCP:
-    case Ice_EndpointTypeUDP: {
-	char host[MAX_HOST_SIZE];
-	int port;
-	IceUtil_getHost(str, host);
-	IceUtil_getPort(str, &port);
-	Ice_ObjectPrx_init(result, identity, type, host, port);
-	break;
-    }
-
-    default:
-	IcePlugin_ObjectPrx_init(result, identity, type, str);
-	break;
-    }
+    IcePlugin_ObjectPrx_init(result, identity, type, str);
 }
 
 void
@@ -1161,6 +991,11 @@ IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size) {
     	item = item->next;
     }
     return sent;
+}
+
+void
+IcePlugin_Connection_close(Ice_ConnectionPtr this, Ice_EndpointType type) {
+    fixme("not implemented");
 }
 
 void
