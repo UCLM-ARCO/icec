@@ -1,5 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
+#include <IceC/TCPEndpoint.h>
 #include "hello.h"
 
 int
@@ -19,6 +20,7 @@ main(int argc, char* argv[]) {
 
     /* create communicator */
     Ice_initialize(&ic);
+    TCPEndpoint_init(&ic);
 
     /* create object adapter */
     Ice_Communicator_createObjectAdapterWithEndpoints

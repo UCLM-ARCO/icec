@@ -47,53 +47,6 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
 }
 
 void
-IceUtil_getHost(const char* s, char* result) {
-    int end;
-
-    trace();
-    result[0] = 0;
-
-    while (true) {
-	s = index(s, '-');
-	if (s == NULL) return;
-	if (s[1] == 'h') {
-	    s += 2;  /* '-h' */
-	    s += strspn(s, "\n\r\t ");
-	    end = strcspn(s, "\n\r\t ");
-	    strncpy(result, s, end);
-	    result[end] = 0;
-	    return;
-	}
-	s++;
-    }
-}
-
-void
-IceUtil_getPort(const char* s, int* result) {
-    char strport[10];
-    int end;
-
-    trace();
-    *result = -1;
-
-    while (true) {
-	s = index(s, '-');
-	if (s == NULL) return;
-	if (s[1] == 'p') {
-	    s += 2; /* '-p' */
-	    s += strspn(s, "\n\r\t ");
-	    end = strcspn(s, "\n\r\t ");
-	    strncpy(strport, s, end);
-	    strport[end] = 0;
-
-	    *result = atoi(strport);
-	    return;
-	}
-	s++;
-    }
-}
-
-void
 Ice_Object_init(Ice_ObjectPtr this, Ice_MethodHandlerPtr handler) {
     trace();
     this->handler = handler;
@@ -509,22 +462,6 @@ Ice_ServantMap_init(Ice_ServantMapPtr this) {
 }
 
 void
-Ice_EndpointInfo_init(Ice_EndpointInfoPtr this,
-		      Ice_EndpointType type,
-		      const char* host,
-		      int port) {
-    trace();
-
-    assert(strlen(host) < MAX_HOST_SIZE);
-    strcpy(this->host, host);
-
-    this->type = type;
-    this->port = port;
-    this->options = NULL;
-    Object_init((ObjectPtr)this);
-}
-
-void
 Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
 		       Ice_CommunicatorPtr communicator) {
 
@@ -579,7 +516,7 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr this) {
     Ptr_check(this);
 
     if (! this->epinfo.datagram) {
-	IcePlugin_Connection_accept(&(this->connection), this->epinfo.type);
+	IcePlugin_Connection_accept(&(this->connection));
 	Ice_Connection_sendValidate(&(this->connection));
 	return this->connection.current_client;
     }
@@ -594,7 +531,7 @@ Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr this) {
 
     if (! this->epinfo.datagram) {
 	Ice_Connection_sendClose(&(this->connection));
-	IcePlugin_Connection_close(&(this->connection), this->epinfo.type);
+	IcePlugin_Connection_close(&(this->connection));
 	this->connection.current_client = -1;
     }
 
@@ -623,9 +560,9 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
     fd = Ice_ObjectAdapter_getClient(this);
     Ice_InputStream_init(&is, fd, this->connection.type);
 
-    #ifdef DISSECT_MESSAGE
+#ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);
-    #endif
+#endif
 
     if (memcmp(header, is.next, 10) != 0) {
 	throw("Ice_ProtocolException", __FILE__, __LINE__);
@@ -700,27 +637,6 @@ Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr this) {
 }
 
 void
-Ice_ObjectPrx_init(Ice_ObjectPrxPtr this,
-		   const char* id,
-		   Ice_EndpointType type,
-		   const char* host,
-		   int port) {
-
-    trace();
-
-    Ice_Connection_init(&(this->connection), type);
-    Ice_OutputStream_init(&(this->stream));
-    Ice_EndpointInfo_init(&(this->epinfo), type, host, port);
-
-    strcpy(this->identity, id);
-
-    /* FIXME: get mode from stringfied proxy */
-    this->mode = Ice_ReferenceModeDatagram;
-
-    Object_init((ObjectPtr)this);
-}
-
-void
 Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
     trace();
     Ptr_check(this);
@@ -744,9 +660,7 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr this) {
 void
 Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is) {
     char identity[MAX_IDENTITY_SIZE];
-    char host[MAX_HOST_SIZE];
     byte b, facetSeqSize, numOfEndpoints;
-    int port = 0;
 
     trace();
     Ptr_check(is);
@@ -760,11 +674,8 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is) 
     Ice_InputStream_readByte(is, &numOfEndpoints);
     assert(numOfEndpoints == 1);
 
+    /* FIXME: read endpoint type and call IcePlugin_ObjectPrx_readFromInputStream */
     fixme("Not finished implementation");
-    host[0] = 0;
-
-    /* FIXME: read endpoint type and use it! */
-    Ice_ObjectPrx_init(this, identity, Ice_EndpointTypeUDP, host, port);
 }
 
 void
@@ -789,15 +700,8 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os)
     Ice_OutputStream_writeByte(os, 1);                    /* num of endpoints */
     Ice_OutputStream_writeShort(os, this->epinfo.type);   /* endpoint type */
 
-    Ice_OutputStream_startWriteEncaps(os);
-    Ice_OutputStream_writeString(os, this->epinfo.host);  /* host */
-    Ice_OutputStream_writeInt(os, this->epinfo.port);     /* port */
-    Ice_OutputStream_writeByte(os, protocolMajor);        /* protocolMajor */
-    Ice_OutputStream_writeByte(os, protocolMinor);        /* protocolMinor */
-    Ice_OutputStream_writeByte(os, encodingMajor);        /* encodingMajor */
-    Ice_OutputStream_writeByte(os, encodingMinor);        /* encodingMinor */
-    Ice_OutputStream_writeByte(os, 0);                    /* compress */
-    Ice_OutputStream_endWriteEncaps(os);
+    /* FIXME: call IcePlugin_ObjectPrx_writeToOutputStream */
+    fixme("Not finished implementation");
 }
 
 
@@ -951,10 +855,9 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
     }
 }
 
-int
-IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size) {
+void
+IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
-    int got = 0;
 
     trace();
 
@@ -962,40 +865,67 @@ IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
 
-    	if (endp->read(type, fd, data, &size)) {
-	    got = size;
+    	if (endp->InputStream_init(this, fd, type))
     	    break;
-	}
 
     	item = item->next;
     }
+}
 
-    return got;
+void
+IcePlugin_Connection_accept(Ice_ConnectionPtr this) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->Connection_accept(this))
+    	    break;
+
+    	item = item->next;
+    }
 }
 
 int
-IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size) {
+IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t size) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
-    int sent = 0;
+    uint16_t sent = 0;
 
     trace();
 
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-    	Ptr_check(endp);
-
 	sent = size;
-    	if (endp->write(type, fd, data, &sent))
+
+    	Ptr_check(endp);
+    	if (endp->Connection_send(this, fd, data, &sent))
     	    break;
 
+	sent = 0;
     	item = item->next;
     }
+
     return sent;
 }
 
 void
-IcePlugin_Connection_close(Ice_ConnectionPtr this, Ice_EndpointType type) {
-    fixme("not implemented");
+IcePlugin_Connection_close(Ice_ConnectionPtr this) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->Connection_close(this))
+    	    break;
+
+    	item = item->next;
+    }
 }
 
 void

@@ -19,13 +19,13 @@
 #include "types.h"
 #include "debug.h"
 
-#if defined(__i386)  || defined(_M_IX86)    || defined(__x86_64)   ||  \
-    defined(_M_X64)  || defined(_M_IA64)    || defined(__alpha__)  ||  \
-    defined(_M_ARM)  || defined(__MIPSEL__) || defined(__ARMEL__)  ||  \
+#if defined(__i386)  || defined(_M_IX86)    || defined(__x86_64)   ||	\
+    defined(_M_X64)  || defined(_M_IA64)    || defined(__alpha__)  ||	\
+    defined(_M_ARM)  || defined(__MIPSEL__) || defined(__ARMEL__)  ||	\
     defined(__BFIN__)
 #   define ICE_LITTLE_ENDIAN
-#elif defined(__sparc) || defined(__sparc__) || defined(__hppa)    ||  \
-    defined(__ppc__)   || defined(__powerpc) || defined(_ARCH_COM) ||  \
+#elif defined(__sparc) || defined(__sparc__) || defined(__hppa)    ||	\
+    defined(__ppc__)   || defined(__powerpc) || defined(_ARCH_COM) ||	\
     defined(__MIPSEB__)
 #   define ICE_BIG_ENDIAN
 #else
@@ -37,7 +37,6 @@
 #endif
 
 #define MAX_IDENTITY_SIZE       16
-#define MAX_HOST_SIZE           16
 #define MAX_NESTED_ENCAPS       5
 #define MAX_NUM_OF_ADAPTERS     5
 #define MAX_NUM_OF_SERVANTS     5
@@ -120,8 +119,6 @@ void Object_init(ObjectPtr this);
 
 void IceUtil_getIdentity(const char* s, char* result);
 void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
-void IceUtil_getHost(const char* s, char* result);
-void IceUtil_getPort(const char* s, int* result);
 
 /* Forward declaration */
 struct Ice_InputStream;
@@ -196,16 +193,9 @@ typedef struct {
 typedef Ice_Connection* Ice_ConnectionPtr;
 
 void Ice_Connection_init(Ice_ConnectionPtr this, Ice_EndpointType type);
-void Ice_Connection_listen(Ice_ConnectionPtr this, const char* host, int port);
 void Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size);
 void Ice_Connection_sendValidate(Ice_ConnectionPtr this);
 void Ice_Connection_sendClose(Ice_ConnectionPtr this);
-
-/* void Ice_UDPConnection_connect(Ice_ConnectionPtr this, const char* host, int port); */
-/* void Ice_UDPConnection_listen(Ice_ConnectionPtr this, const char* host, int port); */
-
-/* void Ice_TCPConnection_listen(Ice_ConnectionPtr this, const char* host, int port); */
-/* void Ice_TCPConnection_accept(Ice_ConnectionPtr this); */
 
 /* Forward declaration */
 struct Ice_Communicator;
@@ -227,18 +217,11 @@ typedef struct {
     Object _base;
 
     Ice_EndpointType type;
-    char host[MAX_HOST_SIZE];
-    int port;
     bool datagram;
     void* options;
 } Ice_EndpointInfo;
 
 typedef Ice_EndpointInfo* Ice_EndpointInfoPtr;
-
-void Ice_EndpointInfo_init(Ice_EndpointInfoPtr this,
-				  Ice_EndpointType type,
-				  const char* host,
-				  int port);
 
 typedef struct {
     Object _base;
@@ -288,12 +271,6 @@ typedef struct {
 
 typedef Ice_ObjectPrx* Ice_ObjectPrxPtr;
 
-void Ice_ObjectPrx_init(Ice_ObjectPrxPtr this,
-			const char* id,
-			Ice_EndpointType type,
-			const char* host,
-			int port);
-
 void Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 void Ice_ObjectPrx_send(Ice_ObjectPrxPtr this);
 void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is);
@@ -306,13 +283,13 @@ typedef struct Ice_Communicator {
 
 void Ice_Communicator_init(Ice_CommunicatorPtr this);
 void Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr this,
-							      const char* name,
-							      const char* endpoints,
-							      Ice_ObjectAdapterPtr result);
+						       const char* name,
+						       const char* endpoints,
+						       Ice_ObjectAdapterPtr result);
 void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr this,
-					     Ice_ObjectAdapterPtr adapter);
+				      Ice_ObjectAdapterPtr adapter);
 void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
-					   Ice_ObjectPrx* result);
+				    Ice_ObjectPrx* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this);
 void Ice_initialize(Ice_CommunicatorPtr ic);
 
@@ -331,12 +308,17 @@ typedef struct IcePlugin_EndpointObject {
     Object _base;
 
     bool (*getProtocolType)(const char*, Ice_EndpointType*);
+    bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
+
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, const char*, Ice_EndpointType, const char*);
-    bool (*read)(Ice_EndpointType, int, byte*, int*);
-    bool (*write)(Ice_EndpointType, int, const byte*, int*);
+
+    bool (*Connection_accept)(Ice_ConnectionPtr);
+    bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, uint16_t*);
+    bool (*Connection_close)(Ice_ConnectionPtr);
+
 } IcePlugin_EndpointObject;
 
 typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
@@ -345,12 +327,10 @@ void IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item);
 void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
-int IcePlugin_read(Ice_EndpointType type, int fd, byte* data, int size);
-int IcePlugin_write(Ice_EndpointType type, int fd, const byte* data, int size);
 void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-void IcePlugin_Connection_accept(Ice_ConnectionPtr this, Ice_EndpointType type);
-int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, int size);
-void IcePlugin_Connection_close(Ice_ConnectionPtr this, Ice_EndpointType type);
+void IcePlugin_Connection_accept(Ice_ConnectionPtr this);
+int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t size);
+void IcePlugin_Connection_close(Ice_ConnectionPtr this);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 Ice_EndpointType type,
 				 const char* endpoint);

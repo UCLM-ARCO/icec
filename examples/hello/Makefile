@@ -6,6 +6,7 @@ SLICE2C  = $(BASEDIR)/bin/slice2c
 
 TARGETS ?= reader_server writer_client
 SLICE    = hello.ice
+CFLAGS  += -ggdb -DDEBUG
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 	   -Wno-unused-function
@@ -15,7 +16,7 @@ vpath %.c $(ICEC_SRC)
 
 all: $(SLICE:%.ice=%.h) $(TARGETS)
 
-$(TARGETS): IceC.o $@
+$(TARGETS): IceC.o IceUtil.o TCPEndpoint.o $@
 
 $(SLICE:%.ice=%.h): $(SLICE)
 	$(RM) -rfv $@
