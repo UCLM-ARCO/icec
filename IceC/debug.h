@@ -23,7 +23,11 @@
 #define trace() printf(" -> %s:%d %s\n", __FILE__, __LINE__, __func__)
 #define error(...) printf(RED "ERROR:" CLR); printf(__VA_ARGS__);
 
-#define byte unsigned char
+#ifndef BYTE_TYPE
+#define BYTE_TYPE
+typedef uint8_t byte;
+#endif
+
 #define Ice_Short int16_t
 #define Ice_Int int32_t
 
@@ -188,8 +192,11 @@ dissect_udp_proxy(byte* data, int limit) {
 static void
 dissect_message(byte* data, int limit) {
 
-    hexdump("Ice Message", data, limit);
-    printf("\nIce Message dissection:\n");
+    hexdump("\nIce Message", data, limit);
+    printf("\n");
+
+#if ICE_TRACE_PROTOCOL > 1
+    printf("Ice Message dissection:\n");
 
     data = dissect_byte_eq(data, "magic", 'I');
     data = dissect_byte_eq(data, "magic", 'c');
@@ -211,6 +218,9 @@ dissect_message(byte* data, int limit) {
     data = dissect_byte_eq(data, "context.size", 0);
 
     data = dissect_encaps(data, "encapsulation");
+#endif
+
+    fflush(NULL);
 }
 
 #undef byte

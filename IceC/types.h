@@ -9,7 +9,9 @@
 typedef enum {false=0, true=1} bool;
 #endif
 
+#ifndef BYTE_TYPE
+#define BYTE_TYPE
 typedef uint8_t byte;
-
+#endif
 
 #endif  /* _ICEC_TYPES_H_ */

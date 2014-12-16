@@ -404,6 +404,10 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
 
     assert(this->fd > -1);
 
+#ifdef ICE_TRACE_PROTOCOL
+    dissect_message(data, size);
+#endif
+
     res = IcePlugin_Connection_send(this, fd, data, size);
     if (res == size) {
 	return;

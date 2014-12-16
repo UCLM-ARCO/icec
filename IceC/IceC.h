@@ -310,8 +310,8 @@ typedef struct IcePlugin_EndpointObject {
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
 
-    bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
+    bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
 
     bool (*Connection_accept)(Ice_ConnectionPtr);
     bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, uint16_t*);

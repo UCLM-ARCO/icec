@@ -73,7 +73,6 @@ UDP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 
 bool
 UDP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx) {
-
     trace();
     if (type != Ice_EndpointTypeUDP)
 	return false;
