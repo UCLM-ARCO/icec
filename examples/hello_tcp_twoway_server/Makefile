@@ -4,7 +4,7 @@ BASEDIR  = ../..
 ICEC_SRC = $(BASEDIR)/IceC
 SLICE2C  = $(BASEDIR)/bin/slice2c
 
-TARGETS ?= reader_server writer_client
+TARGETS ?= reader_server
 SLICE    = hello.ice
 CFLAGS  += -ggdb -DDEBUG
 CFLAGS  += -I $(BASEDIR)

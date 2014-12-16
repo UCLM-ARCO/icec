@@ -25,8 +25,8 @@ bool UDP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 			   Ice_EndpointType type,
 			   const char* endpoint);
 
-bool UDP_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 bool UDP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx);
+bool UDP_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 
 bool UDP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port);
 bool UDP_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t* size);

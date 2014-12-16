@@ -5,7 +5,7 @@ all:
 .PHONY: test
 test:
 	-nosetests test/$(T) -s
-	make -C examples clean
+	make -C examples clean > /dev/null
 
 install:
 	install -d $(DESTDIR)/usr/share/icec/bin

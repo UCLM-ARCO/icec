@@ -333,9 +333,9 @@ void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 Ice_EndpointType type,
 				 const char* endpoint);
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
-void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
 			      Ice_EndpointType type,
 			      const char* strprx);
+void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 
 #endif  /* _ICE_ICEC_H_ */

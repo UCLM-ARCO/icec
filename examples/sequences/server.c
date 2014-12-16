@@ -1,8 +1,10 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
+#include <IceC/IceC.h>
+#include <IceC/UDPEndpoint.h>
+
 #include <stdio.h>
 #include <math.h>
-#include <IceC/IceC.h>
 
 #include "sequences.h"
 
@@ -33,6 +35,8 @@ main(int argc, char** argv) {
     (void) argv;
 
     Ice_initialize(&ic);
+    UDPEndpoint_init(&ic);
+
     Ice_Communicator_createObjectAdapterWithEndpoints
 	(&ic, "Adapter", "udp -h 127.0.0.1 -p 7892", &adapter);
     Ice_ObjectAdapter_activate(&adapter);

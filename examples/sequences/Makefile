@@ -4,7 +4,7 @@ TARGETS     = client server
 SLICE       = sequences.ice
 PROJECT_DIR = ../..
 
-# CFLAGS  += -ggdb -DDEBUG -DDISSECT_MESSAGE
+CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL
 CFLAGS  += -I $(PROJECT_DIR)
 CFLAGS  += -Wall -Wextra -pedantic -ansi
 CFLAGS  += -Wno-unused-parameter -Wno-unused-function -Wno-variadic-macros
@@ -18,9 +18,8 @@ all: $(SLICE:%.ice=%.h) $(TARGETS)
 $(SLICE:%.ice=%.h): $(SLICE)
 	$(PROJECT_DIR)/bin/slice2c $^
 
-$(TARGETS): IceC.o $@
+$(TARGETS): IceC.o IceUtil.o UDPEndpoint.o $@
 
 .PHONY: clean
 clean:
 	$(RM) -frv $(TARGETS) $(SLICE:%.ice=%.h) *.o *~
-

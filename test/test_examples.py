@@ -24,9 +24,9 @@ class TestMixin(object):
             hamcrest.contains_string(expected))
 
 
-class TestExampleWriterClient(prego.TestCase, TestMixin):
+class TestExampleHelloUDPDatagramClient(prego.TestCase, TestMixin):
     def test_works(self):
-        self.cwd = "examples/hello"
+        self.cwd = "examples/hello_udp_datagram_client"
         self.proxy = "WriterServer -d -e 1.0:udp -h 127.0.0.1 -p 7890"
 
         self.build_example()
@@ -34,21 +34,21 @@ class TestExampleWriterClient(prego.TestCase, TestMixin):
         self.run_client("./writer_client", "'write' request, got: 1551")
 
 
-class TestExampleReaderServer(prego.TestCase, TestMixin):
+class TestExampleHelloUDPDatagramServer(prego.TestCase, TestMixin):
     def test_works(self):
-        self.cwd = "examples/hello"
+        self.cwd = "examples/hello_udp_datagram_server"
+        self.proxy = "WriterServer -d -e 1.0:udp -h 127.0.0.1 -p 7890"
+
+        self.build_example()
+        self.run_server("./writer_server", expected=-15)
+        self.run_client("./writer_client.py", "'write' request, got: 1551")
+
+
+class TestExampleHelloTCPTwowayServer(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/hello_tcp_twoway_server"
         self.proxy = "ReaderServer -t -e 1.0:tcp -h 127.0.0.1 -p 7891"
 
         self.build_example()
         self.run_server("./reader_server", expected=-15)
         self.run_client("./reader_client.py", "'read' request, return: 1441")
-
-
-class TestExamplePlugin(prego.TestCase, TestMixin):
-    def test_works(self):
-        self.cwd = "examples/endpoint"
-        self.proxy = "ConfigServer -e 1.0 -o:file -p /tmp/myendp"
-
-        self.build_example()
-        self.run_server("./server", expected=-15)
-        self.run_client("./client", "set called with code: 1551")
