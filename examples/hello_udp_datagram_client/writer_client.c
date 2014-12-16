@@ -1,5 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
+#include <IceC/UDPEndpoint.h>
 #include "hello.h"
 
 int
@@ -12,6 +13,7 @@ main(int argc, char* argv[]) {
 
     /* create communicator */
     Ice_initialize(&ic);
+    UDPEndpoint_init(&ic);
 
     /* create proxy to server */
     Ice_Communicator_stringToProxy(&ic, argv[1], &writer);

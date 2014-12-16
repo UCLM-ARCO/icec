@@ -8,9 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <string.h>
-#include <strings.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -313,7 +311,7 @@ typedef struct IcePlugin_EndpointObject {
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
 
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
-    bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, const char*, Ice_EndpointType, const char*);
+    bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
 
     bool (*Connection_accept)(Ice_ConnectionPtr);
     bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, uint16_t*);
@@ -336,7 +334,8 @@ void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
 				 const char* endpoint);
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
 void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
-void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id,
-			      Ice_EndpointType type, const char* strprx);
+void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
+			      Ice_EndpointType type,
+			      const char* strprx);
 
 #endif  /* _ICE_ICEC_H_ */

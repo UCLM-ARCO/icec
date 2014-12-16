@@ -743,14 +743,13 @@ void
 Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 			       Ice_ObjectPrx* result) {
     Ice_EndpointType type;
-    char identity[MAX_IDENTITY_SIZE];
 
     trace();
     Ptr_check(this);
 
     IceUtil_getProtocolType(str, &type);
-    IceUtil_getIdentity(str, identity);
-    IcePlugin_ObjectPrx_init(result, identity, type, str);
+    IceUtil_getIdentity(str, result->identity);
+    IcePlugin_ObjectPrx_init(result, type, str);
 }
 
 void
@@ -966,7 +965,6 @@ IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
 
 void
 IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
-			 const char* id,
 			 Ice_EndpointType type,
 			 const char* strprx) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
@@ -977,7 +975,7 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
     	Ptr_check(endp);
 
-    	if (endp->ObjectPrx_init(this, id, type, strprx))
+    	if (endp->ObjectPrx_init(this, type, strprx))
     	    break;
 
     	item = item->next;

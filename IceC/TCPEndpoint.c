@@ -6,7 +6,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <sys/select.h>
 
 /* NOTE: only one endpoint instance allowed */
 static IcePlugin_PluginListItem item;
@@ -79,8 +78,7 @@ TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
 }
 
 bool
-TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, const char* id,
-		   Ice_EndpointType type, const char* strprx) {
+TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx) {
     fixme("not implemented");
     return false;
 }

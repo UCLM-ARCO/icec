@@ -26,10 +26,7 @@ bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 			   const char* endpoint);
 
 bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this);
-bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr this,
-			const char* id,
-			Ice_EndpointType type,
-			const char* strprx);
+bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx);
 
 bool TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port);
 bool TCP_Connection_accept(Ice_ConnectionPtr this);
@@ -38,7 +35,5 @@ bool TCP_Connection_close(Ice_ConnectionPtr this);
 
 /* plugin specific functions */
 void TCPEndpoint_init(Ice_CommunicatorPtr ic);
-void TCP_getHost(const char* endpoint, char* result);
-void TCP_getPort(const char* endpoint, uint16_t* result);
 
 #endif /* _ICE_TCPENDPOINT_H_ */
