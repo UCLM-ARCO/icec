@@ -1,7 +1,9 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include <stdio.h>
 #include <IceC/IceC.h>
+#include <IceC/UDPEndpoint.h>
+
+#include <stdio.h>
 
 #include "sequences.h"
 
@@ -28,6 +30,8 @@ main(int argc, char** argv) {
     }
 
     Ice_initialize(&ic);
+    UDPEndpoint_init(&ic);
+
     Ice_Communicator_stringToProxy(&ic, argv[1], &frame);
 
     /* send image to frame */ {

@@ -4,7 +4,7 @@ TARGETS     = client server
 SLICE       = sequences.ice
 PROJECT_DIR = ../..
 
-CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL
+# CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL
 CFLAGS  += -I $(PROJECT_DIR)
 CFLAGS  += -Wall -Wextra -pedantic -ansi
 CFLAGS  += -Wno-unused-parameter -Wno-unused-function -Wno-variadic-macros

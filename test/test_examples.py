@@ -52,3 +52,13 @@ class TestExampleHelloTCPTwowayServer(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./reader_server", expected=-15)
         self.run_client("./reader_client.py", "'read' request, return: 1441")
+
+
+class TestExampleSequences(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/sequences"
+        self.proxy = 'VideoFrame -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client", "VideoFrame: showImage, size: 256")
