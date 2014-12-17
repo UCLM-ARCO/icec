@@ -47,6 +47,31 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
 }
 
 void
+IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
+    ssize_t i, j;
+    const char* t = " -";
+    ssize_t token_size = 2;
+    int limit = strchr(s, ':') - s;
+
+    for (i=0; i<limit; i++) {
+	for (j=0; j<token_size; j++) {
+	    if (s[i+j] != t[j])
+		break;
+	    if ((j+1) == token_size && (i+j+1) < limit) {
+		switch(s[i+j+1]) {
+		case 'd': *mode = Ice_ReferenceModeDatagram; return;
+		case 'o': *mode = Ice_ReferenceModeOneway; return;
+		case 't': *mode = Ice_ReferenceModeTwoway; return;
+		}
+	    }
+	}
+    }
+
+    throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
+}
+
+
+void
 Ice_Object_init(Ice_ObjectPtr this, Ice_MethodHandlerPtr handler) {
     trace();
     this->handler = handler;
@@ -443,6 +468,35 @@ Ice_Connection_sendValidate(Ice_ConnectionPtr this) {
 }
 
 void
+Ice_Connection_receiveValidate(Ice_ConnectionPtr this) {
+    Ice_InputStream is;
+
+    char expected[] = {
+	'I', 'c', 'e', 'P',        /* int  magic */
+	1,                         /* byte protocolMajor */
+	0,                         /* byte protocolMinor */
+	1,                         /* byte encodingMajor */
+	0,                         /* byte encodingMinor */
+	Ice_validateConnectionMsg, /* byte messageType (0 -> request) */
+	0,                         /* byte compressionStatus (0 -> no compress) */
+	14, 0, 0, 0};              /* int size */
+
+    trace();
+    Ptr_check(this);
+
+    Ice_InputStream_init(&is, this->fd, this->type);
+
+#ifdef ICE_TRACE_PROTOCOL
+    dissect_message(is.data, is.size);
+#endif
+
+    if (memcmp(expected, is.next, 14) != 0) {
+	throw("Ice_ProtocolException", __FILE__, __LINE__);
+	return;
+    }
+}
+
+void
 Ice_Connection_sendClose(Ice_ConnectionPtr this) {
     Ice_OutputStream os;
 
@@ -645,11 +699,30 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
     trace();
     Ptr_check(this);
 
-    if (this->connection.fd == -1) {
-	IcePlugin_ObjectPrx_connect(this);
+    if (this->connection.fd != -1) {
+	return;
     }
 
+    IcePlugin_ObjectPrx_connect(this);
     assert(this->connection.fd != -1);
+
+    if (this->epinfo.datagram)
+	return;
+
+    if (this->mode == Ice_ReferenceModeOneway || this->mode == Ice_ReferenceModeTwoway)
+	Ice_Connection_receiveValidate(&(this->connection));
+}
+
+void
+Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr this) {
+    trace();
+    Ptr_check(this);
+
+    if (this->epinfo.datagram)
+	return;
+
+    if (this->mode == Ice_ReferenceModeOneway || this->mode == Ice_ReferenceModeTwoway)
+	Ice_Connection_sendClose(&(this->connection));
 }
 
 void
@@ -657,7 +730,10 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr this) {
     trace();
     Ptr_check(this);
 
-    /* dissect_message(this->stream.data, this->stream.size); */
+#ifdef ICE_TRACE_CONNECTION
+    dissect_message(this->stream.data, this->stream.size);
+#endif
+
     Ice_Connection_send(&(this->connection), this->stream.data, this->stream.size);
 }
 
@@ -753,6 +829,8 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 
     IceUtil_getProtocolType(str, &type);
     IceUtil_getIdentity(str, result->identity);
+    IceUtil_getMode(str, &(result->mode));
+
     IcePlugin_ObjectPrx_init(result, type, str);
 }
 

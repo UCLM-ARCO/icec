@@ -117,6 +117,7 @@ void Object_init(ObjectPtr this);
 
 void IceUtil_getIdentity(const char* s, char* result);
 void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
+void IceUtil_getMode(const char* s, Ice_ReferenceMode* mode);
 
 /* Forward declaration */
 struct Ice_InputStream;
@@ -235,10 +236,6 @@ typedef Ice_ObjectAdapter* Ice_ObjectAdapterPtr;
 
 void Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
 			    Ice_CommunicatorPtr communicator);
-
-/* Forward declaration */
-void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr, Ice_ObjectAdapterPtr);
-
 void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
 void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr this,
 			   Ice_ObjectPtr servant,
@@ -270,6 +267,7 @@ typedef struct {
 typedef Ice_ObjectPrx* Ice_ObjectPrxPtr;
 
 void Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this);
+void Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr this);
 void Ice_ObjectPrx_send(Ice_ObjectPrxPtr this);
 void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is);
 void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os);
