@@ -16,7 +16,7 @@ vpath %.c $(ICEC_SRC)
 
 all: $(SLICE:%.ice=%.h) $(TARGETS)
 
-$(TARGETS): IceC.o IceUtil.o TCPEndpoint.o UDPEndpoint.o $@
+$(TARGETS): IceC.o IceUtil.o TCPEndpoint.o $@
 
 $(SLICE:%.ice=%.h): $(SLICE)
 	$(RM) -rfv $@

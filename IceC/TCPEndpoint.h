@@ -28,6 +28,7 @@ bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this);
 bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx);
 
+void TCP_Connection_connect(Ice_ConnectionPtr this, const char* host, uint16_t port);
 bool TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port);
 bool TCP_Connection_accept(Ice_ConnectionPtr this);
 bool TCP_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t* size);

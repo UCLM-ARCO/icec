@@ -52,12 +52,14 @@ bool
 TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 		      Ice_EndpointType type,
 		      const char* endpoint) {
+    ObjectPtr ptr;
 
     trace();
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    Ptr_check(&ep_options);
+    ptr = (ObjectPtr)&ep_options;
+    Ptr_check(ptr);
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
     this->type = type;
@@ -73,14 +75,62 @@ TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
 
 bool
 TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
-    fixme("not implemented");
-    return false;
+    TCP_EndpointOptionsPtr opts;
+
+    trace();
+    Ptr_check(this);
+
+    if (this->epinfo.type != Ice_EndpointTypeTCP)
+	return false;
+
+    opts = this->epinfo.options;
+    Ptr_check(opts);
+
+    TCP_Connection_connect(&(this->connection), opts->host, opts->port);
+    assert(this->connection.fd != -1);
+    return true;
 }
 
 bool
 TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx) {
-    fixme("not implemented");
-    return false;
+    trace();
+    if (type != Ice_EndpointTypeTCP)
+	return false;
+
+    Ice_Connection_init(&(this->connection), type);
+    Ice_OutputStream_init(&(this->stream));
+    TCP_EndpointInfo_init(&(this->epinfo), type, strprx);
+
+    Object_init((ObjectPtr)this);
+    return true;
+}
+
+void
+TCP_Connection_connect(Ice_ConnectionPtr this, const char* host, uint16_t port) {
+    struct sockaddr_in addr;
+
+    trace();
+
+    memset(&addr, 0, sizeof(struct sockaddr_in));
+
+    this->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (this->fd == -1) {
+	error("Could not create socoket: %s\n", strerror(errno));
+	return;
+    }
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+
+    if (! inet_aton(host, &(addr.sin_addr))) {
+	error("Invalid host name: %s\n", host);
+        return;
+    }
+
+    if (connect(this->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+	error("Could not bind socket: %s\n", strerror(errno));
+	return;
+    }
 }
 
 bool

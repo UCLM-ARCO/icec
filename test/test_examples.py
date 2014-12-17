@@ -54,6 +54,16 @@ class TestExampleHelloTCPTwowayServer(prego.TestCase, TestMixin):
         self.run_client("./reader_client.py", "'read' request, return: 1441")
 
 
+class TestExampleHelloTCPOnewayClient(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/hello_tcp_oneway_client"
+        self.proxy = "WriterServer -o -e 1.0:tcp -h 127.0.0.1 -p 7893"
+
+        self.build_example()
+        self.run_server("./writer_server.py")
+        self.run_client("./writer_client", "'write' request, got: 1551")
+
+
 class TestExampleSequences(prego.TestCase, TestMixin):
     def test_works(self):
         self.cwd = "examples/sequences"
