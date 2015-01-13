@@ -23,3 +23,4 @@ install:
 .PHONY: clean
 clean:
 	make -C examples $@
+	find -name "*.pyc" -delete
