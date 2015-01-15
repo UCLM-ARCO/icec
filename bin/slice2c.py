@@ -121,6 +121,8 @@ class Enum(CCode):
         tab = " " * 4
         for i in self:
             retval += tab + str(i) + ",\n"
+
+        retval = retval[:-2] + "\n"
         retval += "}"
         return retval
 
@@ -150,9 +152,6 @@ class Param(object):
         self.name = name
         self.kind = kind
         self.is_proxy = False
-
-    def initialize(self):
-        return CCode()
 
     def declare(self):
         retval = ""
@@ -188,9 +187,6 @@ class ParamArray(object):
         self.typeid = typeid
         self.name = name
         self.count = count
-
-    def initialize(self):
-        return CCode()
 
     def declare(self):
         return "{0} {1}[{2}];\n".format(self.typeid, self.name, self.count)
@@ -283,9 +279,6 @@ class Function(CCode):
         for i in self._vars:
             retval += self.tabify(str(i.declare()))
 
-        for i in reversed(self._vars):
-            self.insert(1, i.initialize())
-
         retval += "\n"
         for i in self:
             retval += self.tabify(str(i).strip(" "))
@@ -330,9 +323,6 @@ class OutputStream(CCode):
         CCode.__init__(self)
         self.initializer = initializer
         self.this = this
-
-    def initialize(self):
-        return CCode()
 
     def declare(self):
         retval = "Ice_OutputStream"
@@ -438,15 +428,23 @@ class InputStream(CCode):
 
         if not params:
             if kind == "sequence":
-                size_name = param[1:] if param.startswith("&") else param
-                size = Param("int", size_name + "_size")
-                read_size = size.readFromStream("is", opargs=["false"], as_size=True)
-                self.append(read_size)
+                param_name = param[1:] if param.startswith("&") else param
+                size_var = "{}.size".format(param_name)
+                items_var = "({}.items)".format(param_name)
+
+                self.readSize("&({})".format(size_var), "false")
+                self.alloca(typeid, items_var, size_var)
 
             name = typeid + "_readFromInputStream"
             params = [param, self.this]
 
         self.append(FunctionCall(name, *params))
+
+    def alloca(self, typeid, dest, size):
+        sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
+        alloca = FunctionCall("alloca", sizeof)
+        alloca.result(dest)
+        self.append(alloca)
 
 
 class ForLoop(CCode):
@@ -774,24 +772,6 @@ class ParamDecl(BaseDecl):
             prx = "PrxPtr"
         return "{0}{1} {2}".format(str(self.type), prx, self.name)
 
-    def initialize(self):
-        retval = CCode()
-
-        if not self.contained_type:
-            return retval
-
-        typeid = str(self.type)
-        param = Param(typeid, self.name, kind=self.type.kind)
-        size = Param("int", self.name + "_size")
-
-        alloca = FunctionCall(
-            "alloca", "sizeof({0}) * {1}".format(str(self.contained_type), size.name))
-        alloca.result("{0}.items".format(param.name))
-        retval += "\n"
-        retval += alloca
-
-        return retval
-
     def declare(self):
         retval = CCode()
 
@@ -801,12 +781,6 @@ class ParamDecl(BaseDecl):
 
         param = Param(typeid, self.name, kind=self.type.kind)
         retval += param.declare()
-
-        if self.contained_type:
-            # get size of data array
-            size = Param("int", self.name + "_size")
-            retval += size.declare()
-
         return retval
 
 
@@ -986,7 +960,9 @@ class SequenceDecl(BaseDecl):
 
         # write items of sequence
         outs2 = OutputStream("os")
-        outs2.write(self.cpp2c_name(self.type.typeid), "*(this->items + i)", toPointer=False)
+        outs2.write(self.cpp2c_name(self.type.typeid),
+                    "*(this->items + i)",
+                    toPointer=False)
 
         loop = ForLoop("i", "0", "i<this->size", "i++")
         loop += outs2
@@ -1125,7 +1101,7 @@ class IceVisitor(sliceparser.Visitor):
         self.ifaces.append(ClassDefDecl(self.module, classdeclptr))
 
         name = classdeclptr.name()
-        if not name in self.declared:
+        if name not in self.declared:
             self.declared.append(name)
             self.items.append(ClassDefForward(self.module, classdeclptr))
 
