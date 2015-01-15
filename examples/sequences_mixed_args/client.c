@@ -36,11 +36,11 @@ main(int argc, char** argv) {
 
     /* send image to frame */ {
 	Example_PixelSeq image;
-	int ts = 1;
+	Example_Size size = {IMG_SIZE, IMG_SIZE};
 
 	image.items = data;
 	image.size = IMG_SIZE * IMG_SIZE;
-	Example_VideoFrame_showImage(&frame, ts, image);
+	Example_VideoFrame_showImage(&frame, size, image);
     }
 
     return 0;

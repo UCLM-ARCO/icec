@@ -91,4 +91,4 @@ class TestExampleSequencesMixedArgs(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_server("./server", expected=-15)
-        self.run_client("./client", "VideoFrame: showImage, ts: 1, size: 256")
+        self.run_client("./client", "VideoFrame: showImage, size: 16x16, size: 256")

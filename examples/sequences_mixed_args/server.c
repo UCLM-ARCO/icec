@@ -9,10 +9,13 @@
 #include "sequences.h"
 
 void
-Example_VideoFrameI_showImage(Example_VideoFramePtr this, int ts, Example_PixelSeq img) {
+Example_VideoFrameI_showImage(Example_VideoFramePtr this,
+			      Example_Size size,
+			      Example_PixelSeq img) {
     int i, cols;
 
-    printf("VideoFrame: showImage, ts: %d, size: %d\n", ts, img.size);
+    printf("VideoFrame: showImage, size: %dx%d, size: %d\n",
+	   size.width, size.height, img.size);
 
     cols = sqrt(img.size);
     for(i=0; i<img.size; i++) {

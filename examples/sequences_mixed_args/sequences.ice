@@ -8,9 +8,14 @@ module Example {
 	byte B;
     };
 
+    struct Size {
+	int width;
+	int height;
+    };
+
     sequence<Pixel> PixelSeq;
 
     interface VideoFrame {
-	void showImage(int timestamp, PixelSeq img);
+	void showImage(Size s, PixelSeq img);
     };
 };
