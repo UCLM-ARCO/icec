@@ -82,3 +82,13 @@ class TestExampleSequences(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server", expected=-15)
         self.run_client("./client", "VideoFrame: showImage, size: 256")
+
+
+class TestExampleSequencesMixedArgs(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/sequences_mixed_args"
+        self.proxy = 'VideoFrame -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client", "VideoFrame: showImage, ts: 1, size: 256")

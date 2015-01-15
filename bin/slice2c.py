@@ -288,7 +288,7 @@ class Function(CCode):
 
         retval += "\n"
         for i in self:
-            retval += self.tabify(str(i))
+            retval += self.tabify(str(i).strip(" "))
 
         retval += "}\n"
         return retval
@@ -437,6 +437,12 @@ class InputStream(CCode):
             params = [self.this, param]
 
         if not params:
+            if kind == "sequence":
+                size_name = param[1:] if param.startswith("&") else param
+                size = Param("int", size_name + "_size")
+                read_size = size.readFromStream("is", opargs=["false"], as_size=True)
+                self.append(read_size)
+
             name = typeid + "_readFromInputStream"
             params = [param, self.this]
 
@@ -778,11 +784,10 @@ class ParamDecl(BaseDecl):
         param = Param(typeid, self.name, kind=self.type.kind)
         size = Param("int", self.name + "_size")
 
-        retval += size.readFromStream("is", opargs=["false"], as_size=True)
-
         alloca = FunctionCall(
             "alloca", "sizeof({0}) * {1}".format(str(self.contained_type), size.name))
         alloca.result("{0}.items".format(param.name))
+        retval += "\n"
         retval += alloca
 
         return retval
@@ -1132,7 +1137,7 @@ class IceVisitor(sliceparser.Visitor):
         self.items.append(cls)
         self.ifaces.append(cls)
 
-        if not name in self.declared:
+        if name not in self.declared:
             self.declared.append(name)
 
         return True
