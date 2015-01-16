@@ -427,15 +427,6 @@ class InputStream(CCode):
             params = [self.this, param]
 
         if not params:
-            if kind == "sequence":
-                print typeid
-                param_name = param[1:] if param.startswith("&") else param
-                size_var = "{}.size".format(param_name)
-                items_var = "({}.items)".format(param_name)
-
-                self.readSize("&({})".format(size_var), "false")
-                self.alloca(typeid, items_var, size_var)
-
             name = typeid + "_readFromInputStream"
             params = [param, self.this]
 
@@ -833,6 +824,16 @@ class OperationDecl(BaseDecl):
 
             ins = InputStream("is")
             kind = "proxy" if i.is_proxy else i.type.kind
+
+            # if sequence, reserve space to hold it
+            if kind == "sequence":
+                func.comment(" allocate space for sequence ")
+                size_var = i.name + ".size"
+                items_var = i.name + ".items"
+
+                ins.readSize("&" + size_var, "false")
+                ins.alloca(self.cpp2c_name(i.type.typeid), items_var, size_var)
+
             ins.read(self.cpp2c_name(i.type.typeid), "&" + i.name, kind)
             func += ins
             func.nl()
