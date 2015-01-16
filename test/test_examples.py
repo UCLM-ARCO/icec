@@ -92,3 +92,19 @@ class TestExampleSequencesMixedArgs(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server", expected=-15)
         self.run_client("./client", "VideoFrame: showImage, size: 16x16, size: 256")
+
+
+class TestExampleSequencesNested(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/sequences_nested"
+        self.proxy = 'Vehicle -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client",
+                        "Vehicle: sendCommand:\n"
+                        " - id: 123\n"
+                        " - opcode: 456\n"
+                        " - params.length: 3\n"
+                        " - p3.id = 23\n"
+                        " - p3.data = 'a string'\n")

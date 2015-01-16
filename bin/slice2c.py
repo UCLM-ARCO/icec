@@ -428,6 +428,7 @@ class InputStream(CCode):
 
         if not params:
             if kind == "sequence":
+                print typeid
                 param_name = param[1:] if param.startswith("&") else param
                 size_var = "{}.size".format(param_name)
                 items_var = "({}.items)".format(param_name)
