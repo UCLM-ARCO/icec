@@ -194,6 +194,7 @@ typedef Ice_Connection* Ice_ConnectionPtr;
 void Ice_Connection_init(Ice_ConnectionPtr this, Ice_EndpointType type);
 void Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size);
 void Ice_Connection_sendValidate(Ice_ConnectionPtr this);
+void Ice_Connection_receiveValidate(Ice_ConnectionPtr this);
 void Ice_Connection_sendClose(Ice_ConnectionPtr this);
 
 /* Forward declaration */
