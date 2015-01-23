@@ -836,6 +836,12 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
 
 void
 Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this) {
+
+#if defined(ARDUINO)
+    throw("Unsupported operation for this platform!", __FILE__, __LINE__);
+    return;
+#else
+
     int i, count;
     fd_set read_set;
     Ice_ObjectAdapterPtr adapter;
@@ -847,34 +853,36 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this) {
     Ptr_check(this);
 
     while (true) {
-	FD_ZERO(&read_set);
+    	FD_ZERO(&read_set);
 
-	count = 0;
-	for (i=0; i<this->adapters.count; i++) {
-	    adapter = *(this->adapters.begin + i);
-	    if (! adapter->activated) {
-		continue;
-	    }
+    	count = 0;
+    	for (i=0; i<this->adapters.count; i++) {
+    	    adapter = *(this->adapters.begin + i);
+    	    if (! adapter->activated) {
+    		continue;
+    	    }
 
-	    FD_SET(adapter->connection.fd, &read_set);
-	    fds[count] = adapter->connection.fd;
-	    adapters[count] = adapter;
-	    count++;
-	}
+    	    FD_SET(adapter->connection.fd, &read_set);
+    	    fds[count] = adapter->connection.fd;
+    	    adapters[count] = adapter;
+    	    count++;
+    	}
 
-	if (select(FD_SETSIZE, &read_set, NULL, NULL, NULL) < 0) {
-	    error("Error while reading from descriptors: %s\n", strerror(errno));
-	    return;
-	}
+    	if (select(FD_SETSIZE, &read_set, NULL, NULL, NULL) < 0) {
+    	    error("Error while reading from descriptors: %s\n", strerror(errno));
+    	    return;
+    	}
 
-	for (i=0; i<count; i++) {
-	    if (! FD_ISSET(fds[i], &read_set)) {
-		continue;
-	    }
+    	for (i=0; i<count; i++) {
+    	    if (! FD_ISSET(fds[i], &read_set)) {
+    		continue;
+    	    }
 
-	    Ice_ObjectAdapter_incomingMessage(adapters[i]);
-	}
+    	    Ice_ObjectAdapter_incomingMessage(adapters[i]);
+    	}
     }
+
+#endif
 }
 
 static IcePlugin_PluginListItem _registered_endpoints;

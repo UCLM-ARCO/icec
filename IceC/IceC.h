@@ -20,7 +20,7 @@
 #if defined(__i386)  || defined(_M_IX86)    || defined(__x86_64)   ||	\
     defined(_M_X64)  || defined(_M_IA64)    || defined(__alpha__)  ||	\
     defined(_M_ARM)  || defined(__MIPSEL__) || defined(__ARMEL__)  ||	\
-    defined(__BFIN__)
+    defined(__BFIN__) || defined(ARDUINO)
 #   define ICE_LITTLE_ENDIAN
 #elif defined(__sparc) || defined(__sparc__) || defined(__hppa)    ||	\
     defined(__ppc__)   || defined(__powerpc) || defined(_ARCH_COM) ||	\
