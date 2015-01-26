@@ -2,6 +2,8 @@
 
 #include <IceC/IceC.h>
 
+#include <sys/select.h>
+
 void
 Object_init(ObjectPtr this) {
     this->tag = TAG_OK;
@@ -21,7 +23,7 @@ IceUtil_getIdentity(const char* s, char* result) {
 void
 IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
     char proto[MAX_PROTO_SIZE];
-    char* i;
+    const char* i;
     int end;
 
     trace();
@@ -184,7 +186,7 @@ Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment)
 
 void
 Ice_InputStream_readString(Ice_InputStreamPtr this, char* v) {
-    int size;
+    Ice_Int size;
 
     trace();
     Ptr_check(this);
@@ -598,7 +600,8 @@ Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr this) {
 
 void
 Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this) {
-    int fd, size, requestId, i;
+    int fd, i;
+    Ice_Int size, requestId;
     Ice_InputStream is;
     char identity[MAX_IDENTITY_SIZE];
     byte facetSeqSize;

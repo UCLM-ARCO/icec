@@ -3,43 +3,11 @@
 #ifndef _ICE_ICEC_H_
 #define _ICE_ICEC_H_
 
-#define _GNU_SOURCE 1
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <assert.h>
-#include <errno.h>
-#include <sys/select.h>
-
-#include "types.h"
-#include "debug.h"
-
-#if defined(__i386)  || defined(_M_IX86)    || defined(__x86_64)   ||	\
-    defined(_M_X64)  || defined(_M_IA64)    || defined(__alpha__)  ||	\
-    defined(_M_ARM)  || defined(__MIPSEL__) || defined(__ARMEL__)  ||	\
-    defined(__BFIN__) || defined(ARDUINO)
-#   define ICE_LITTLE_ENDIAN
-#elif defined(__sparc) || defined(__sparc__) || defined(__hppa)    ||	\
-    defined(__ppc__)   || defined(__powerpc) || defined(_ARCH_COM) ||	\
-    defined(__MIPSEB__)
-#   define ICE_BIG_ENDIAN
-#else
-#    error "Unknown architecture"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#ifndef MAX_MESSAGE_SIZE
-#define MAX_MESSAGE_SIZE        128
-#endif
-
-#define MAX_IDENTITY_SIZE       16
-#define MAX_NESTED_ENCAPS       5
-#define MAX_NUM_OF_ADAPTERS     5
-#define MAX_NUM_OF_SERVANTS     5
-#define MAX_PROTO_SIZE          16
-#define MAX_OPERATION_NAME_SIZE 16
+#include <IceC/platform.h>
 
 #define streq(S1, S2) (strcmp(S1, S2) == 0)
 
@@ -113,7 +81,7 @@ typedef struct {
 
 typedef Object* ObjectPtr;
 
-void Object_init(ObjectPtr this);
+void Object_init(ObjectPtr self);
 
 void IceUtil_getIdentity(const char* s, char* result);
 void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
@@ -138,7 +106,7 @@ typedef struct Ice_Object {
     Ice_MethodHandlerPtr handler;
 } Ice_Object;
 
-void Ice_Object_init(Ice_ObjectPtr this, Ice_MethodHandlerPtr handler);
+void Ice_Object_init(Ice_ObjectPtr self, Ice_MethodHandlerPtr handler);
 
 typedef struct Ice_InputStream {
     Object _base;
@@ -148,15 +116,15 @@ typedef struct Ice_InputStream {
     int size;
 } Ice_InputStream;
 
-void Ice_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-void Ice_InputStream_readBool(Ice_InputStreamPtr this, Ice_Bool* v);
-void Ice_InputStream_readByte(Ice_InputStreamPtr this, Ice_Byte* v);
-void Ice_InputStream_readShort(Ice_InputStreamPtr this, Ice_Short* v);
-void Ice_InputStream_readInt(Ice_InputStreamPtr this, Ice_Int* v);
-void Ice_InputStream_readSize(Ice_InputStreamPtr this, Ice_Int* size, bool increment);
-void Ice_InputStream_readString(Ice_InputStreamPtr this, char* v);
-void Ice_InputStream_readBlob(Ice_InputStreamPtr this, byte* v, int size);
-void Ice_InputStream_readIdentity(Ice_InputStreamPtr this, char* name);
+void Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
+void Ice_InputStream_readBool(Ice_InputStreamPtr self, Ice_Bool* v);
+void Ice_InputStream_readByte(Ice_InputStreamPtr self, Ice_Byte* v);
+void Ice_InputStream_readShort(Ice_InputStreamPtr self, Ice_Short* v);
+void Ice_InputStream_readInt(Ice_InputStreamPtr self, Ice_Int* v);
+void Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment);
+void Ice_InputStream_readString(Ice_InputStreamPtr self, char* v);
+void Ice_InputStream_readBlob(Ice_InputStreamPtr self, byte* v, int size);
+void Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* name);
 
 typedef struct Ice_OutputStream {
     Object _base;
@@ -168,18 +136,18 @@ typedef struct Ice_OutputStream {
     int current_encaps;
 } Ice_OutputStream;
 
-void Ice_OutputStream_init(Ice_OutputStreamPtr this);
-void Ice_OutputStream_writeBool(Ice_OutputStreamPtr this, Ice_Bool v);
-void Ice_OutputStream_writeByte(Ice_OutputStreamPtr this, Ice_Byte v);
-void Ice_OutputStream_writeShort(Ice_OutputStreamPtr this, Ice_Short v);
-void Ice_OutputStream_writeInt(Ice_OutputStreamPtr this, Ice_Int v);
-void Ice_OutputStream_writeBlob(Ice_OutputStreamPtr this, const byte* data, int size);
-void Ice_OutputStream_writeSize(Ice_OutputStreamPtr this, int size);
-void Ice_OutputStream_writeString(Ice_OutputStreamPtr this, const char* str);
-void Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr this, const char* id);
-void Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr this);
-void Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr this);
-void Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr this);
+void Ice_OutputStream_init(Ice_OutputStreamPtr self);
+void Ice_OutputStream_writeBool(Ice_OutputStreamPtr self, Ice_Bool v);
+void Ice_OutputStream_writeByte(Ice_OutputStreamPtr self, Ice_Byte v);
+void Ice_OutputStream_writeShort(Ice_OutputStreamPtr self, Ice_Short v);
+void Ice_OutputStream_writeInt(Ice_OutputStreamPtr self, Ice_Int v);
+void Ice_OutputStream_writeBlob(Ice_OutputStreamPtr self, const byte* data, int size);
+void Ice_OutputStream_writeSize(Ice_OutputStreamPtr self, int size);
+void Ice_OutputStream_writeString(Ice_OutputStreamPtr self, const char* str);
+void Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id);
+void Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self);
+void Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self);
+void Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self);
 
 typedef struct {
     Object _base;
@@ -191,11 +159,11 @@ typedef struct {
 
 typedef Ice_Connection* Ice_ConnectionPtr;
 
-void Ice_Connection_init(Ice_ConnectionPtr this, Ice_EndpointType type);
-void Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size);
-void Ice_Connection_sendValidate(Ice_ConnectionPtr this);
-void Ice_Connection_receiveValidate(Ice_ConnectionPtr this);
-void Ice_Connection_sendClose(Ice_ConnectionPtr this);
+void Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointType type);
+void Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size);
+void Ice_Connection_sendValidate(Ice_ConnectionPtr self);
+void Ice_Connection_receiveValidate(Ice_ConnectionPtr self);
+void Ice_Connection_sendClose(Ice_ConnectionPtr self);
 
 /* Forward declaration */
 struct Ice_Communicator;
@@ -211,7 +179,7 @@ typedef struct {
 
 typedef Ice_ServantMap* Ice_ServantMapPtr;
 
-void Ice_ServantMap_init(Ice_ServantMapPtr this);
+void Ice_ServantMap_init(Ice_ServantMapPtr self);
 
 typedef struct {
     Object _base;
@@ -235,15 +203,15 @@ typedef struct {
 
 typedef Ice_ObjectAdapter* Ice_ObjectAdapterPtr;
 
-void Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr this,
+void Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr self,
 			    Ice_CommunicatorPtr communicator);
-void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
-void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr this,
+void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
+void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
 			   Ice_ObjectPtr servant,
 			   const char* identity);
-int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr this);
-int Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr this);
-void Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr this);
+int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self);
+int Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr self);
+void Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self);
 
 typedef struct {
     Object _base;
@@ -253,7 +221,7 @@ typedef struct {
 
 typedef Ice_ObjectAdapter_List* Ice_ObjectAdapter_ListPtr;
 
-void Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr this);
+void Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self);
 
 typedef struct {
     Object _base;
@@ -267,27 +235,27 @@ typedef struct {
 
 typedef Ice_ObjectPrx* Ice_ObjectPrxPtr;
 
-void Ice_ObjectPrx_connect(Ice_ObjectPrxPtr this);
-void Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr this);
-void Ice_ObjectPrx_send(Ice_ObjectPrxPtr this);
-void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr this, Ice_InputStreamPtr is);
-void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr this, Ice_OutputStreamPtr os);
+void Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self);
+void Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr self);
+void Ice_ObjectPrx_send(Ice_ObjectPrxPtr self);
+void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is);
+void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os);
 
 typedef struct Ice_Communicator {
     Object _base;
     Ice_ObjectAdapter_List adapters;
 } Ice_Communicator;
 
-void Ice_Communicator_init(Ice_CommunicatorPtr this);
-void Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr this,
+void Ice_Communicator_init(Ice_CommunicatorPtr self);
+void Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
 						       const char* name,
 						       const char* endpoints,
 						       Ice_ObjectAdapterPtr result);
-void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr this,
+void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
 				      Ice_ObjectAdapterPtr adapter);
-void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr this, const char* str,
+void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
 				    Ice_ObjectPrx* result);
-void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr this);
+void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self);
 void Ice_initialize(Ice_CommunicatorPtr ic);
 
 typedef struct IcePlugin_PluginListItem* IcePlugin_PluginListItemPtr;
@@ -299,7 +267,7 @@ typedef struct IcePlugin_PluginListItem {
     IcePlugin_PluginListItemPtr next;
 } IcePlugin_PluginListItem;
 
-void IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr this, ObjectPtr object);
+void IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr self, ObjectPtr object);
 
 typedef struct IcePlugin_EndpointObject {
     Object _base;
@@ -321,20 +289,24 @@ typedef struct IcePlugin_EndpointObject {
 typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
 
 void IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item);
-void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr this);
+void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr self);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
-void IcePlugin_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-void IcePlugin_Connection_accept(Ice_ConnectionPtr this);
-int IcePlugin_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t size);
-void IcePlugin_Connection_close(Ice_ConnectionPtr this);
-void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr this,
+void IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
+void IcePlugin_Connection_accept(Ice_ConnectionPtr self);
+int IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t size);
+void IcePlugin_Connection_close(Ice_ConnectionPtr self);
+void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
 				 Ice_EndpointType type,
 				 const char* endpoint);
-bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
-void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr this,
+bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
+void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
 			      Ice_EndpointType type,
 			      const char* strprx);
-void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr this);
+void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr self);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _ICE_ICEC_H_ */

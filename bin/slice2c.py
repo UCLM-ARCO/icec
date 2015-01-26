@@ -412,6 +412,9 @@ class InputStream(CCode):
         if typeid in ["bool", "char", "byte", "short", "int"]:
             name = "Ice_InputStream_read{0}".format(typeid.capitalize())
 
+        if typeid in ["Ice_Int"]:
+            name = "Ice_InputStream_read{0}".format(typeid[4:])
+
         if typeid == "char*":
             name = "Ice_InputStream_readString"
 
@@ -484,7 +487,7 @@ class IceCBuilder(object):
 
     def add_common_includes(self, c):
         includes = Include()
-        includes.add_local("IceC/IceC.h")
+        includes.add_system("IceC/IceC.h")
         includes.add_system("alloca.h")
         c += includes
         c.nl()
@@ -546,7 +549,7 @@ class BaseDecl(object):
 
     def get_marshall_func(self):
         name = self.full_name + "_writeToOutputStream"
-        this = Param(Pointer(self.full_name, True), "this")
+        this = Param(Pointer(self.full_name, True), "self")
         outs = Param("Ice_OutputStreamPtr", "os")
         func = (Function()
                 .static().void()
@@ -561,7 +564,7 @@ class BaseDecl(object):
 
     def get_unmarshall_func(self):
         name = self.full_name + "_readFromInputStream"
-        this = Param(Pointer(self.full_name, True), "this")
+        this = Param(Pointer(self.full_name, True), "self")
         ins = Param("Ice_InputStreamPtr", "is")
         func = (Function()
                 .static().void()
@@ -637,7 +640,7 @@ class ClassDefDecl(BaseDecl, list):
 
     def render_forwards(self, c):
         name = self.full_name + "_methodHandler"
-        this = Param(Pointer(self.full_name, True), "this")
+        this = Param(Pointer(self.full_name, True), "self")
         ins = Param("Ice_InputStreamPtr", "is")
         outs = Param("Ice_OutputStreamPtr", "os")
         func = (Function(True)
@@ -653,7 +656,7 @@ class ClassDefDecl(BaseDecl, list):
 
     def render_init(self, c):
         name = self.full_name + "_init"
-        this = Param(Pointer(self.full_name, True), "this")
+        this = Param(Pointer(self.full_name, True), "self")
         func = (Function()
                 .static().void()
                 .name(name)
@@ -661,7 +664,7 @@ class ClassDefDecl(BaseDecl, list):
 
         handler = self.full_name + "_methodHandler"
         func += FunctionCall("Ice_Object_init",
-                             Casting("Ice_ObjectPtr", "this"),
+                             Casting("Ice_ObjectPtr", "self"),
                              Casting("Ice_MethodHandlerPtr", handler))
 
         c += func
@@ -677,7 +680,7 @@ class ClassDefDecl(BaseDecl, list):
 
     def render_servant_handler(self, c):
         name = self.full_name + "_methodHandler"
-        this = Param(Pointer(self.full_name, True), "this")
+        this = Param(Pointer(self.full_name, True), "self")
         ins = Param("Ice_InputStreamPtr", "is")
         outs = Param("Ice_OutputStreamPtr", "os")
         func = (Function()
@@ -692,7 +695,7 @@ class ClassDefDecl(BaseDecl, list):
         func += Ptr_check(outs)
         func.nl()
 
-        operationSize = Param("int", "operationSize")
+        operationSize = Param("Ice_Int", "operationSize")
         func.declare_var(operationSize)
         func += operationSize.readFromStream("is", opargs=["false"], as_size=True)
         func += Assert("operationSize <= MAX_OPERATION_NAME_SIZE")
@@ -716,7 +719,7 @@ class ClassDefDecl(BaseDecl, list):
         func += Assert("contextSize == 0")
         func.nl()
 
-        encapSize = Param("int", "encapSize")
+        encapSize = Param("Ice_Int", "encapSize")
         func.declare_var(encapSize)
         func += encapSize.readFromStream("is")
 
@@ -733,7 +736,7 @@ class ClassDefDecl(BaseDecl, list):
 
         for i in self:
             cond = IfCondition('strcmp(operation, "{0}") == 0'.format(i.name))
-            cond += FunctionCall(i.full_name + "__dispatch", "this", "is", "os")
+            cond += FunctionCall(i.full_name + "__dispatch", "self", "is", "os")
             cond.ret()
             func += cond
             func.nl()
@@ -790,7 +793,7 @@ class OperationDecl(BaseDecl):
 
     def render_as_servant_method(self, c):
         name = self.iface_name + "I_" + self.name
-        this = Param(Pointer(self.iface_name, True), "this")
+        this = Param(Pointer(self.iface_name, True), "self")
 
         func = (Function(True)
                 .retval(self.retval)
@@ -806,7 +809,7 @@ class OperationDecl(BaseDecl):
 
     def render_as_dispatcher(self, c):
         name = self.iface_name + "_" + self.name + "__dispatch"
-        this = Param(Pointer(self.iface_name, True), "this")
+        this = Param(Pointer(self.iface_name, True), "self")
         ins = Param(Pointer("Ice_InputStream", True), "is")
         outs = Param(Pointer("Ice_OutputStream", True), "os")
 
@@ -818,7 +821,7 @@ class OperationDecl(BaseDecl):
                 .param(outs))
 
         # unmarshall params
-        call_args = ["this"]
+        call_args = ["self"]
         for i in self.params:
             func.declare_var(i)
 
@@ -863,7 +866,7 @@ class OperationDecl(BaseDecl):
 
     def render_as_proxy_method(self, c):
         name = self.iface_name + "_" + self.name
-        this = Param(Pointer(self.iface_name + "Prx", True), "this")
+        this = Param(Pointer(self.iface_name + "Prx", True), "self")
 
         func = (Function()
                 .static()
@@ -877,8 +880,8 @@ class OperationDecl(BaseDecl):
         func += Ptr_check(this)
         func.nl()
 
-        func += FunctionCall("Ice_ObjectPrx_connect", "this")
-        outs = OutputStream("os", "&(this->stream)")
+        func += FunctionCall("Ice_ObjectPrx_connect", "self")
+        outs = OutputStream("os", "&(self->stream)")
         outs.init()
 
         outs.nl().comment(" request header ")
@@ -886,7 +889,7 @@ class OperationDecl(BaseDecl):
 
         outs.nl().comment(" request body ")
         outs.write("int", 0, toPointer=False)              # request id
-        outs.write("Ice_Identity", "this->identity")       # object identity
+        outs.write("Ice_Identity", "self->identity")       # object identity
         outs.writeString("")                               # facet, only empty allowed
         outs.writeString(self.name)                        # operation
         outs.write("byte", "Ice_Normal", toPointer=False)  # operation mode
@@ -906,7 +909,7 @@ class OperationDecl(BaseDecl):
         func += outs
         func.nl()
 
-        func += FunctionCall("Ice_ObjectPrx_send", "this")
+        func += FunctionCall("Ice_ObjectPrx_send", "self")
         func.nl().comment(" FIXME: wait response and return correct value ")
 
         c += func
@@ -956,17 +959,17 @@ class SequenceDecl(BaseDecl):
 
         # write size of sequence
         outs1 = OutputStream("os")
-        outs1.writeSize("this->size")
+        outs1.writeSize("self->size")
         fn += outs1
         fn.nl()
 
         # write items of sequence
         outs2 = OutputStream("os")
         outs2.write(self.cpp2c_name(self.type.typeid),
-                    "*(this->items + i)",
+                    "*(self->items + i)",
                     toPointer=False)
 
-        loop = ForLoop("i", "0", "i<this->size", "i++")
+        loop = ForLoop("i", "0", "i<self->size", "i++")
         loop += outs2
         fn += loop
         fn.declare_var(loop.counter)
@@ -979,22 +982,22 @@ class SequenceDecl(BaseDecl):
 
         # read size of sequence
         ins1 = InputStream("is")
-        ins1.readSize("&(this->size)", "true")
+        ins1.readSize("&(self->size)", "true")
         fn += ins1
         fn.nl()
 
         # zero-copy optimization, for byte only
         if self.type.typeid == "byte":
             fn.comment(" zero-copy optimization ")
-            fn += "this->items = is->next;\n"
-            fn += "is->next += this->size;\n"
+            fn += "self->items = is->next;\n"
+            fn += "is->next += self->size;\n"
 
         # read items of sequence
         else:
             ins2 = InputStream("is")
-            ins2.read(self.cpp2c_name(self.type.typeid), "this->items + i")
+            ins2.read(self.cpp2c_name(self.type.typeid), "self->items + i")
 
-            loop = ForLoop("i", "0", "i<this->size", "i++")
+            loop = ForLoop("i", "0", "i<self->size", "i++")
             loop += ins2
             fn += loop
             fn.declare_var(loop.counter)
@@ -1035,7 +1038,7 @@ class StructDecl(BaseDecl):
 
         outs = OutputStream("os")
         for m in self.members:
-            param = "this->{0}".format(m.name)
+            param = "self->{0}".format(m.name)
             outs.write(self.cpp2c_name(m.typeid), param, m.kind, toPointer=False)
         fn += outs
 
@@ -1047,7 +1050,7 @@ class StructDecl(BaseDecl):
 
         ins = InputStream("is")
         for m in self.members:
-            param = "this->{0}".format(m.name)
+            param = "self->{0}".format(m.name)
 
             if m.kind == "enum" or m.typeid in ["bool", "char", "byte", "int", "short"]:
                 fn += "{0} = 0;\n".format(param)
@@ -1055,7 +1058,7 @@ class StructDecl(BaseDecl):
             ins.read(self.cpp2c_name(m.typeid), param, m.kind, toPointer=True)
 
         fn.nl()
-        fn.comment(" FIXME: assure this->data is reserved!! ")
+        fn.comment(" FIXME: assure self->data is reserved!! ")
         fn += ins
 
         c += fn
