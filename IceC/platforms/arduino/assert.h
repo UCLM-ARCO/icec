@@ -3,22 +3,36 @@
 #ifndef _ICE_ASSERT_H_
 #define _ICE_ASSERT_H_
 
-#define assert(...)
 #define error_at_line(...)
 
 extern void prints(const char*);
+extern void led_config();
+extern void led_blink(int);
+
+#define assert(token) __DBG_assert(token, #token)
+/* static void */
+/* assert(bool status) { */
+/*     if (status) */
+/* 	return; */
+
+/*     while(true); */
+/* } */
+
 
 static void
 __DBG_assert(bool status, const char* message) {
     if (status)
 	return;
 
-    prints("assertion failed: ");
+    prints("E: ");
     prints(message);
     prints("\n");
 
     /* assertion failed, stop here */
-    while(true);
+    led_config();
+    while(true) {
+	led_blink(1000);
+    }
 }
 
 #define DBG_assert(token) __DBG_assert(token, #token)
