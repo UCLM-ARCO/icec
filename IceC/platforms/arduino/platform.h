@@ -5,6 +5,14 @@
 
 #define ICE_LITTLE_ENDIAN
 
+#include <stdlib.h>
+#include <errno.h>
+
+#include <IceC/platforms/arduino/types.h>
+#include <IceC/platforms/arduino/debug.h>
+#include <IceC/platforms/arduino/assert.h>
+#include <IceC/platforms/arduino/strings.h>
+
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16
 #define MAX_NESTED_ENCAPS       5

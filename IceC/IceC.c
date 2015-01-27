@@ -2,8 +2,6 @@
 
 #include <IceC/IceC.h>
 
-#include <sys/select.h>
-
 void
 Object_init(ObjectPtr this) {
     this->tag = TAG_OK;
@@ -441,16 +439,16 @@ Ice_Connection_send(Ice_ConnectionPtr this, byte* data, int size) {
     }
 
     if (res == 0) {
-	error("Connection lost!\n");
+	error_at_line(0, 0, __FILE__, __LINE__, "Connection lost!\n");
 	return;
     }
 
     if (res == -1) {
-	error("Error on socket: %s\n", strerror(errno));
+	error_at_line(0, errno, __FILE__, __LINE__, "Error on socket");
 	return;
     }
 
-    error("Could not write all bytes on socket!\n");
+    error_at_line(0, 0, __FILE__, __LINE__, "Could not write all bytes on socket!\n");
 }
 
 void

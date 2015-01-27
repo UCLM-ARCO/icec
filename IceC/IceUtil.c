@@ -2,9 +2,6 @@
 
 #include <IceC/IceUtil.h>
 
-#include <string.h>
-#include <strings.h>
-
 void
 IceUtil_getHost(const char* s, char* result) {
     int end;

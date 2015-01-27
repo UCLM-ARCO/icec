@@ -14,8 +14,17 @@ extern "C" {
 #define TAG_OK   4444
 #define TAG_NULL 0
 
-#define Ptr_check(ptr) assert(ptr); assert(((ObjectPtr)ptr)->tag == TAG_OK);
-#define throw(EXC, FILE, LINE) error(EXC " %s:%d\n", FILE, LINE); assert(false);
+#define Ptr_check(ptr)							\
+    do {								\
+	assert(ptr && "Invalid pointer");				\
+	assert(((ObjectPtr)ptr)->tag == TAG_OK && "Uninitialized");	\
+    } while(0)
+
+#define throw(EXC, FILE, LINE)			                        \
+    do {								\
+	error_at_line(0, 0, FILE, LINE, EXC);				\
+	assert(false && "Exception thrown");							\
+    } while(0)
 
 typedef bool Ice_Bool;
 typedef uint8_t Ice_Byte;

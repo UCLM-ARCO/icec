@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>
 
 #include <assert.h>
 #include <errno.h>
