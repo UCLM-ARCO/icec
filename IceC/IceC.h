@@ -294,6 +294,7 @@ typedef struct IcePlugin_EndpointObject {
     bool (*Connection_accept)(Ice_ConnectionPtr);
     bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, uint16_t*);
     bool (*Connection_close)(Ice_ConnectionPtr);
+    bool (*Connection_dataReady)(Ice_ConnectionPtr, bool*);
 
 } IcePlugin_EndpointObject;
 
@@ -307,6 +308,7 @@ void IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointTyp
 void IcePlugin_Connection_accept(Ice_ConnectionPtr self);
 int IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t size);
 void IcePlugin_Connection_close(Ice_ConnectionPtr self);
+void IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
 				 Ice_EndpointType type,
 				 const char* endpoint);

@@ -989,6 +989,23 @@ IcePlugin_Connection_close(Ice_ConnectionPtr self) {
 }
 
 void
+IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->Connection_dataReady(self, result))
+    	    break;
+
+    	item = item->next;
+    }
+}
+
+void
 IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self, Ice_EndpointType type,
 			    const char* endpoint) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;

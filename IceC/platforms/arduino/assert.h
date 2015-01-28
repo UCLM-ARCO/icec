@@ -18,8 +18,7 @@ assert(bool status) {
     if (status)
 	return;
 
-    while(true)
-	led_blink(1000);
+    while(true);
 }
 #endif
 
