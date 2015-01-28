@@ -9,15 +9,19 @@ extern void prints(const char*);
 extern void led_config();
 extern void led_blink(int);
 
+#ifdef DEBUG
 #define assert(token) __DBG_assert(token, #token)
-/* static void */
-/* assert(bool status) { */
-/*     if (status) */
-/* 	return; */
+#else
 
-/*     while(true); */
-/* } */
+static void
+assert(bool status) {
+    if (status)
+	return;
 
+    while(true)
+	led_blink(1000);
+}
+#endif
 
 static void
 __DBG_assert(bool status, const char* message) {

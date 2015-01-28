@@ -659,7 +659,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 		Ice_OutputStream_writeBlob(&os, Ice_header, 8);
 		Ice_OutputStream_writeByte(&os, Ice_replyMsg);
 		Ice_OutputStream_writeByte(&os, 0);  /* compression */
-		Ice_OutputStream_writeInt(&os, 0);  /* size (placeholder) */
+		Ice_OutputStream_writeInt(&os, 0);   /* size (placeholder) */
 
 		/* reply data */
 		Ice_OutputStream_writeInt(&os, requestId);
@@ -838,52 +838,22 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
 void
 Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self) {
 
-#if defined(ARDUINO)
-    throw("Unsupported operation for self platform!", __FILE__, __LINE__);
-    return;
-#else
-
-    int i, count;
-    fd_set read_set;
-    Ice_ObjectAdapterPtr adapter;
-
-    int fds[MAX_NUM_OF_ADAPTERS];
-    Ice_ObjectAdapterPtr adapters[MAX_NUM_OF_ADAPTERS];
+    uint8_t i;
+    Ice_ObjectAdapterPtr result[MAX_NUM_OF_ADAPTERS];
 
     trace();
     Ptr_check(self);
 
     while (true) {
-    	FD_ZERO(&read_set);
+	IceInternal_selectOnAdapters(&(self->adapters), result);
 
-    	count = 0;
-    	for (i=0; i<self->adapters.count; i++) {
-    	    adapter = *(self->adapters.begin + i);
-    	    if (! adapter->activated) {
-    		continue;
-    	    }
+	for (i=0; i<self->adapters.count; i++) {
+	    if (result[i] == NULL)
+		continue;
 
-    	    FD_SET(adapter->connection.fd, &read_set);
-    	    fds[count] = adapter->connection.fd;
-    	    adapters[count] = adapter;
-    	    count++;
-    	}
-
-    	if (select(FD_SETSIZE, &read_set, NULL, NULL, NULL) < 0) {
-    	    error("Error while reading from descriptors: %s\n", strerror(errno));
-    	    return;
-    	}
-
-    	for (i=0; i<count; i++) {
-    	    if (! FD_ISSET(fds[i], &read_set)) {
-    		continue;
-    	    }
-
-    	    Ice_ObjectAdapter_incomingMessage(adapters[i]);
-    	}
+	    Ice_ObjectAdapter_incomingMessage(result[i]);
+	}
     }
-
-#endif
 }
 
 static IcePlugin_PluginListItem _registered_endpoints;

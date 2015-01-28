@@ -13,7 +13,7 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <sys/select.h>
+#include <error.h>
 
 #include <IceC/platforms/x86/types.h>
 #include <IceC/platforms/x86/debug.h>

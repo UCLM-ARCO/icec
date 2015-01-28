@@ -15,9 +15,9 @@
 
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16
-#define MAX_NESTED_ENCAPS       5
-#define MAX_NUM_OF_ADAPTERS     5
-#define MAX_NUM_OF_SERVANTS     5
+#define MAX_NESTED_ENCAPS       1
+#define MAX_NUM_OF_ADAPTERS     1
+#define MAX_NUM_OF_SERVANTS     1
 #define MAX_PROTO_SIZE          16
 #define MAX_OPERATION_NAME_SIZE 16
 

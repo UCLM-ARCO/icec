@@ -12,13 +12,14 @@ CFLAGS  += -DMAX_MESSAGE_SIZE=2048
 LDLIBS  += -lm
 
 vpath %.c $(PROJECT_DIR)/IceC
+vpath %.c $(PROJECT_DIR)/IceC/platforms/x86/
 
 all: $(SLICE:%.ice=%.h) $(TARGETS)
 
 $(SLICE:%.ice=%.h): $(SLICE)
 	$(PROJECT_DIR)/bin/slice2c $^
 
-$(TARGETS): IceC.o IceUtil.o UDPEndpoint.o $@
+$(TARGETS): IceC.o IceUtil.o UDPEndpoint.o port.o $@
 
 .PHONY: clean
 clean:

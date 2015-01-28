@@ -10,13 +10,21 @@ extern "C" {
 #endif
 
     void
+    debug_init() {
+	Serial.begin(115200);
+	while(!Serial);
+    }
+
+    void
     prints(const char* msg) {
 	Serial.print(msg);
+	Serial.flush();
     }
 
     void
     printi(const int v) {
 	Serial.print(v);
+	Serial.flush();
     }
 
     void

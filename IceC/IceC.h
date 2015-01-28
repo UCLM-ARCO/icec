@@ -23,7 +23,7 @@ extern "C" {
 #define throw(EXC, FILE, LINE)			                        \
     do {								\
 	error_at_line(0, 0, FILE, LINE, EXC);				\
-	assert(false && "Exception thrown");							\
+	assert(false && "Exception thrown");				\
     } while(0)
 
 typedef bool Ice_Bool;
@@ -231,6 +231,8 @@ typedef struct {
 typedef Ice_ObjectAdapter_List* Ice_ObjectAdapter_ListPtr;
 
 void Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self);
+void IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr source,
+				  Ice_ObjectAdapterPtr result[]);
 
 typedef struct {
     Object _base;
