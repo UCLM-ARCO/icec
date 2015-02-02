@@ -5,9 +5,11 @@
 
 #define trace()
 #define fixme(...)
+#define _STOP_HERE_ while(1);
 
 extern void prints(const char*);
 extern void printi(const int);
+extern void printb(const uint8_t* msg, uint8_t size);
 
 #define DBG_trace()				\
     prints(__FILE__);				\

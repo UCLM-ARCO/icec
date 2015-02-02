@@ -70,7 +70,6 @@ IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
     throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
 }
 
-
 void
 Ice_Object_init(Ice_ObjectPtr self, Ice_MethodHandlerPtr handler) {
     trace();
@@ -173,12 +172,15 @@ Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment)
 
     if (b < 255) {
 	*size = b;
-	if (! increment) self->next--;
+	if (increment == false) {
+	    self->next--;
+	}
 	return;
     }
 
     Ice_InputStream_readInt(self, size);
-    if (! increment) self->next -= sizeof(Ice_Int) + 1;
+    if (increment == false)
+	self->next -= (sizeof(Ice_Int) + 1);
     assert(*size >= 0);
 }
 
@@ -631,6 +633,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     is.next += 10;
 
     Ice_InputStream_readInt(&is, &size);
+
     if (size > MAX_MESSAGE_SIZE) {
 	throw("Ice_MemoryLimitException", __FILE__, __LINE__);
 	Ice_ObjectAdapter_closeClient(self);

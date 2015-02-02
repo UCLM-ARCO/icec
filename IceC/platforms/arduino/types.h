@@ -10,8 +10,12 @@ typedef uint16_t ssize_t;
 #if !defined(__cplusplus) && !defined(BOOL_TYPE)
 #undef false
 #undef true
+
 #define BOOL_TYPE
-typedef enum {false=0, true=1} bool;
+#define bool char
+#define false 0
+#define true 1
+
 #endif
 
 #ifndef BYTE_TYPE

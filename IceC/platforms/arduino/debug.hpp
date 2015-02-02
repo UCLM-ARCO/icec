@@ -22,6 +22,12 @@ extern "C" {
     }
 
     void
+    printb(const uint8_t* msg, uint8_t size) {
+	Serial.write(msg, size);
+	Serial.flush();
+    }
+
+    void
     printi(const int v) {
 	Serial.print(v);
 	Serial.flush();
