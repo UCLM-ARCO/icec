@@ -5,6 +5,10 @@
 
 #include <HardwareSerial.h>
 
+#ifndef DEBUG_LED
+#define DEBUG_LED 13
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,18 +39,18 @@ extern "C" {
 
     void
     led_config() {
-	pinMode(13, OUTPUT);
+	pinMode(DEBUG_LED, OUTPUT);
     }
 
     void
     led_blink(int wait) {
-	digitalWrite(13, 1);
+	digitalWrite(DEBUG_LED, 1);
 	delay(50);
-	digitalWrite(13, 0);
+	digitalWrite(DEBUG_LED, 0);
 	delay(50);
-	digitalWrite(13, 1);
+	digitalWrite(DEBUG_LED, 1);
 	delay(50);
-	digitalWrite(13, 0);
+	digitalWrite(DEBUG_LED, 0);
 
 	delay(wait);
     }
