@@ -64,10 +64,6 @@ typedef enum {
     Ice_ReferenceModeBatchDatagram
 } Ice_ReferenceMode;
 
-#define Ice_EndpointTypeTCP 1
-#define Ice_EndpointTypeSSL 2
-#define Ice_EndpointTypeUDP 3
-
 typedef byte Ice_EndpointType;
 
 static const byte Ice_header[] = {

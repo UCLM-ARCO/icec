@@ -1,7 +1,7 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include <IceC/UDPEndpoint.h>
 #include <IceC/IceUtil.h>
+#include <IceC/platforms/x86/UDPEndpoint.h>
 
 #include <netinet/in.h>
 #include <sys/socket.h>

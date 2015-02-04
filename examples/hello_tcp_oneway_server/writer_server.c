@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include <IceC/TCPEndpoint.h>
+#include <IceC/platforms/x86/TCPEndpoint.h>
 #include "hello.h"
 
 void

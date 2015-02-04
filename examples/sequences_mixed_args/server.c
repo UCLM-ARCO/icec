@@ -1,7 +1,7 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
 #include <IceC/IceC.h>
-#include <IceC/UDPEndpoint.h>
+#include <IceC/platforms/x86/UDPEndpoint.h>
 
 #include <stdio.h>
 #include <math.h>

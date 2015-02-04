@@ -1,3 +1,9 @@
+icec (20150204-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 04 Feb 2015 13:29:07 +0100
+
 icec (20150123-1) unstable; urgency=low
 
   * New release: added missing funcion declaration
