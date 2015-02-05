@@ -3,24 +3,28 @@
 #ifndef _ICE_ASSERT_H_
 #define _ICE_ASSERT_H_
 
-#define error_at_line(...)
+#ifndef DEBUG
+#  define error_at_line(...)
+#  define assert(token) __assert(token)
+#else
+#  define error_at_line(s, e, f, l, m) __DBG_error_at_line(s, e, f, l, m)
+#  define assert(token) __DBG_assert(token, #token)
+#endif
 
 extern void prints(const char*);
 extern void led_config();
 extern void led_blink(int);
 
-#ifdef DEBUG
-#define assert(token) __DBG_assert(token, #token)
-#else
+#define __DBG_error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
+    prints("Error, " FILE ":" #LINE ": " MESSAGE);
 
 static void
-assert(bool status) {
+__assert(bool status) {
     if (status)
 	return;
 
     while(true);
 }
-#endif
 
 static void
 __DBG_assert(bool status, const char* message) {
@@ -37,9 +41,5 @@ __DBG_assert(bool status, const char* message) {
 	led_blink(1000);
     }
 }
-
-#define DBG_assert(token) __DBG_assert(token, #token)
-#define DBG_error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
-    prints("Error, " FILE ":" #LINE ": " MESSAGE);
 
 #endif /* _ICE_ASSERT_H_ */

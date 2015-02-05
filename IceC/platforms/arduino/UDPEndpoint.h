@@ -11,6 +11,13 @@ extern "C" {
 
 #define Ice_EndpointTypeUDP 13
 
+typedef struct UDP_EndpointOptions {
+    Object _base;
+    uint16_t port;
+} UDP_EndpointOptions;
+
+typedef UDP_EndpointOptions* UDP_EndpointOptionsPtr;
+
 bool IceC_UDPEndpoint_getProtocolType(const char* proto, Ice_EndpointType* result);
 bool IceC_UDPEndpoint_InputStream_init(Ice_InputStreamPtr self, int fd,
 				       Ice_EndpointType type);
@@ -26,6 +33,7 @@ bool IceC_UDPEndpoint_ObjectPrx_init(Ice_ObjectPrxPtr self,
 
 bool IceC_UDPEndpoint_Connection_send(Ice_ConnectionPtr self, int fd,
 				      byte* data, uint16_t* size);
+bool IceC_UDPEndpoint_Connection_dataReady(Ice_ConnectionPtr self, bool* ready);
 
 /* plugin specific functions */
 void IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic);

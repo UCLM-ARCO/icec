@@ -9,11 +9,18 @@
 # error "MAC address not defined"
 #endif
 
+#ifndef IP_ADDRESS
+# error "IP address not defined"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+    void Ethernet_setup();
+    uint8_t UDP_init(uint16_t port);
     uint8_t UDP_read(byte* data, uint8_t size);
+    bool UDP_available();
 
 #ifdef __cplusplus
 }

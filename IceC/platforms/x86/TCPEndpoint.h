@@ -19,20 +19,20 @@ typedef struct TCP_EndpointOptions {
 typedef TCP_EndpointOptions* TCP_EndpointOptionsPtr;
 
 bool TCP_getProtocolType(const char* proto, Ice_EndpointType* result);
-bool TCP_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type);
-bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr this);
-bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
+bool TCP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
+bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
+bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 			   Ice_EndpointType type,
 			   const char* endpoint);
 
-bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this);
-bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx);
+bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self);
+bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx);
 
-void TCP_Connection_connect(Ice_ConnectionPtr this, const char* host, uint16_t port);
-bool TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port);
-bool TCP_Connection_accept(Ice_ConnectionPtr this);
-bool TCP_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t* size);
-bool TCP_Connection_close(Ice_ConnectionPtr this);
+void TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port);
+bool TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port);
+bool TCP_Connection_accept(Ice_ConnectionPtr self);
+bool TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size);
+bool TCP_Connection_close(Ice_ConnectionPtr self);
 
 /* plugin specific functions */
 void TCPEndpoint_init(Ice_CommunicatorPtr ic);

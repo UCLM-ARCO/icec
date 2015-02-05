@@ -15,6 +15,7 @@ extern "C" {
 
     void
     debug_init() {
+	led_config();
 	Serial.begin(115200);
 	while(!Serial);
     }

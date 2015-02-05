@@ -24,32 +24,32 @@ TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
 }
 
 bool
-TCP_InputStream_init(Ice_InputStreamPtr this, int fd, Ice_EndpointType type) {
+TCP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
     trace();
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    this->size = read(fd, (byte*)this->data, MAX_MESSAGE_SIZE);
+    self->size = read(fd, (byte*)self->data, MAX_MESSAGE_SIZE);
     return true;
 }
 
 bool
-TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr this) {
+TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
     TCP_EndpointOptions* opts;
 
     trace();
 
-    if (this->epinfo.type != Ice_EndpointTypeTCP)
+    if (self->epinfo.type != Ice_EndpointTypeTCP)
 	return false;
 
-    opts = this->epinfo.options;
+    opts = self->epinfo.options;
     Ptr_check(opts);
 
-    return TCP_Connection_listen(&(this->connection), opts->host, opts->port);
+    return TCP_Connection_listen(&(self->connection), opts->host, opts->port);
 }
 
 bool
-TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
+TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 		      Ice_EndpointType type,
 		      const char* endpoint) {
     ObjectPtr ptr;
@@ -62,59 +62,59 @@ TCP_EndpointInfo_init(Ice_EndpointInfoPtr this,
     Ptr_check(ptr);
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
-    this->type = type;
-    this->datagram = false;
-    this->options = &ep_options;
+    self->type = type;
+    self->datagram = false;
+    self->options = &ep_options;
     ep_options.used = true;
 
     IceUtil_getHost(endpoint, ep_options.host);
     IceUtil_getPort(endpoint, &(ep_options.port));
-    Object_init((ObjectPtr)this);
+    Object_init((ObjectPtr)self);
     return true;
 }
 
 bool
-TCP_ObjectPrx_connect(Ice_ObjectPrxPtr this) {
+TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     TCP_EndpointOptionsPtr opts;
 
     trace();
-    Ptr_check(this);
+    Ptr_check(self);
 
-    if (this->epinfo.type != Ice_EndpointTypeTCP)
+    if (self->epinfo.type != Ice_EndpointTypeTCP)
 	return false;
 
-    opts = this->epinfo.options;
+    opts = self->epinfo.options;
     Ptr_check(opts);
 
-    TCP_Connection_connect(&(this->connection), opts->host, opts->port);
-    assert(this->connection.fd != -1);
+    TCP_Connection_connect(&(self->connection), opts->host, opts->port);
+    assert(self->connection.fd != -1);
     return true;
 }
 
 bool
-TCP_ObjectPrx_init(Ice_ObjectPrxPtr this, Ice_EndpointType type, const char* strprx) {
+TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx) {
     trace();
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    Ice_Connection_init(&(this->connection), type);
-    Ice_OutputStream_init(&(this->stream));
-    TCP_EndpointInfo_init(&(this->epinfo), type, strprx);
+    Ice_Connection_init(&(self->connection), type);
+    Ice_OutputStream_init(&(self->stream));
+    TCP_EndpointInfo_init(&(self->epinfo), type, strprx);
 
-    Object_init((ObjectPtr)this);
+    Object_init((ObjectPtr)self);
     return true;
 }
 
 void
-TCP_Connection_connect(Ice_ConnectionPtr this, const char* host, uint16_t port) {
+TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     struct sockaddr_in addr;
 
     trace();
 
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
-    this->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (this->fd == -1) {
+    self->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (self->fd == -1) {
 	error("Could not create socoket: %s\n", strerror(errno));
 	return;
     }
@@ -127,14 +127,14 @@ TCP_Connection_connect(Ice_ConnectionPtr this, const char* host, uint16_t port) 
         return;
     }
 
-    if (connect(this->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+    if (connect(self->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 	error("Could not bind socket: %s\n", strerror(errno));
 	return;
     }
 }
 
 bool
-TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port) {
+TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     struct sockaddr_in addr;
     int optval;
 
@@ -142,8 +142,8 @@ TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port) {
 
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
-    this->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (this->fd == -1) {
+    self->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (self->fd == -1) {
 	error("Could not create socoket: %s\n", strerror(errno));
 	return false;
     }
@@ -157,30 +157,30 @@ TCP_Connection_listen(Ice_ConnectionPtr this, const char* host, uint16_t port) {
     }
 
     optval = 1;
-    setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    if (bind(this->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+    setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    if (bind(self->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 	error("Could not bind socket: %s\n", strerror(errno));
 	return false;
     }
 
-    listen(this->fd, 1);
+    listen(self->fd, 1);
     return true;
 }
 
 bool
-TCP_Connection_accept(Ice_ConnectionPtr this) {
+TCP_Connection_accept(Ice_ConnectionPtr self) {
     trace();
-    if (this->type != Ice_EndpointTypeTCP)
+    if (self->type != Ice_EndpointTypeTCP)
 	return false;
 
-    this->current_client = accept(this->fd, NULL, 0);
+    self->current_client = accept(self->fd, NULL, 0);
     return true;
 }
 
 bool
-TCP_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t* size) {
+TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
     trace();
-    if (this->type != Ice_EndpointTypeTCP)
+    if (self->type != Ice_EndpointTypeTCP)
 	return false;
 
     *size = send(fd, data, *size, 0);
@@ -188,12 +188,12 @@ TCP_Connection_send(Ice_ConnectionPtr this, int fd, byte* data, uint16_t* size) 
 }
 
 bool
-TCP_Connection_close(Ice_ConnectionPtr this) {
+TCP_Connection_close(Ice_ConnectionPtr self) {
     trace();
-    if (this->type != Ice_EndpointTypeTCP)
+    if (self->type != Ice_EndpointTypeTCP)
 	return false;
 
-    close(this->current_client);
+    close(self->current_client);
     return true;
 }
 
