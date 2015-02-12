@@ -1142,9 +1142,16 @@ if __name__ == "__main__":
 
     args = argparse.ArgumentParser()
     args.add_argument('input', help='Slice file')
+    args.add_argument('-I', dest='includes', action='append',
+                      help="Add include search path")
     args = args.parse_args()
 
     parser = sliceparser.Parser(args.input)
+    parser.addArgument("-I/usr/share/Ice/slice")
+    if args.includes is not None:
+        for p in args.includes:
+            parser.addArgument("-I" + p)
+
     visitor = IceVisitor()
     builder = IceCBuilder(args)
 
