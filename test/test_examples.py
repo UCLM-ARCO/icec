@@ -108,3 +108,25 @@ class TestExampleSequencesNested(prego.TestCase, TestMixin):
                         " - params.length: 3\n"
                         " - p3.id = 23\n"
                         " - p3.data = 'a string'\n")
+
+
+class TestExampleStringsClient(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/strings_client"
+        self.proxy = "HelloServer -d -e 1.0:udp -h 127.0.0.1 -p 7896"
+
+        self.build_example()
+        self.run_server("./server.py")
+        self.run_client("./client",
+                        "'sayHelloFrom' request, from: 'Catherine Foo', times: 25")
+
+
+class TestExampleStringsServer(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/strings_server"
+        self.proxy = "HelloServer -d -e 1.0:udp -h 127.0.0.1 -p 7896"
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client.py",
+                        "'sayHelloFrom' request, from: 'Jonh Doe', times: 5")

@@ -200,6 +200,21 @@ Ice_InputStream_readString(Ice_InputStreamPtr self, char* v) {
 }
 
 void
+Ice_InputStream_readIceString(Ice_InputStreamPtr self, Ice_StringPtr s) {
+    Ice_Int size;
+
+    trace();
+    Ptr_check(self);
+
+    Ice_InputStream_readSize(self, &size, true);
+    if (s != NULL)  {
+	s->value = (char*)self->next;
+	s->size = size;
+    }
+    self->next += size;
+}
+
+void
 Ice_InputStream_readBlob(Ice_InputStreamPtr self, byte* v, int size) {
     trace();
     Ptr_check(self);
@@ -349,6 +364,15 @@ Ice_OutputStream_writeString(Ice_OutputStreamPtr self, const char* str) {
     size = strlen(str);
     Ice_OutputStream_writeSize(self, size);
     Ice_OutputStream_writeBlob(self, (byte*)str, size);
+}
+
+void
+Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str) {
+    trace();
+    Ptr_check(self);
+
+    Ice_OutputStream_writeSize(self, str.size);
+    Ice_OutputStream_writeBlob(self, (byte*)str.value, str.size);
 }
 
 void

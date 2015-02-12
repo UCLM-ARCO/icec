@@ -359,6 +359,9 @@ class OutputStream(CCode):
                 param = "&({0})".format(param)
             name = "Ice_OutputStream_write{0}".format(typeid.capitalize())
 
+        if typeid == "string":
+            name = "Ice_OutputStream_writeIceString"
+
         if typeid in ["Ice_Identity"]:
             name = "Ice_OutputStream_writeIdentity"
 
@@ -414,6 +417,9 @@ class InputStream(CCode):
 
         if typeid in ["Ice_Int"]:
             name = "Ice_InputStream_read{0}".format(typeid[4:])
+
+        if typeid == "string":
+            name = "Ice_InputStream_readIceString"
 
         if typeid == "char*":
             name = "Ice_InputStream_readString"
@@ -926,7 +932,7 @@ class TypeDecl(BaseDecl):
             self.kind = str(ptr.__class__.__name__).lower()
 
     def __repr__(self):
-        if self.typeid in ["bool", "byte", "int", "short"]:
+        if self.typeid in ["bool", "byte", "int", "short", "string"]:
             return "Ice_" + self.typeid.capitalize()
 
         return self.cpp2c_name(self.typeid)

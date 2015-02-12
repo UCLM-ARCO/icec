@@ -1,3 +1,9 @@
+icec (20150212-1) unstable; urgency=low
+
+  * New release: added support for strings
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 12 Feb 2015 13:37:54 +0100
+
 icec (20150204-1) unstable; urgency=low
 
   * New release

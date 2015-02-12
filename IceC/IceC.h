@@ -32,10 +32,12 @@ typedef int16_t Ice_Short;
 typedef int32_t Ice_Int;
 typedef int64_t Ice_Long;
 
-#define magic0 0x49 /* I */
-#define magic1 0x63 /* c */
-#define magic2 0x65 /* e */
-#define magic3 0x50 /* P */
+typedef struct Ice_String {
+    Ice_Int size;
+    const char* value;
+} Ice_String;
+
+typedef Ice_String* Ice_StringPtr;
 
 #define protocolMajor 1
 #define protocolMinor 0
@@ -67,10 +69,10 @@ typedef enum {
 typedef byte Ice_EndpointType;
 
 static const byte Ice_header[] = {
-    magic0,
-    magic1,
-    magic2,
-    magic3,
+    0x49,            /* I */
+    0x63,            /* c */
+    0x65,            /* e */
+    0x50,            /* P */
     protocolMajor,
     protocolMinor,
     encodingMajor,
@@ -80,7 +82,7 @@ static const byte Ice_header[] = {
     0, 0, 0, 0,      /* Message size (placeholder) */
 };
 
-typedef struct {
+typedef struct Object {
     int tag;
 } Object;
 
@@ -128,6 +130,7 @@ void Ice_InputStream_readShort(Ice_InputStreamPtr self, Ice_Short* v);
 void Ice_InputStream_readInt(Ice_InputStreamPtr self, Ice_Int* v);
 void Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment);
 void Ice_InputStream_readString(Ice_InputStreamPtr self, char* v);
+void Ice_InputStream_readIceString(Ice_InputStreamPtr self, Ice_StringPtr v);
 void Ice_InputStream_readBlob(Ice_InputStreamPtr self, byte* v, int size);
 void Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* name);
 
@@ -149,6 +152,7 @@ void Ice_OutputStream_writeInt(Ice_OutputStreamPtr self, Ice_Int v);
 void Ice_OutputStream_writeBlob(Ice_OutputStreamPtr self, const byte* data, int size);
 void Ice_OutputStream_writeSize(Ice_OutputStreamPtr self, int size);
 void Ice_OutputStream_writeString(Ice_OutputStreamPtr self, const char* str);
+void Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str);
 void Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id);
 void Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self);
 void Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self);

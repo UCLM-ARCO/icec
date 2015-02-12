@@ -53,11 +53,16 @@ UDP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 		      Ice_EndpointType type,
 		      const char* endpoint) {
 
+    ObjectPtr _ep_options_ptr;
+
     trace();
     if (type != Ice_EndpointTypeUDP)
 	return false;
 
-    Ptr_check(&ep_options);
+    /* avoid annoying compiler messages */
+    _ep_options_ptr = (ObjectPtr)&ep_options;
+    Ptr_check(_ep_options_ptr);
+
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
     self->type = type;
@@ -73,11 +78,16 @@ UDP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 
 bool
 UDP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx) {
+    ObjectPtr _ep_options_ptr;
+
     trace();
     if (type != Ice_EndpointTypeUDP)
 	return false;
 
-    Ptr_check(&ep_options);
+    /* avoid annoying compiler messages */
+    _ep_options_ptr = (ObjectPtr)&ep_options;
+    Ptr_check(_ep_options_ptr);
+
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
     Ice_Connection_init(&(self->connection), type);
