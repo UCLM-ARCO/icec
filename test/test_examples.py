@@ -130,3 +130,14 @@ class TestExampleStringsServer(prego.TestCase, TestMixin):
         self.run_server("./server", expected=-15)
         self.run_client("./client.py",
                         "'sayHelloFrom' request, from: 'Jonh Doe', times: 5")
+
+
+class TestExampleDictionaryClient(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/dictionary_client"
+        self.proxy = "PropertyServer -d -e 1.0:udp -h 127.0.0.1 -p 7897"
+
+        self.build_example()
+        self.run_server("./server.py")
+        self.run_client("./client",
+                        "'update' request, {'name': 'sensor', 'type': 'humidity'")

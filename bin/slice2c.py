@@ -549,6 +549,10 @@ class BaseDecl(object):
         c += self.get_marshall_func()
         c.nl()
 
+    def render_unmarshaller(self, c):
+        c += self.get_unmarshall_func()
+        c.nl()
+
     def render_children(self, c):
         for i in self:
             i.render(c)
@@ -1012,6 +1016,20 @@ class SequenceDecl(BaseDecl):
         c.nl()
 
 
+class DictionaryDecl(BaseDecl):
+    def __init__(self, module, ptr):
+        BaseDecl.__init__(self, module, ptr)
+
+    def render(self, c):
+        self.render_dictionary(c)
+        self.render_ptr(c)
+        self.render_marshaller(c)
+        self.render_unmarshaller(c)
+
+    def render_dictionary(self, c):
+        pass
+
+
 class StructDecl(BaseDecl):
     def __init__(self, module, ptr):
         BaseDecl.__init__(self, module, ptr)
@@ -1138,6 +1156,9 @@ class IceVisitor(sliceparser.Visitor):
 
     def visitSequence(self, sequenceptr):
         self.items.append(SequenceDecl(self.module, sequenceptr))
+
+    def visitDictionary(self, dictionaryptr):
+        self.items.append(DictionaryDecl(self.module, dictionaryptr))
 
     def visitEnum(self, enumptr):
         self.items.append(EnumDecl(self.module, enumptr))
