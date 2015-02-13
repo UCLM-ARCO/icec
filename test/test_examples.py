@@ -140,4 +140,25 @@ class TestExampleDictionaryClient(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server.py")
         self.run_client("./client",
-                        "'update' request, {'name': 'sensor', 'type': 'humidity'")
+                        "'update' request, {'name': 'sensor', 'type': 'humidity'}")
+
+
+class TestExampleDictionaryServer(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/dictionary_server"
+        self.proxy = "PropertyServer -d -e 1.0:udp -h 127.0.0.1 -p 7897"
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+
+        client = prego.Task("client")
+        client.wait_that(self.server, prego.running())
+        client.command("{0} '{1}'".format("./client.py", self.proxy), cwd=self.cwd)
+
+        client.wait_that(
+            self.server.lastcmd.stdout.content,
+            hamcrest.contains_string("'name': 'sensor'"))
+
+        client.wait_that(
+            self.server.lastcmd.stdout.content,
+            hamcrest.contains_string("'type': 'humidity'"))

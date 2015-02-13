@@ -29,8 +29,7 @@ main(int argc, char* argv[]) {
 
     /* create object adapter */
     endp = "udp -h 127.0.0.1 -p 7896";
-    Ice_Communicator_createObjectAdapterWithEndpoints
-	(&ic, "Adapter", endp, &adapter);
+    Ice_Communicator_createObjectAdapterWithEndpoints(&ic, "Adapter", endp, &adapter);
     Ice_ObjectAdapter_activate(&adapter);
 
     /* register servant */

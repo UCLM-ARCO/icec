@@ -873,13 +873,21 @@ class OperationDecl(BaseDecl):
             kind = "proxy" if i.is_proxy else i.type.kind
 
             # if sequence, reserve space to hold it
-            if kind == "sequence":
-                func.comment(" allocate space for sequence ")
+            if kind in ["sequence", "dictionary"]:
+                func.comment(" allocate space for {} ".format(kind))
                 size_var = i.name + ".size"
                 items_var = i.name + ".items"
 
-                ins.readSize("&" + size_var, "false")
-                ins.alloca(self.cpp2c_name(i.type.typeid), items_var, size_var)
+                size_var_ptr = "&" + size_var
+                if kind == "dictionary":
+                    size_var_ptr = "(Ice_Int*)" + size_var_ptr
+                ins.readSize(size_var_ptr, "false")
+
+                alloca_type = i.type.typeid
+                if kind == "dictionary":
+                    alloca_type += "_Pair"
+
+                ins.alloca(self.cpp2c_name(alloca_type), items_var, size_var)
 
             ins.read(self.cpp2c_name(i.type.typeid), "&" + i.name, kind)
             func += ins
@@ -1159,21 +1167,27 @@ class DictionaryDecl(BaseDecl):
         c += fn
         c.nl()
 
-    # def render_unmarshaller(self, c):
-        # fn = self.get_unmarshall_func()
+    def render_unmarshaller(self, c):
+        fn = self.get_unmarshall_func()
 
-        # # read size of sequence
-        # ins1 = InputStream("is")
-        # ins1.readSize("&(self->size)", "true")
-        # fn += ins1
-        # fn.nl()
+        # read size of dictionary
+        ins1 = InputStream("is")
+        ins1.readSize("(Ice_Int*)&(self->size)", "true")
+        fn += ins1
+        fn.nl()
 
-        # c += fn
-        # c.nl()
+        # read items of dictionary
+        ins2 = InputStream("is")
+        ins2.read(self.cpp2c_name(self.key_type.typeid), "&(self->items[i].key)")
+        ins2.read(self.cpp2c_name(self.value_type.typeid), "&(self->items[i].value)")
 
-        # FIXME
-        # c += "void Example_StringDict_readFromInputStream(Example_StringDictPtr self, \n"
-        # c += "                                            Ice_InputStreamPtr is);\n"
+        loop = ForLoop("i", "0", "i<self->size", "i++", type_="byte")
+        loop += ins2
+        fn += loop
+        fn.declare_var(loop.counter)
+
+        c += fn
+        c.nl()
 
 
 class StructDecl(BaseDecl):
