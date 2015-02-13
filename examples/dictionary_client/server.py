@@ -8,7 +8,7 @@ Ice.loadSlice("example.ice")
 import Example
 
 
-class PropertyServiceI(Example.Hello):
+class PropertyServiceI(Example.PropertyService):
     def update(self, props, current):
         print " - 'update' request, {}".format(props)
 
@@ -22,6 +22,7 @@ class Server(Ice.Application):
         adapter.activate()
 
         proxy = adapter.add(PropertyServiceI(), ic.stringToIdentity("PropertyServer"))
+        proxy = proxy.ice_datagram()
 
         print "Proxy ready: '{}'".format(proxy)
         self.shutdownOnInterrupt()

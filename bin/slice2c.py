@@ -18,6 +18,9 @@ class CCode(list):
         self.append(item)
         return self
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         retval = ""
         for i in self:
@@ -111,6 +114,32 @@ class Include(object):
         for f, local in self._filenames:
             s = "#include " + ('"{0}"' if local else '<{0}>')
             retval += s.format(f) + "\n"
+        return retval
+
+
+class Alias(object):
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        retval = "#define {} {}\n".format(self.src, self.dst)
+        return retval
+
+
+class Macro(CCode):
+    def __init__(self, name, *args):
+        CCode.__init__(self)
+        self.name = name
+        self.args = args
+
+    def __str__(self):
+        args = ", ".join(self.args)
+        retval = "#define {}({})\n".format(self.name, args)
+        retval += CCode.__str__(self)
         return retval
 
 
@@ -449,9 +478,9 @@ class InputStream(CCode):
 
 
 class ForLoop(CCode):
-    def __init__(self, varname, initial, condition, increment):
+    def __init__(self, varname, initial, condition, increment, type_="int"):
         self.varname = varname
-        self.counter = Param("int", varname)
+        self.counter = Param(type_, varname)
 
         self.initial = initial
         self.condition = condition
@@ -540,9 +569,14 @@ class BaseDecl(object):
         c += "Not implemented"
         c.nl()
 
-    def render_ptr(self, c):
-        nameptr = self.full_name + "Ptr"
-        c += Typedef(nameptr, Pointer(self.full_name))
+    def render_ptr(self, c, name=None, nameptr=None):
+        if name is None:
+            name = self.full_name
+
+        if nameptr is None:
+            nameptr = self.full_name + "Ptr"
+
+        c += Typedef(nameptr, Pointer(name))
         c.nl()
 
     def render_marshaller(self, c):
@@ -1019,15 +1053,127 @@ class SequenceDecl(BaseDecl):
 class DictionaryDecl(BaseDecl):
     def __init__(self, module, ptr):
         BaseDecl.__init__(self, module, ptr)
+        self.key_type = TypeDecl(ptr.keyType())
+        self.value_type = TypeDecl(ptr.valueType())
 
     def render(self, c):
+        self.render_dictionary_pair(c)
         self.render_dictionary(c)
-        self.render_ptr(c)
+        self.render_init_method(c)
+        self.render_set_method(c)
         self.render_marshaller(c)
         self.render_unmarshaller(c)
 
+    def render_dictionary_pair(self, c):
+        pair = Struct()
+
+        key = Param(self.key_type, "key")
+        pair.append(key)
+        value = Param(self.value_type, "value")
+        pair.append(value)
+
+        name = self.full_name + "_Pair"
+        c += Typedef(name, pair)
+        c.nl()
+
+        self.render_ptr(c, name, name + "Ptr")
+
     def render_dictionary(self, c):
-        pass
+        dic = Struct()
+
+        size = Param("byte", "size")
+        dic.append(size)
+        items = Param(self.full_name + "_PairPtr", "items")
+        dic.append(items)
+
+        c += Typedef(self.full_name, dic)
+        c.nl()
+
+        self.render_ptr(c)
+
+    def render_init_method(self, c):
+        init = Alias(self.full_name + "_init", "Ice_Dict_init")
+        c += init
+        c.nl()
+
+    def render_set_method(self, c):
+        setm = Macro(self.full_name + "_set", "DICT", "INDEX", "KEY", "VALUE")
+        tab = " " * 4
+
+        setm += tab
+        key_type = self.key_type.typeid
+        if key_type == "string":
+            setm += FunctionCall("Ice_String_init", "DICT.items[INDEX].key", "KEY")
+        elif key_type in ["bool", "char", "byte", "int", "short"]:
+            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].key", "KEY")
+        else:
+            raise ValueError("Unsupported key type on dictionary: " + key_type)
+
+        value_type = self.value_type.typeid
+        setm += tab
+        if value_type == "string":
+            setm += FunctionCall("Ice_String_init", "DICT.items[INDEX].value", "VALUE")
+        elif value_type in ["bool", "char", "byte", "int", "short"]:
+            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].value", "VALUE")
+        else:
+            raise ValueError("Unsupported value type on dictionary: " + key_type)
+
+        setm = str(setm)
+        longest = 0
+        for l in setm.splitlines():
+            longest = max(longest, len(l))
+
+        result = ""
+        for l in setm.splitlines():
+            result += l + " " * (longest - len(l)) + "    \\\n"
+
+        c += result[:-2] + "\n"
+        c.nl()
+
+    def render_marshaller(self, c):
+        fn = self.get_marshall_func()
+
+        # write size of dictionary
+        outs1 = OutputStream("os")
+        outs1.writeSize("self->size")
+        fn += outs1
+        fn.nl()
+
+        # write items of dictionary
+        outs2 = OutputStream("os")
+        outs2.write(
+            self.cpp2c_name(self.key_type.typeid),
+            "self->items[i].key",
+            toPointer=False)
+
+        outs2.write(
+            self.cpp2c_name(self.value_type.typeid),
+            "self->items[i].value",
+            toPointer=False)
+
+        loop = ForLoop("i", "0", "i<self->size", "i++", type_="byte")
+        loop += outs2
+        fn += loop
+        fn.declare_var(loop.counter)
+
+        c += fn
+        c.nl()
+
+    # def render_unmarshaller(self, c):
+        # fn = self.get_unmarshall_func()
+
+        # # read size of sequence
+        # ins1 = InputStream("is")
+        # ins1.readSize("&(self->size)", "true")
+        # fn += ins1
+        # fn.nl()
+
+        # c += fn
+        # c.nl()
+
+        # FIXME
+        # c += "void Example_StringDict_readFromInputStream(Example_StringDictPtr self, \n"
+        # c += "                                            Ice_InputStreamPtr is);\n"
 
 
 class StructDecl(BaseDecl):

@@ -39,16 +39,16 @@ typedef struct Ice_String {
 
 typedef Ice_String* Ice_StringPtr;
 
-#define Ice_String_init(NAME, VALUE)      \
-    NAME.value = VALUE;			  \
+#define Ice_String_init(NAME, VALUE)            \
+    NAME.value = VALUE;				\
     NAME.size = strlen(VALUE);
 
-#define Dict_init(DICT, DICT_ITEMS, SIZE) \
-    DICT.size = SIZE;			  \
+#define Ice_Dict_init(DICT, DICT_ITEMS, SIZE)   \
+    DICT.size = SIZE;				\
     DICT.items = DICT_ITEMS;
 
-#define Dict_set(DICT, INDEX, KEY, VALUE) \
-    DICT.items[INDEX].key = KEY;	  \
+#define Ice_Dict_set(DICT, INDEX, KEY, VALUE)	\
+    DICT.items[INDEX].key = KEY;		\
     DICT.items[INDEX].value = VALUE;
 
 #define protocolMajor 1
