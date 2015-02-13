@@ -10,6 +10,12 @@ import Example
 
 class PropertyServiceI(Example.PropertyService):
     def update(self, props, current):
+        items = props.items()
+        items.sort()
+        props = "{"
+        for k, v in items:
+            props += "'{}': '{}', ".format(k, v)
+        props = props[:-2] + "}"
         print " - 'update' request, {}".format(props)
 
 
