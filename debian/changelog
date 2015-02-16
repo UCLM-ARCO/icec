@@ -1,3 +1,9 @@
+icec (20150213-1) unstable; urgency=low
+
+  * New release, added support for dictionaries
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 13 Feb 2015 12:25:31 +0100
+
 icec (20150212-1) unstable; urgency=low
 
   * New release: added support for strings

@@ -139,7 +139,9 @@ class Macro(CCode):
     def __str__(self):
         args = ", ".join(self.args)
         retval = "#define {}({})\n".format(self.name, args)
+        retval += "do {\n"
         retval += CCode.__str__(self)
+        retval += "} while(0)\n"
         return retval
 
 
@@ -321,9 +323,11 @@ class FunctionCall(object):
         self._name = name
         self._args = args
         self._result = None
+        self._casting_to = None
 
-    def result(self, name="result"):
+    def result(self, name="result", casting_to=None):
         self._result = name
+        self._casting_to = casting_to
 
     def __str__(self):
         args = ""
@@ -334,6 +338,9 @@ class FunctionCall(object):
         retval = ""
         if self._result is not None:
             retval = "{0} = ".format(self._result)
+
+        if self._casting_to is not None:
+            retval += "({}) ".format(self._casting_to)
 
         retval += "{0}({1});\n".format(self._name, args)
 
@@ -472,8 +479,10 @@ class InputStream(CCode):
 
     def alloca(self, typeid, dest, size):
         sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
+        casting = Pointer(typeid, use_ptr=True)
         alloca = FunctionCall("alloca", sizeof)
-        alloca.result(dest)
+        alloca.result(dest, casting_to=casting)
+
         self.append(alloca)
 
 
@@ -528,7 +537,8 @@ class IceCBuilder(object):
         c.nl()
 
     def get_output_filename(self):
-        name = os.path.splitext(self.args.input)[0]
+        name = os.path.basename(self.args.input)
+        name = os.path.splitext(name)[0]
         return name + ".h"
 
     def build(self, st):
@@ -903,7 +913,7 @@ class OperationDecl(BaseDecl):
         method = FunctionCall(name, *call_args)
         if self.retval.typeid != "void":
             method.result("_retval")
-            func.declare_var(Param(self.retval.typeid, "_retval"))
+            func.declare_var(Param(self.cpp2c_name(self.retval.typeid), "_retval"))
 
         func += method
 
@@ -1000,7 +1010,7 @@ class SequenceDecl(BaseDecl):
 
         items = Param(Pointer(self.type), "items")
         seq.append(items)
-        size = Param("int", "size")
+        size = Param("Ice_Int", "size")
         seq.append(size)
 
         c += Typedef(self.full_name, seq)
@@ -1112,19 +1122,15 @@ class DictionaryDecl(BaseDecl):
         key_type = self.key_type.typeid
         if key_type == "string":
             setm += FunctionCall("Ice_String_init", "DICT.items[INDEX].key", "KEY")
-        elif key_type in ["bool", "char", "byte", "int", "short"]:
-            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].key", "KEY")
         else:
-            raise ValueError("Unsupported key type on dictionary: " + key_type)
+            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].key", "KEY")
 
         value_type = self.value_type.typeid
         setm += tab
         if value_type == "string":
             setm += FunctionCall("Ice_String_init", "DICT.items[INDEX].value", "VALUE")
-        elif value_type in ["bool", "char", "byte", "int", "short"]:
-            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].value", "VALUE")
         else:
-            raise ValueError("Unsupported value type on dictionary: " + key_type)
+            setm += FunctionCall("Ice_Dict_set", "DICT.items[INDEX].value", "VALUE")
 
         setm = str(setm)
         longest = 0
@@ -1233,15 +1239,19 @@ class StructDecl(BaseDecl):
         fn = self.get_unmarshall_func()
 
         ins = InputStream("is")
+        initialized = False
         for m in self.members:
             param = "self->{0}".format(m.name)
 
-            if m.kind == "enum" or m.typeid in ["bool", "char", "byte", "int", "short"]:
+            if m.typeid in ["bool", "char", "byte", "int", "short"]:
                 fn += "{0} = 0;\n".format(param)
+                initialized = True
 
             ins.read(self.cpp2c_name(m.typeid), param, m.kind, toPointer=True)
 
-        fn.nl()
+        if initialized:
+            fn.nl()
+
         fn.comment(" FIXME: assure self->data is reserved!! ")
         fn += ins
 

@@ -40,16 +40,22 @@ typedef struct Ice_String {
 typedef Ice_String* Ice_StringPtr;
 
 #define Ice_String_init(NAME, VALUE)            \
-    NAME.value = VALUE;				\
-    NAME.size = strlen(VALUE);
+    do {					\
+	NAME.value = VALUE;			\
+	NAME.size = strlen(VALUE);		\
+    } while(0);
 
 #define Ice_Dict_init(DICT, DICT_ITEMS, SIZE)   \
-    DICT.size = SIZE;				\
-    DICT.items = DICT_ITEMS;
+    do {					\
+	DICT.size = SIZE;			\
+	DICT.items = DICT_ITEMS;		\
+    } while(0);
 
 #define Ice_Dict_set(DICT, INDEX, KEY, VALUE)	\
-    DICT.items[INDEX].key = KEY;		\
-    DICT.items[INDEX].value = VALUE;
+    do {					\
+	DICT.items[INDEX].key = KEY;		\
+	DICT.items[INDEX].value = VALUE;	\
+    } while(0);
 
 #define protocolMajor 1
 #define protocolMinor 0
