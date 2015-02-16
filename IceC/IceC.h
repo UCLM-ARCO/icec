@@ -11,8 +11,7 @@ extern "C" {
 
 #define streq(S1, S2) (strcmp(S1, S2) == 0)
 
-#define TAG_OK   4444
-#define TAG_NULL 0
+#define TAG_OK 4444
 
 #define Ptr_check(ptr)							\
     do {								\

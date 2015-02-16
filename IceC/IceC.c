@@ -767,13 +767,18 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr self) {
 
 void
 Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) {
-    char identity[MAX_IDENTITY_SIZE];
     byte b, facetSeqSize, numOfEndpoints;
 
     trace();
     Ptr_check(is);
 
-    Ice_InputStream_readIdentity(is, identity);
+    Ice_InputStream_readIdentity(is, self->identity);
+
+    /* empty proxy, no more fields encoded */
+    if (self->identity[0] == 0)
+	return;
+
+    /* facet not supported, must be 0 */
     Ice_InputStream_readByte(is, &facetSeqSize);
     assert(facetSeqSize == 0);
 

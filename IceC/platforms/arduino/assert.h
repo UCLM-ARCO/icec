@@ -23,7 +23,15 @@ __assert(bool status) {
     if (status)
 	return;
 
+#ifdef DEBUG_LED
+    led_config();
+    while(true) {
+	led_blink(1000);
+    }
+#else
     while(true);
+#endif
+
 }
 
 static void
