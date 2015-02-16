@@ -913,7 +913,11 @@ class OperationDecl(BaseDecl):
         method = FunctionCall(name, *call_args)
         if self.retval.typeid != "void":
             method.result("_retval")
-            func.declare_var(Param(self.cpp2c_name(self.retval.typeid), "_retval"))
+            if self.retval.typeid in ["bool", "byte", "short", "int", "long", "string"]:
+                retval_type = "Ice_" + str(self.retval.typeid).capitalize()
+            else:
+                retval_type = self.cpp2c_name(self.retval.typeid)
+            func.declare_var(Param(retval_type, "_retval"))
 
         func += method
 
@@ -1027,9 +1031,11 @@ class SequenceDecl(BaseDecl):
 
         # write items of sequence
         outs2 = OutputStream("os")
-        outs2.write(self.cpp2c_name(self.type.typeid),
-                    "*(self->items + i)",
-                    toPointer=False)
+        outs2.write(
+            self.cpp2c_name(self.type.typeid),
+            "*(self->items + i)",
+            self.type.kind,
+            toPointer = False)
 
         loop = ForLoop("i", "0", "i<self->size", "i++")
         loop += outs2
@@ -1057,7 +1063,10 @@ class SequenceDecl(BaseDecl):
         # read items of sequence
         else:
             ins2 = InputStream("is")
-            ins2.read(self.cpp2c_name(self.type.typeid), "self->items + i")
+            ins2.read(
+                self.cpp2c_name(self.type.typeid),
+                "self->items + i",
+                self.type.kind)
 
             loop = ForLoop("i", "0", "i<self->size", "i++")
             loop += ins2
@@ -1158,11 +1167,13 @@ class DictionaryDecl(BaseDecl):
         outs2.write(
             self.cpp2c_name(self.key_type.typeid),
             "self->items[i].key",
+            self.key_type.kind,
             toPointer=False)
 
         outs2.write(
             self.cpp2c_name(self.value_type.typeid),
             "self->items[i].value",
+            self.value_type.kind,
             toPointer=False)
 
         loop = ForLoop("i", "0", "i<self->size", "i++", type_="byte")
@@ -1184,8 +1195,15 @@ class DictionaryDecl(BaseDecl):
 
         # read items of dictionary
         ins2 = InputStream("is")
-        ins2.read(self.cpp2c_name(self.key_type.typeid), "&(self->items[i].key)")
-        ins2.read(self.cpp2c_name(self.value_type.typeid), "&(self->items[i].value)")
+        ins2.read(
+            self.cpp2c_name(self.key_type.typeid),
+            "&(self->items[i].key)",
+            self.key_type.kind)
+
+        ins2.read(
+            self.cpp2c_name(self.value_type.typeid),
+            "&(self->items[i].value)",
+            self.value_type.kind)
 
         loop = ForLoop("i", "0", "i<self->size", "i++", type_="byte")
         loop += ins2
@@ -1274,7 +1292,9 @@ class EnumDecl(BaseDecl):
 
 
 class IceVisitor(sliceparser.Visitor):
-    def __init__(self):
+    def __init__(self, args):
+        self._args = args
+
         self.items = []
         self.ifaces = []
         self.declared = []
@@ -1307,8 +1327,12 @@ class IceVisitor(sliceparser.Visitor):
     def visitClassDefStart(self, classdefptr):
         name = classdefptr.name()
         has_forward = name in self.declared
-
         cls = ClassDefDecl(self.module, classdefptr, has_forward)
+
+        if args.ifaces is not None:
+            if cls.full_name not in args.ifaces:
+                return False
+
         self.items.append(cls)
         self.ifaces.append(cls)
 
@@ -1341,6 +1365,8 @@ if __name__ == "__main__":
     args.add_argument('input', help='Slice file')
     args.add_argument('-I', dest='includes', action='append',
                       help="Add include search path")
+    args.add_argument('--iface', dest='ifaces', action='append',
+                      help="Specify the interface to generate")
     args = args.parse_args()
 
     parser = sliceparser.Parser(args.input)
@@ -1349,7 +1375,7 @@ if __name__ == "__main__":
         for p in args.includes:
             parser.addArgument("-I" + p)
 
-    visitor = IceVisitor()
+    visitor = IceVisitor(args)
     builder = IceCBuilder(args)
 
     parser.accept(visitor)
