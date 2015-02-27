@@ -633,8 +633,12 @@ class BaseDecl(object):
 
 
 class ModuleDecl(BaseDecl):
-    def __init__(self, ptr):
-        self.name = ptr.name()
+    def __init__(self, ptr, stack):
+        parents = ""
+        for m in stack:
+            parents += m.name() + "_"
+
+        self.name = parents + ptr.name()
 
 
 class ClassDefForward(BaseDecl):
@@ -1235,7 +1239,12 @@ class StructDecl(BaseDecl):
     def render_struct(self, c):
         struct = Struct()
         for m in self.members:
-            p = Param(self.cpp2c_name(m.typeid), m.name)
+
+            typeid = m.typeid
+            if m.typeid == "string":
+                typeid = "Ice_String"
+
+            p = Param(self.cpp2c_name(typeid), m.name)
             struct.append(p)
 
         c += Typedef(self.full_name, struct)
@@ -1270,7 +1279,6 @@ class StructDecl(BaseDecl):
         if initialized:
             fn.nl()
 
-        fn.comment(" FIXME: assure self->data is reserved!! ")
         fn += ins
 
         c += fn
@@ -1298,6 +1306,7 @@ class IceVisitor(sliceparser.Visitor):
         self.items = []
         self.ifaces = []
         self.declared = []
+        self.module_stack = []
 
     def __iter__(self):
         return iter(self.items)
@@ -1313,7 +1322,12 @@ class IceVisitor(sliceparser.Visitor):
         return False
 
     def visitModuleStart(self, moduleptr):
-        self.module = ModuleDecl(moduleptr)
+        self.module = ModuleDecl(moduleptr, self.module_stack)
+        self.module_stack.append(moduleptr)
+        return True
+
+    def visitModuleEnd(self, moduleptr):
+        self.module_stack.pop()
         return True
 
     def visitClassDecl(self, classdeclptr):
