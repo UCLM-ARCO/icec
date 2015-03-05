@@ -10,6 +10,9 @@
 #elif defined(ARDUINO)
 #   include <IceC/platforms/arduino/platform.h>
 
+#elif defined(ESP8266)
+#   include <IceC/platforms/esp8266/platform.h>
+
 #else
 #   error "Unknown architecture"
 #endif
