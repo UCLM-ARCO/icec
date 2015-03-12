@@ -6,13 +6,15 @@
 /* FIXME: assure this! */
 #define ICE_BIG_ENDIAN
 
-/* #include <stdlib.h> */
-/* #include <errno.h> */
+#include <stdint.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
-/* #include <IceC/platforms/esp826/types.h> */
-/* #include <IceC/platforms/esp826/debug.h> */
-/* #include <IceC/platforms/esp826/assert.h> */
-/* #include <IceC/platforms/esp826/strings.h> */
+#include <IceC/platforms/esp8266/types.h>
+#include <IceC/platforms/esp8266/debug.h>
+#include <IceC/platforms/esp8266/assert.h>
 
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16
