@@ -3,7 +3,7 @@
 #ifndef _ICE_PLATFORM_X86_H_
 #define _ICE_PLATFORM_X86_H_
 
-#define _GNU_SOURCE 1
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +19,7 @@
 #include <IceC/platforms/x86/debug.h>
 
 #define ICE_LITTLE_ENDIAN
+#define ICEC_FUNC_ATTR
 
 #ifndef MAX_MESSAGE_SIZE
 #define MAX_MESSAGE_SIZE        128

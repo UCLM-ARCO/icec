@@ -2,7 +2,7 @@
 
 #include <IceC/IceUtil.h>
 
-void
+void ICEC_FUNC_ATTR
 IceUtil_getHost(const char* s, char* result) {
     int end;
 
@@ -24,7 +24,7 @@ IceUtil_getHost(const char* s, char* result) {
     }
 }
 
-void
+void ICEC_FUNC_ATTR
 IceUtil_getPort(const char* s, uint16_t* result) {
     char strport[10];
     int end;

@@ -18,7 +18,7 @@ class Server(Ice.Application):
         ic = self.communicator()
 
         adapter = ic.createObjectAdapterWithEndpoints(
-            "Adapter", "tcp -h 127.0.0.1 -p 7893")
+            "Adapter", "tcp -p 7893")
         adapter.activate()
 
         oid = ic.stringToIdentity("WriterServer")

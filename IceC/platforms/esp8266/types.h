@@ -5,12 +5,14 @@
 
 #ifndef NULL
 #define NULL 0
-#endif 
+#endif
 
+#ifndef __cplusplus
 #define false 0
 #define true 1
+#endif
 
 typedef uint8_t bool;
-typedef uint8_t byte;	
+typedef uint8_t byte;
 
 #endif  /* _ICEC_TYPES_H_ */

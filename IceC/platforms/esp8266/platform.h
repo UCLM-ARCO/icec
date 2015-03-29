@@ -3,14 +3,19 @@
 #ifndef _ICE_PLATFORM_ESP8266_H_
 #define _ICE_PLATFORM_ESP8266_H_
 
-/* FIXME: assure this! */
-#define ICE_BIG_ENDIAN
+#define ICE_LITTLE_ENDIAN 1
+#define ICEC_FUNC_ATTR __attribute__((section(".irom0.text")))
 
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+/* #include <os_type.h> */
+/* #include <user_interface.h> */
+#include <osapi.h>
+/* #include <espconn.h> */
 
 #include <IceC/platforms/esp8266/types.h>
 #include <IceC/platforms/esp8266/debug.h>

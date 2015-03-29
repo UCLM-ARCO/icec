@@ -4,6 +4,7 @@
 #define _ICE_PLATFORM_ARDUINO_H_
 
 #define ICE_LITTLE_ENDIAN
+#define ICEC_FUNC_ATTR
 
 #include <stdlib.h>
 #include <errno.h>

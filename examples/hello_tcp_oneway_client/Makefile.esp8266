@@ -1,0 +1,15 @@
+# -*- mode: makefile-gmake; coding: utf-8 -*-
+
+ICEC_BASE = ../..
+
+TARGET   = client_esp8266
+OBJECTS  = uncle_main.o IceC.o IceUtil.o port.o
+
+CFLAGS  += -DWIFI_SSID="$(WIFI_SSID)" -DWIFI_KEY="$(WIFI_KEY)" \
+	   -I$(ICEC_BASE)
+CFLAGS  += -DDEBUG
+
+vpath %.c $(ICEC_BASE)/IceC
+vpath %.c $(ICEC_BASE)/IceC/platforms/esp8266
+
+include esp8266.mk
