@@ -10,9 +10,9 @@
 #ifndef __cplusplus
 #define false 0
 #define true 1
+typedef uint8_t bool;
 #endif
 
-typedef uint8_t bool;
 typedef uint8_t byte;
 
 #endif  /* _ICEC_TYPES_H_ */

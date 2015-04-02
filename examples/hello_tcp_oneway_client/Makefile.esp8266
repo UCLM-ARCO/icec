@@ -3,8 +3,10 @@
 ICEC_BASE = ../..
 
 TARGET   = client_esp8266
-OBJECTS  = uncle_main.o IceC.o IceUtil.o port.o
+OBJECTS  = uncle_main.o IceC.o IceUtil.o port.o TCPEndpoint.o
+SLICE    = hello.ice
 
+SLICE2C  = $(ICEC_BASE)/bin/slice2c
 CFLAGS  += -DWIFI_SSID="$(WIFI_SSID)" -DWIFI_KEY="$(WIFI_KEY)" \
 	   -I$(ICEC_BASE)
 CFLAGS  += -DDEBUG
@@ -13,3 +15,13 @@ vpath %.c $(ICEC_BASE)/IceC
 vpath %.c $(ICEC_BASE)/IceC/platforms/esp8266
 
 include esp8266.mk
+
+depends:: $(SLICE:%.ice=%.h)
+
+$(SLICE:%.ice=%.h): $(SLICE)
+	$(RM) -rfv $@
+	$(SLICE2C) $^
+
+.PHONY: vclean
+vclean: clean
+	$(RM) -f $(SLICE:%.ice=%.h)
