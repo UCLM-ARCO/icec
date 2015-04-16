@@ -179,13 +179,23 @@ typedef struct {
     Object _base;
 
     Ice_EndpointType type;
+    bool datagram;
+    void* options;
+} Ice_EndpointInfo;
+
+typedef Ice_EndpointInfo* Ice_EndpointInfoPtr;
+
+typedef struct {
+    Object _base;
+
+    Ice_EndpointInfoPtr epinfo;
     int fd;
     int current_client;
 } Ice_Connection;
 
 typedef Ice_Connection* Ice_ConnectionPtr;
 
-void Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointType type);
+void Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo);
 void Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size);
 void Ice_Connection_sendValidate(Ice_ConnectionPtr self);
 void Ice_Connection_receiveValidate(Ice_ConnectionPtr self);
@@ -206,16 +216,6 @@ typedef struct {
 typedef Ice_ServantMap* Ice_ServantMapPtr;
 
 void Ice_ServantMap_init(Ice_ServantMapPtr self);
-
-typedef struct {
-    Object _base;
-
-    Ice_EndpointType type;
-    bool datagram;
-    void* options;
-} Ice_EndpointInfo;
-
-typedef Ice_EndpointInfo* Ice_EndpointInfoPtr;
 
 typedef struct {
     Object _base;

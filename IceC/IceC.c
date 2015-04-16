@@ -434,12 +434,12 @@ Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self) {
 }
 
 void ICEC_FUNC_ATTR
-Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointType type) {
+Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo) {
     trace();
 
     self->fd = -1;
     self->current_client = -1;
-    self->type = type;
+    self->epinfo = epinfo;
     Object_init((ObjectPtr)self);
 }
 
@@ -510,7 +510,7 @@ Ice_Connection_receiveValidate(Ice_ConnectionPtr self) {
     trace();
     Ptr_check(self);
 
-    Ice_InputStream_init(&is, self->fd, self->type);
+    Ice_InputStream_init(&is, self->fd, self->epinfo->type);
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);
@@ -555,7 +555,7 @@ Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr self,
     self->communicator = communicator;
     self->activated = false;
 
-    Ice_Connection_init(&(self->connection), self->epinfo.type);
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
     Ice_ServantMap_init(&(self->servantMap));
     Object_init((ObjectPtr)self);
 }
@@ -643,7 +643,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     Ptr_check(self);
 
     fd = Ice_ObjectAdapter_getClient(self);
-    Ice_InputStream_init(&is, fd, self->connection.type);
+    Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);

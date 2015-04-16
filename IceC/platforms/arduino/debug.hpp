@@ -4,6 +4,19 @@
 #define _ICE_DEBUG_HPP_
 
 #include <HardwareSerial.h>
+#include <SoftwareSerial.h>
+
+static SoftwareSerial logger(2, 3); // Rx, Tx
+
+void
+print_log(const char* s) {
+    static bool logger_initialized = false;
+    if (not logger_initialized)
+	logger.begin(9600);
+
+    logger.write(s);
+    logger.flush();
+}
 
 #ifndef DEBUG_LED
 #define DEBUG_LED 13

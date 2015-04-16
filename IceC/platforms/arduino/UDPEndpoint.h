@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#define Ice_EndpointTypeUDP 13
+#define Ice_EndpointTypeUDP 3
 
 typedef struct UDP_EndpointOptions {
     Object _base;
