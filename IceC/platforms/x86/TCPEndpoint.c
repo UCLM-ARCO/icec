@@ -97,7 +97,7 @@ TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* str
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    Ice_Connection_init(&(self->connection), type);
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
     Ice_OutputStream_init(&(self->stream));
     TCP_EndpointInfo_init(&(self->epinfo), type, strprx);
 
@@ -170,7 +170,7 @@ TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
 bool
 TCP_Connection_accept(Ice_ConnectionPtr self) {
     trace();
-    if (self->type != Ice_EndpointTypeTCP)
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
 	return false;
 
     self->current_client = accept(self->fd, NULL, 0);
@@ -180,7 +180,7 @@ TCP_Connection_accept(Ice_ConnectionPtr self) {
 bool
 TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
     trace();
-    if (self->type != Ice_EndpointTypeTCP)
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
 	return false;
 
     *size = send(fd, data, *size, 0);
@@ -190,7 +190,7 @@ TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) 
 bool
 TCP_Connection_close(Ice_ConnectionPtr self) {
     trace();
-    if (self->type != Ice_EndpointTypeTCP)
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
 	return false;
 
     close(self->current_client);

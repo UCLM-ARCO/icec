@@ -3,4 +3,4 @@
 # This makefile is here to speed up development
 # Please, use "make -f Makefile.X" to compile for others platforms
 
-include Makefile.esp8266
+include Makefile.x86

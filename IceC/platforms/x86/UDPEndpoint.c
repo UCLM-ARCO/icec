@@ -90,7 +90,7 @@ UDP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* str
 
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
-    Ice_Connection_init(&(self->connection), type);
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
     Ice_OutputStream_init(&(self->stream));
     UDP_EndpointInfo_init(&(self->epinfo), type, strprx);
 
@@ -177,7 +177,7 @@ UDP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
 bool
 UDP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
     trace();
-    if (self->type != Ice_EndpointTypeUDP)
+    if (self->epinfo->type != Ice_EndpointTypeUDP)
 	return false;
 
     *size = send(fd, data, *size, 0);

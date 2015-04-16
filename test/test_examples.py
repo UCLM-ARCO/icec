@@ -60,8 +60,8 @@ class TestExampleHelloTCPOnewayClient(prego.TestCase, TestMixin):
         self.proxy = "WriterServer -o -e 1.0:tcp -h 127.0.0.1 -p 7893"
 
         self.build_example()
-        self.run_server("./writer_server.py")
-        self.run_client("./writer_client", "'write' request, got: 1551")
+        self.run_server("./server.py")
+        self.run_client("./client_x86", "'write' request, got: 1551")
 
 
 class TestExampleHelloTCPOnewayServer(prego.TestCase, TestMixin):
