@@ -633,11 +633,8 @@ class BaseDecl(object):
 
 
 class ModuleDecl(BaseDecl):
-    def __init__(self, ptr, stack):
-        parents = ""
-        for m in stack:
-            parents += m.name() + "_"
-
+    def __init__(self, ptr):
+        parents = ptr.scope()[2:].replace("::", "_")
         self.name = parents + ptr.name()
 
 
@@ -1336,12 +1333,14 @@ class IceVisitor(sliceparser.Visitor):
         return False
 
     def visitModuleStart(self, moduleptr):
-        self.module = ModuleDecl(moduleptr, self.module_stack)
+        self.module = ModuleDecl(moduleptr)
         self.module_stack.append(moduleptr)
         return True
 
     def visitModuleEnd(self, moduleptr):
         self.module_stack.pop()
+        if self.module_stack:
+            self.module = ModuleDecl(self.module_stack[-1])
         return True
 
     def visitClassDecl(self, classdeclptr):

@@ -1,3 +1,9 @@
+icec (20150427.1-1) unstable; urgency=low
+
+  * New release, slice2c: bugfix, mixed ifaces on nested and root modules
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 27 Apr 2015 14:27:51 +0200
+
 icec (20150427-1) unstable; urgency=low
 
   * New release, fix bugs on slice2c & proxies
