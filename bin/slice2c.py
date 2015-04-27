@@ -817,19 +817,33 @@ class ParamDecl(BaseDecl):
         if self.type.kind == "sequence":
             self.contained_type = TypeDecl(ptr.type().type())
 
-        self.is_proxy = st.is_interface(self.cpp2c_name(self.type.typeid))
+        self.is_proxy = self.get_is_proxy(st)
+
+    def get_is_proxy(self, st):
+        if self.type.typeid == "::Ice::Object*":
+            return True
+
+        if st.is_interface(self.cpp2c_name(self.type.typeid)):
+            return True
+
+        return False
 
     def __str__(self):
         prx = ""
+
+        typeid = str(self.type)
         if self.is_proxy:
+            typeid = typeid.strip("*")
             prx = "PrxPtr"
-        return "{0}{1} {2}".format(str(self.type), prx, self.name)
+
+        return "{0}{1} {2}".format(typeid, prx, self.name)
 
     def declare(self):
         retval = CCode()
 
         typeid = str(self.type)
         if self.is_proxy:
+            typeid = typeid.strip("*")
             typeid += "Prx"
 
         param = Param(typeid, self.name, kind=self.type.kind)
@@ -1394,4 +1408,3 @@ if __name__ == "__main__":
 
     parser.accept(visitor)
     builder.build(visitor)
-

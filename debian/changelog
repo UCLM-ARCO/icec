@@ -1,3 +1,9 @@
+icec (20150427-1) unstable; urgency=low
+
+  * New release, fix bugs on slice2c & proxies
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 27 Apr 2015 11:10:15 +0200
+
 icec (20150416-1) unstable; urgency=low
 
   * New release

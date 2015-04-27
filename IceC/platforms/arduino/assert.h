@@ -44,10 +44,14 @@ __DBG_assert(bool status, const char* message) {
     prints("\n");
 
     /* assertion failed, stop here */
+#ifdef DEBUG_LED
     led_config();
     while(true) {
 	led_blink(1000);
     }
+#else
+    while(true);
+#endif
 }
 
 #endif /* _ICE_ASSERT_H_ */
