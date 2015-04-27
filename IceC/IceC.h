@@ -304,6 +304,7 @@ typedef struct IcePlugin_EndpointObject {
     bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
+    bool (*EndpointInfo_writeToOutputStream)(Ice_EndpointInfoPtr, Ice_OutputStreamPtr);
 
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
@@ -329,6 +330,9 @@ void IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
 				 Ice_EndpointType type,
 				 const char* endpoint);
+void IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
+						Ice_OutputStreamPtr os);
+
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
 			      Ice_EndpointType type,

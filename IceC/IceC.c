@@ -813,8 +813,8 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os)
     Ice_OutputStream_writeByte(os, 1);                    /* num of endpoints */
     Ice_OutputStream_writeShort(os, self->epinfo.type);   /* endpoint type */
 
-    /* FIXME: call IcePlugin_ObjectPrx_writeToOutputStream */
-    fixme("Not finished implementation");
+    /* Endpoint related fields */
+    IcePlugin_EndpointInfo_writeToOutputStream(&self->epinfo, os);
 }
 
 
@@ -1049,6 +1049,25 @@ IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self, Ice_EndpointType type,
     	Ptr_check(endp);
 
     	if (endp->EndpointInfo_init(self, type, endpoint))
+    	    break;
+
+    	item = item->next;
+    }
+}
+
+void ICEC_FUNC_ATTR
+IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
+					   Ice_OutputStreamPtr os) {
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->EndpointInfo_writeToOutputStream(self, os))
     	    break;
 
     	item = item->next;
