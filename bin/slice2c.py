@@ -852,6 +852,7 @@ class OperationDecl(BaseDecl):
     def __init__(self, st, ptr):
         iface = st.top
         self.name = ptr.name()
+        self.mode = ptr.mode()
         self.iface_name = iface.full_name
         self.full_name = self.iface_name + "_" + self.name
         self.retval = TypeDecl(ptr.returnType())
@@ -958,6 +959,8 @@ class OperationDecl(BaseDecl):
         for p in self.params:
             func.param(p)
 
+        mode = "Ice_{}".format(str(self.mode))
+
         func += Ptr_check(this)
         func.nl()
 
@@ -973,7 +976,7 @@ class OperationDecl(BaseDecl):
         outs.write("Ice_Identity", "self->identity")       # object identity
         outs.writeString("")                               # facet, only empty allowed
         outs.writeString(self.name)                        # operation
-        outs.write("byte", "Ice_Normal", toPointer=False)  # operation mode
+        outs.write("byte", mode, toPointer=False)  # operation mode
         outs.write("byte", 0, toPointer=False)             # context, not supported
 
         outs.nl().comment(" encapsulated params ")
