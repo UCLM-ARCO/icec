@@ -877,7 +877,7 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self) {
     Ptr_check(self);
 
     while (true) {
-	IceInternal_selectOnAdapters(&(self->adapters), result);
+	IceInternal_selectOnAdapters(&(self->adapters), result, true);
 
 	for (i=0; i<self->adapters.count; i++) {
 	    if (result[i] == NULL)
@@ -885,6 +885,25 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self) {
 
 	    Ice_ObjectAdapter_incomingMessage(result[i]);
 	}
+    }
+}
+
+void ICEC_FUNC_ATTR
+Ice_Communicator_loopIteration(Ice_CommunicatorPtr self) {
+
+    uint8_t i;
+    Ice_ObjectAdapterPtr result[MAX_NUM_OF_ADAPTERS];
+
+    trace();
+    Ptr_check(self);
+
+    IceInternal_selectOnAdapters(&(self->adapters), result, false);
+
+    for (i=0; i<self->adapters.count; i++) {
+	if (result[i] == NULL)
+	    continue;
+
+	Ice_ObjectAdapter_incomingMessage(result[i]);
     }
 }
 

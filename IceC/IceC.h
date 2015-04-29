@@ -249,7 +249,8 @@ typedef Ice_ObjectAdapter_List* Ice_ObjectAdapter_ListPtr;
 
 void Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self);
 void IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr source,
-				  Ice_ObjectAdapterPtr result[]);
+				  Ice_ObjectAdapterPtr result[],
+				  bool block);
 
 typedef struct {
     Object _base;
@@ -284,6 +285,7 @@ void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
 void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
 				    Ice_ObjectPrx* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self);
+void Ice_Communicator_loopIteration(Ice_CommunicatorPtr self);
 void Ice_initialize(Ice_CommunicatorPtr ic);
 
 typedef struct IcePlugin_PluginListItem* IcePlugin_PluginListItemPtr;

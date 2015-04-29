@@ -4,7 +4,8 @@
 
 void
 IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
-			     Ice_ObjectAdapterPtr result[]) {
+			     Ice_ObjectAdapterPtr result[],
+			     bool block) {
 
     int i, count;
     bool ready;
@@ -16,7 +17,7 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     	result[i] = NULL;
 
     count = 0;
-    while (! count) {
+    do {
 
 	for (i=0; i<adapters->count; i++) {
 	    adapter = *(adapters->begin + i);
@@ -29,5 +30,5 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	    if (ready)
 		result[count++] = adapter;
 	}
-    }
+    } while (! count && block);
 }
