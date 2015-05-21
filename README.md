@@ -1,10 +1,10 @@
-Description:
-============
+Description
+===========
 
 Minimal implementation of ZeroC Ice middleware in ANSI C.
 
-Features:
-==========
+Features
+========
 
 Endpoint         | TCP | UDP | XBeeAT | FIFO
 -----------------|-----|-----|--------|-------
