@@ -6,7 +6,8 @@
 #include <HardwareSerial.h>
 #include <SoftwareSerial.h>
 
-static SoftwareSerial logger(2, 3); // Rx, Tx
+#ifdef LOGGER
+static SoftwareSerial logger(5, 6); // Rx, Tx
 
 void
 print_log(const char* s) {
@@ -17,6 +18,7 @@ print_log(const char* s) {
     logger.write(s);
     logger.flush();
 }
+#endif
 
 #ifndef DEBUG_LED
 #define DEBUG_LED 13
