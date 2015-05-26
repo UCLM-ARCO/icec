@@ -12,8 +12,11 @@
 #endif
 
 extern void prints(const char*);
+
+#ifdef DEBUG_LED
 extern void led_config();
 extern void led_blink(int);
+#endif
 
 #define __DBG_error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
     prints("Error, " FILE ":" #LINE ": " MESSAGE);

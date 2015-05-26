@@ -12,6 +12,7 @@ extern "C" {
 void IceUtil_getHost(const char* endpoint, char* result);
 void IceUtil_getPort(const char* endpoint, uint16_t* result);
 void IceUtil_getStringParam(const char* input, char* result, char flag);
+void IceUtil_getByteParam(const char* input, byte* result, char flag);
 
 #ifdef __cplusplus
 }

@@ -15,6 +15,13 @@ IceUtil_getPort(const char* s, uint16_t* result) {
 }
 
 void ICEC_FUNC_ATTR
+IceUtil_getByteParam(const char* s, byte* result, char flag) {
+    char strvalue[3];
+    IceUtil_getStringParam(s, strvalue, flag);
+    *result = atoi(strvalue);
+}
+
+void ICEC_FUNC_ATTR
 IceUtil_getStringParam(const char* s, char* result, char flag) {
     int end;
 
