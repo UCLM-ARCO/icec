@@ -6,7 +6,7 @@ APP                  = client
 SLICE                = hello.ice
 
 PROJECT_DIR          = ../../..
-PROJECT_SOURCEFILES += IceC.c IceUtil.c port.c
+PROJECT_SOURCEFILES += IceC.c IceUtil.c port.c UDPEndpoint.c
 CONTIKI_SOURCEFILES += assert.c
 
 CFLAGS              += -DDEBUG

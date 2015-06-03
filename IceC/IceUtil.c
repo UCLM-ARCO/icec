@@ -3,6 +3,69 @@
 #include <IceC/IceUtil.h>
 
 void ICEC_FUNC_ATTR
+IceUtil_getIdentity(const char* s, char* result) {
+    int end;
+
+    trace();
+    s += strspn(s, "\n\r\t ");
+    end = strcspn(s, "\n\r\t ");
+    strncpy(result, s, end);
+    result[end] = 0;
+}
+
+void ICEC_FUNC_ATTR
+IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
+    char proto[MAX_PROTO_SIZE];
+    const char* i;
+    int end;
+
+    trace();
+    proto[0] = 0;
+
+    s += strspn(s, "\n\r\t ");
+
+    i = index(s, ':');
+    if (i != NULL) {
+	i++;
+	s = i + strspn(i, "\n\r\t ");
+    }
+
+    end = strcspn(s, "\n\r\t ");
+    strncpy(proto, s, end);
+    proto[end] = 0;
+
+    *result = 0;
+    IcePlugin_getProtocolType(proto, result);
+
+    if (*result == 0)
+	assert(false && "Invalid endpoint type!");
+}
+
+void ICEC_FUNC_ATTR
+IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
+    ssize_t i, j;
+    const char* t = " -";
+    ssize_t token_size = 2;
+    int limit = strchr(s, ':') - s;
+
+    for (i=0; i<limit; i++) {
+	for (j=0; j<token_size; j++) {
+	    if (s[i+j] != t[j])
+		break;
+	    if ((j+1) == token_size && (i+j+1) < limit) {
+		switch(s[i+j+1]) {
+		case 'd': *mode = Ice_ReferenceModeDatagram; return;
+		case 'o': *mode = Ice_ReferenceModeOneway; return;
+		case 't': *mode = Ice_ReferenceModeTwoway; return;
+		}
+	    }
+	}
+    }
+
+    throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
+}
+
+void ICEC_FUNC_ATTR
 IceUtil_getHost(const char* s, char* result) {
     IceUtil_getStringParam(s, result, 'h');
 }

@@ -107,10 +107,6 @@ typedef Object* ObjectPtr;
 
 void Object_init(ObjectPtr self);
 
-void IceUtil_getIdentity(const char* s, char* result);
-void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
-void IceUtil_getMode(const char* s, Ice_ReferenceMode* mode);
-
 /* Forward declaration */
 struct Ice_InputStream;
 typedef struct Ice_InputStream* Ice_InputStreamPtr;

@@ -9,6 +9,10 @@
 extern "C" {
 #endif
 
+void IceUtil_getIdentity(const char* s, char* result);
+void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
+void IceUtil_getMode(const char* s, Ice_ReferenceMode* mode);
+
 void IceUtil_getHost(const char* endpoint, char* result);
 void IceUtil_getPort(const char* endpoint, uint16_t* result);
 void IceUtil_getStringParam(const char* input, char* result, char flag);

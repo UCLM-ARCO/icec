@@ -29,14 +29,14 @@ __assert(bool status) {
 #  undef assert
 #  define fixme(msg) printf(msg);
 #  define error_at_line(...)
-#  define assert(token) __assert(token, #token)
+#  define assert(token) __assert(token, #token, __FILE__, __LINE__)
 
 static void
-__assert(bool status, const char* message) {
+__assert(bool status, const char* message, char* file, uint16_t line) {
     if (status)
 	return;
 
-    printf("AssertionError: %s\n", message);
+    printf("AssertionError: %s:%d: %s\n", file, line, message);
 
     while(true) {
 	leds_on(LEDS_RED);

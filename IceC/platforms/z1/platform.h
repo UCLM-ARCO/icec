@@ -7,7 +7,6 @@
 #define ICEC_FUNC_ATTR
 
 #include <stdlib.h>
-/* #include <errno.h> */
 
 #include <IceC/platforms/z1/types.h>
 #include <IceC/platforms/z1/debug.h>
