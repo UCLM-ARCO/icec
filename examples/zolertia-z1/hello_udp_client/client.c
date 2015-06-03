@@ -4,19 +4,33 @@
 #include <dev/leds.h>
 #include <stdio.h>
 
-PROCESS(blink_process, "blink example");
-AUTOSTART_PROCESSES(&blink_process);
+#include <IceC/IceC.h>
+#include <IceC/platforms/z1/UDPEndpoint.h>
+#include <hello.h>
 
-PROCESS_THREAD(blink_process, ev, data) {
+PROCESS(icec_client, "IceC client");
+AUTOSTART_PROCESSES(&icec_client);
+
+PROCESS_THREAD(icec_client, ev, data) {
     PROCESS_EXITHANDLER(goto exit);
     PROCESS_BEGIN();
 
     {
 /* -------------------------------------------------- */
 
+	Ice_Communicator ic;
+	Ice_ObjectPrx remote;
+
+	Ice_initialize(&ic);
+	UDPEndpoint_init(&ic);
+
+	Ice_Communicator_stringToProxy
+	    (&ic, "udp -h host -p port ", &remote);
+
 	while(1) {
 	    leds_toggle(LEDS_BLUE);
 	    clock_wait(CLOCK_SECOND);
+	    Example_Writer_write(&remote, 123);
 	}
 
 /* -------------------------------------------------- */

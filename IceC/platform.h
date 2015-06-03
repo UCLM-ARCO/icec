@@ -13,6 +13,9 @@
 #elif defined(ESP8266)
 #   include <IceC/platforms/esp8266/platform.h>
 
+#elif defined(CONTIKI_TARGET_Z1)
+#   include <IceC/platforms/z1/platform.h>
+
 #else
 #   error "Unknown architecture"
 #endif
