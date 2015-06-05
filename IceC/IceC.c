@@ -1,6 +1,7 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
 #include <IceC/IceC.h>
+#include <IceC/IceUtil.h>
 
 void ICEC_FUNC_ATTR
 Object_init(ObjectPtr self) {

@@ -24,8 +24,8 @@ PROCESS_THREAD(icec_client, ev, data) {
 	Ice_initialize(&ic);
 	UDPEndpoint_init(&ic);
 
-	Ice_Communicator_stringToProxy
-	    (&ic, "udp -h host -p port ", &remote);
+	char* strprx = "Sample -d:udp -h fe80:0:0:0:baca:3aff:fe81:44fb -p 9876";
+	Ice_Communicator_stringToProxy(&ic, strprx, &remote);
 
 	while(1) {
 	    leds_toggle(LEDS_BLUE);

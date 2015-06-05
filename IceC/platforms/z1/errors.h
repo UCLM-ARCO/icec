@@ -28,7 +28,9 @@ __assert(bool status) {
 
 #  undef assert
 #  define fixme(msg) printf(msg);
-#  define error_at_line(...)
+#  define error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
+    printf("ERROR, " FILE ":" #LINE ": " MESSAGE "\n");
+
 #  define assert(token) __assert(token, #token, __FILE__, __LINE__)
 
 static void
