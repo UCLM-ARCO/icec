@@ -480,10 +480,16 @@ class InputStream(CCode):
     def alloca(self, typeid, dest, size):
         sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
         casting = Pointer(typeid, use_ptr=True)
-        alloca = FunctionCall("alloca", sizeof)
-        alloca.result(dest, casting_to=casting)
 
-        self.append(alloca)
+        if args.use_alloca:
+            alloca = FunctionCall("alloca", sizeof)
+            alloca.result(dest, casting_to=casting)
+
+            self.append(alloca)
+        else:
+            expr = "byte _data[{}];\n".format(sizeof)
+            expr += "{} = ({})_data;\n".format(dest, casting)
+            self.append(expr)
 
 
 class ForLoop(CCode):
@@ -532,7 +538,9 @@ class IceCBuilder(object):
     def add_common_includes(self, c):
         includes = Include()
         includes.add_system("IceC/IceC.h")
-        includes.add_system("alloca.h")
+
+        if args.use_alloca:
+            includes.add_system("alloca.h")
         c += includes
         c.nl()
 
@@ -1205,10 +1213,15 @@ class DictionaryDecl(BaseDecl):
     def render_unmarshaller(self, c):
         fn = self.get_unmarshall_func()
 
+        size = Param("Ice_Int", "size")
+        fn.declare_var(size)
+
         # read size of dictionary
         ins1 = InputStream("is")
-        ins1.readSize("(Ice_Int*)&(self->size)", "true")
+        ins1.readSize("&size", "true")
         fn += ins1
+        fn += Assert("size < 256")
+        fn += "self->size = size;\n"
         fn.nl()
 
         # read items of dictionary
@@ -1397,6 +1410,8 @@ if __name__ == "__main__":
                       help="Add include search path")
     args.add_argument('--iface', dest='ifaces', action='append',
                       help="Specify the interface to generate")
+    args.add_argument('--use-alloca', action="store_true",
+                      help="Use alloca() instead of dynamic memory")
     args = args.parse_args()
 
     parser = sliceparser.Parser(args.input)

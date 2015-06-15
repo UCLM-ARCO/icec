@@ -101,7 +101,7 @@ Ice_InputStream_readInt(Ice_InputStreamPtr self, Ice_Int* v) {
 
 void ICEC_FUNC_ATTR
 Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment) {
-    Ice_Byte b;
+    Ice_Byte b = 0;
 
     trace();
     Ptr_check(self);
@@ -124,7 +124,7 @@ Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment)
 
 void ICEC_FUNC_ATTR
 Ice_InputStream_readString(Ice_InputStreamPtr self, char* v) {
-    Ice_Int size;
+    Ice_Int size = 0;
 
     trace();
     Ptr_check(self);
@@ -139,7 +139,7 @@ Ice_InputStream_readString(Ice_InputStreamPtr self, char* v) {
 
 void ICEC_FUNC_ATTR
 Ice_InputStream_readIceString(Ice_InputStreamPtr self, Ice_StringPtr s) {
-    Ice_Int size;
+    Ice_Int size = 0;
 
     trace();
     Ptr_check(self);

@@ -9,8 +9,10 @@
 
 extern void prints(const char*);
 extern void printi(const int);
+extern void printhex(const int);
 extern void printb(const uint8_t* msg, uint8_t size);
 extern void print_log(const char*);
+extern void hexdump(const void* addr, int len);
 
 #define DBG_trace()				\
     prints(__FILE__);				\
@@ -20,6 +22,7 @@ extern void print_log(const char*);
     prints(__func__);				\
     prints("\n");
 
+/* got somewhere on SO or Arduino Playground */
 static int
 get_free_ram_size() {
     extern int __heap_start, *__brkval;

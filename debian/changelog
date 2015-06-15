@@ -1,3 +1,10 @@
+icec (20150615-1) unstable; urgency=low
+
+  * New release
+  * slice2c: flag to optionally use alloca
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 15 Jun 2015 13:31:33 +0200
+
 icec (20150429-1) unstable; urgency=low
 
   * New release

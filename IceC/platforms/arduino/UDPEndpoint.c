@@ -102,7 +102,7 @@ IceC_UDPEndpoint_Connection_send(Ice_ConnectionPtr self, int fd,
 				 byte* data, uint16_t* size) {
     trace();
 
-    if (self->type != Ice_EndpointTypeUDP)
+    if (self->epinfo->type != Ice_EndpointTypeUDP)
 	return false;
 
     throw("NotImplementedError", __FILE__, __LINE__);
@@ -112,7 +112,7 @@ IceC_UDPEndpoint_Connection_send(Ice_ConnectionPtr self, int fd,
 bool
 IceC_UDPEndpoint_Connection_dataReady(Ice_ConnectionPtr self, bool* ready) {
     trace();
-    if (self->type != Ice_EndpointTypeUDP)
+    if (self->epinfo->type != Ice_EndpointTypeUDP)
 	return false;
 
     *ready = UDP_available();
@@ -147,4 +147,3 @@ IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_close = NULL;
     endpoint.Connection_dataReady = &IceC_UDPEndpoint_Connection_dataReady;
 }
-

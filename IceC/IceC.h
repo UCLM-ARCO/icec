@@ -21,6 +21,7 @@ extern "C" {
 
 #define throw(EXC, FILE, LINE)			                        \
     do {								\
+	prints(EXC "\n");						\
 	error_at_line(0, 0, FILE, LINE, EXC);				\
 	assert(false && "Exception thrown");				\
     } while(0)

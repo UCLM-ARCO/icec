@@ -33,7 +33,7 @@ typedef uint8_t byte;
 
 static char buf[128];
 
- /* from: http://stackoverflow.com/a/7776146 */
+/* from: http://stackoverflow.com/a/7776146 */
 static void
 hexdump (char *desc, void *addr, int len) {
     int i;
