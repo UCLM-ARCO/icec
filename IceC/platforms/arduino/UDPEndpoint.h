@@ -1,4 +1,4 @@
-/* -*- mode: c; coding: utf-8 -*- */
+/* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
 #ifndef _ICEC_UDP_ENDPOINT_H_
 #define _ICEC_UDP_ENDPOINT_H_
@@ -11,9 +11,18 @@ extern "C" {
 
 #define Ice_EndpointTypeUDP 3
 
+typedef struct {
+    byte a;
+    byte b;
+    byte c;
+    byte d;
+} IPAddr;
+
 typedef struct UDP_EndpointOptions {
     Object _base;
+    IPAddr host;
     uint16_t port;
+    bool used;
 } UDP_EndpointOptions;
 
 typedef UDP_EndpointOptions* UDP_EndpointOptionsPtr;

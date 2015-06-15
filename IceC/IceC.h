@@ -45,6 +45,8 @@ typedef Ice_String* Ice_StringPtr;
 	NAME.size = strlen(VALUE);		\
     } while(0);
 
+#define Ice_String_eq(A, B) (strncmp(A.value, B, A.size) == 0)
+
 #define Ice_Dict_init(DICT, DICT_ITEMS, SIZE)   \
     do {					\
 	DICT.size = SIZE;			\
@@ -302,8 +304,10 @@ typedef struct IcePlugin_EndpointObject {
     bool (*getProtocolType)(const char*, Ice_EndpointType*);
     bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
+
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
     bool (*EndpointInfo_writeToOutputStream)(Ice_EndpointInfoPtr, Ice_OutputStreamPtr);
+    bool (*EndpointInfo_readFromInputStream)(Ice_EndpointInfoPtr, Ice_InputStreamPtr);
 
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
@@ -331,6 +335,8 @@ void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
 				 const char* endpoint);
 void IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
 						Ice_OutputStreamPtr os);
+void IcePlugin_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
+						Ice_InputStreamPtr is);
 
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,

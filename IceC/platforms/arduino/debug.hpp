@@ -53,6 +53,13 @@ extern "C" {
 	Serial.flush();
     }
 
+    void
+    printp(const char* msg, const int i) {
+	prints(msg);
+	printi(i);
+	prints("\n");
+    }
+
     char*
     tohex(uint8_t d) {
 	char alpha[] = {'0', '1', '2', '3', '4', '5', '6', '7',

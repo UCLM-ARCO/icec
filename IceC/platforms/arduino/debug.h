@@ -11,6 +11,7 @@ extern void prints(const char*);
 extern void printi(const int);
 extern void printhex(const int);
 extern void printb(const uint8_t* msg, uint8_t size);
+extern void printp(const char*, const int);
 extern void print_log(const char*);
 extern void hexdump(const void* addr, int len);
 

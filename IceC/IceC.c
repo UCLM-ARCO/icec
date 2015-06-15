@@ -706,6 +706,7 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr self) {
 void ICEC_FUNC_ATTR
 Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) {
     byte b, facetSeqSize, numOfEndpoints;
+    Ice_Short type;
 
     trace();
     Ptr_check(is);
@@ -725,8 +726,12 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     Ice_InputStream_readByte(is, &numOfEndpoints);
     assert(numOfEndpoints == 1);
 
-    /* FIXME: read endpoint type and call IcePlugin_ObjectPrx_readFromInputStream */
-    fixme("Not finished implementation");
+    /* endpoint type (short) */
+    Ice_InputStream_readShort(is, &type);
+    self->epinfo.type = type;
+
+    /* Endpoint related fields */
+    IcePlugin_EndpointInfo_readFromInputStream(&self->epinfo, is);
 }
 
 void ICEC_FUNC_ATTR
@@ -1025,6 +1030,25 @@ IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
     	Ptr_check(endp);
 
     	if (endp->EndpointInfo_writeToOutputStream(self, os))
+    	    break;
+
+    	item = item->next;
+    }
+}
+
+void ICEC_FUNC_ATTR
+IcePlugin_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
+					   Ice_InputStreamPtr is) {
+
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while(item != NULL) {
+    	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    	Ptr_check(endp);
+
+    	if (endp->EndpointInfo_readFromInputStream(self, is))
     	    break;
 
     	item = item->next;

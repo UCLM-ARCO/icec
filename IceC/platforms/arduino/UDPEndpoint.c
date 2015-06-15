@@ -1,12 +1,16 @@
-/* -*- mode: c; coding: utf-8 -*- */
+/* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
 #include <IceC/IceUtil.h>
 #include <IceC/platforms/arduino/UDPEndpoint.h>
 #include <IceC/platforms/arduino/UDPIO.h>
 
+#ifndef MAX_UDP_ENDPOINT_INSTANCES
+#define MAX_UDP_ENDPOINT_INSTANCES 3
+#endif
+
 static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
-static UDP_EndpointOptions ep_options;
+static UDP_EndpointOptions ep_options[MAX_UDP_ENDPOINT_INSTANCES];
 
 bool
 IceC_UDPEndpoint_getProtocolType(const char* proto, Ice_EndpointType* result) {
@@ -56,6 +60,21 @@ IceC_UDPEndpoint_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
     return true;
 }
 
+void
+_get_options_slot(UDP_EndpointOptionsPtr* options) {
+    byte i;
+
+    *options = NULL;
+    for (i=0; i<MAX_UDP_ENDPOINT_INSTANCES; i++) {
+	if (ep_options[i].used)
+	    continue;
+	*options = &ep_options[i];
+	break;
+    }
+
+    assert(*options != NULL && "Max number of endpoints reached!");
+}
+
 bool
 IceC_UDPEndpoint_EndpointInfo_init(Ice_EndpointInfoPtr self,
 				   Ice_EndpointType type,
@@ -65,13 +84,50 @@ IceC_UDPEndpoint_EndpointInfo_init(Ice_EndpointInfoPtr self,
     if (type != Ice_EndpointTypeUDP)
 	return false;
 
+    UDP_EndpointOptionsPtr options;
+    _get_options_slot(&options);
+    Ptr_check(options);
+
     self->type = type;
     self->datagram = true;
-    self->options = &ep_options;
+    self->options = options;
+    options->used = true;
 
-    IceUtil_getPort(endpoint, &(ep_options.port));
+    IceUtil_getPort(endpoint, &options->port);
     Object_init((ObjectPtr)self);
     return true;
+}
+
+bool
+IceC_UDPEndpoint_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
+						  Ice_InputStreamPtr is) {
+    trace();
+
+    if (self->type != Ice_EndpointTypeUDP)
+	return false;
+
+    /* UDP_EndpointOptionsPtr options = NULL; */
+    /* byte i; */
+    /* for (i=0; i<MAX_UDP_ENDPOINT_INSTANCES; i++) { */
+    /* 	if (ep_options[i].used) */
+    /* 	    continue; */
+    /* 	options = &ep_options[i]; */
+    /* 	break; */
+    /* } */
+
+    /* assert(options != NULL && "Max number of endpoints reached!"); */
+    /* Ptr_check(options); */
+
+    /* self->type = type; */
+    /* self->datagram = true; */
+    /* self->options = options; */
+    /* options->used = true; */
+
+    /* IceUtil_getPort(endpoint, &options->port); */
+    /* Object_init((ObjectPtr)self); */
+    /* return true; */
+
+    return false;
 }
 
 bool
@@ -129,7 +185,10 @@ IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic) {
        initialized. */
     Ptr_check(ic);
 
-    Object_init((ObjectPtr)&ep_options);
+    for (byte i=0; i<MAX_UDP_ENDPOINT_INSTANCES; i++) {
+	ep_options[i].used = false;
+	Object_init((ObjectPtr)&ep_options[i]);
+    }
 
     IcePlugin_EndpointObject_init(&endpoint);
     IcePlugin_PluginListItem_init(&item, (ObjectPtr)&endpoint);
@@ -139,9 +198,14 @@ IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.getProtocolType = &IceC_UDPEndpoint_getProtocolType;
     endpoint.InputStream_init = &IceC_UDPEndpoint_InputStream_init;
     endpoint.ObjectAdapter_activate = &IceC_UDPEndpoint_ObjectAdapter_activate;
+
     endpoint.EndpointInfo_init = &IceC_UDPEndpoint_EndpointInfo_init;
+    endpoint.EndpointInfo_writeToOutputStream = NULL;
+    endpoint.EndpointInfo_readFromInputStream = &IceC_UDPEndpoint_EndpointInfo_readFromInputStream;
+
     endpoint.ObjectPrx_init = &IceC_UDPEndpoint_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &IceC_UDPEndpoint_ObjectPrx_connect;
+
     endpoint.Connection_accept = NULL;
     endpoint.Connection_send = &IceC_UDPEndpoint_Connection_send;
     endpoint.Connection_close = NULL;
