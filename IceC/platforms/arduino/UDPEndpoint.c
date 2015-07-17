@@ -136,7 +136,7 @@ IceC_UDPEndpoint_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     if (self->epinfo.type != Ice_EndpointTypeUDP)
 	return false;
 
-    throw("NotImplementedError", __FILE__, __LINE__);
+    c_throw("NotImplementedError", __FILE__, __LINE__);
     return false;
 }
 
@@ -149,7 +149,7 @@ IceC_UDPEndpoint_ObjectPrx_init(Ice_ObjectPrxPtr self,
     if (self->epinfo.type != Ice_EndpointTypeUDP)
 	return false;
 
-    throw("NotImplementedError", __FILE__, __LINE__);
+    c_throw("NotImplementedError", __FILE__, __LINE__);
     return false;
 }
 
@@ -161,7 +161,7 @@ IceC_UDPEndpoint_Connection_send(Ice_ConnectionPtr self, int fd,
     if (self->epinfo->type != Ice_EndpointTypeUDP)
 	return false;
 
-    throw("NotImplementedError", __FILE__, __LINE__);
+    c_throw("NotImplementedError", __FILE__, __LINE__);
     return false;
 }
 

@@ -19,11 +19,11 @@ extern "C" {
 	assert(((ObjectPtr)ptr)->tag == TAG_OK && "Uninitialized");	\
     } while(0)
 
-#define throw(EXC, FILE, LINE)			                        \
+#define c_throw(EXC, FILE, LINE)			                        \
     do {								\
 	prints(EXC "\n");						\
 	error_at_line(0, 0, FILE, LINE, EXC);				\
-	assert(false && "Exception thrown");				\
+	assert(false && "Exception c_thrown");				\
     } while(0)
 
 typedef bool Ice_Bool;

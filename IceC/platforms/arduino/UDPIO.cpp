@@ -15,7 +15,7 @@ Ethernet_setup() {
 uint8_t
 UDP_init(uint16_t port) {
     if (! udp.begin(port)) {
-	throw("UDP_BeginError", __FILE__, __LINE__);
+	c_throw("UDP_BeginError", __FILE__, __LINE__);
 	return 1;
     }
     return 0;

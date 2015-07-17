@@ -80,7 +80,7 @@ class ThrowException(object):
         self.params = params
 
     def __str__(self):
-        return 'throw("{0}", {1});\n'.format(self.name, ", ".join(self.params))
+        return 'c_throw("{0}", {1});\n'.format(self.name, ", ".join(self.params))
 
 
 class Casting(object):

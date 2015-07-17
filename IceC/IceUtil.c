@@ -62,7 +62,7 @@ IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
 	}
     }
 
-    throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
+    c_throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
 }
 
 void ICEC_FUNC_ATTR

@@ -121,7 +121,7 @@ UDP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     options = self->epinfo.options;
     options->uip_connection = uip_udp_new(&options->host, options->port);
     if (options->uip_connection == NULL)
-    	throw("Could not create connection", __FILE__, __LINE__);
+    	c_throw("Could not create connection", __FILE__, __LINE__);
 
     self->connection.fd = 0;
     return true;

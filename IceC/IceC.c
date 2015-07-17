@@ -50,7 +50,7 @@ Ice_InputStream_readShort(Ice_InputStreamPtr self, Ice_Short* v) {
     Ptr_check(self);
 
     if (self->next - self->data + sizeof(Ice_Short) > (unsigned int)self->size) {
-	throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
+	c_throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
 	return;
     }
 
@@ -77,7 +77,7 @@ Ice_InputStream_readInt(Ice_InputStreamPtr self, Ice_Int* v) {
     Ptr_check(self);
 
     if (self->next - self->data + sizeof(Ice_Int) > (unsigned int)self->size) {
-	throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
+	c_throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
 	return;
     }
 
@@ -455,7 +455,7 @@ Ice_Connection_receiveValidate(Ice_ConnectionPtr self) {
 #endif
 
     if (memcmp(expected, is.next, 14) != 0) {
-	throw("Ice_ProtocolException", __FILE__, __LINE__);
+	c_throw("Ice_ProtocolException", __FILE__, __LINE__);
 	return;
     }
 }
@@ -507,7 +507,7 @@ Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
 
     ok = IcePlugin_ObjectAdapter_activate(self);
     if (! ok) {
-	throw("Ice_NoEndpointException", __FILE__, __LINE__);
+	c_throw("Ice_NoEndpointException", __FILE__, __LINE__);
 	return;
     }
 
@@ -588,7 +588,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 #endif
 
     if (memcmp(header, is.next, 10) != 0) {
-	throw("Ice_ProtocolException", __FILE__, __LINE__);
+	c_throw("Ice_ProtocolException", __FILE__, __LINE__);
 	Ice_ObjectAdapter_closeClient(self);
 	return;
     }
@@ -597,7 +597,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     Ice_InputStream_readInt(&is, &size);
 
     if (size > MAX_MESSAGE_SIZE) {
-	throw("Ice_MemoryLimitException", __FILE__, __LINE__);
+	c_throw("Ice_MemoryLimitException", __FILE__, __LINE__);
 	Ice_ObjectAdapter_closeClient(self);
 	return;
     }
@@ -647,7 +647,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 	}
     }
 
-    throw("Ice_ObjectNotExistException", __FILE__, __LINE__);
+    c_throw("Ice_ObjectNotExistException", __FILE__, __LINE__);
     Ice_ObjectAdapter_closeClient(self);
 }
 
