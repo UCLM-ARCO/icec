@@ -3,6 +3,7 @@
 #include <IceC/IceC.h>
 
 void
-IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
-			     Ice_ObjectAdapterPtr result[]) {
+IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr source,
+			     Ice_ObjectAdapterPtr result[],
+			     bool block) {
 }

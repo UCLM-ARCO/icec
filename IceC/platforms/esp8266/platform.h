@@ -9,13 +9,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <string.h>
 #include <errno.h>
-
-/* #include <os_type.h> */
-/* #include <user_interface.h> */
 #include <osapi.h>
-/* #include <espconn.h> */
 
 #include <IceC/platforms/esp8266/types.h>
 #include <IceC/platforms/esp8266/debug.h>

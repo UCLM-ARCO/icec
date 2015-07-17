@@ -7,7 +7,7 @@
 #define NULL 0
 #endif
 
-#ifndef __cplusplus
+#if !defined(__cplusplus) && !defined(true)
 #define false 0
 #define true 1
 typedef uint8_t bool;

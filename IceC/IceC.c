@@ -857,6 +857,9 @@ Ice_initialize(Ice_CommunicatorPtr ic) {
     trace();
     Ice_Communicator_init(ic);
     IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);
+
+    int a = strspn("hola", "adios");
+    os_printf(a);
 }
 
 /*

@@ -98,7 +98,7 @@ TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* str
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    Ice_Connection_init(&(self->connection), type);
+    Ice_Connection_init(&(self->connection), self->connection.epinfo);
     Ice_OutputStream_init(&(self->stream));
     TCP_EndpointInfo_init(&(self->epinfo), type, strprx);
 
