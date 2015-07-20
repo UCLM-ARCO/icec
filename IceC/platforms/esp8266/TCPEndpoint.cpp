@@ -1,10 +1,13 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
+#include <ESP8266WiFi.h>
+#include <IceC/IceUtil.h>
 #include <IceC/platforms/esp8266/TCPEndpoint.h>
 
-/* NOTE: only one endpoint instance allowed */
 static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
+
+/* NOTE: only one endpoint instance allowed */
 static TCP_EndpointOptions ep_options;
 
 bool
@@ -83,7 +86,7 @@ TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     if (self->epinfo.type != Ice_EndpointTypeTCP)
 	return false;
 
-    opts = self->epinfo.options;
+    opts = (TCP_EndpointOptionsPtr)self->epinfo.options;
     Ptr_check(opts);
 
     TCP_Connection_connect(&(self->connection), opts->host, opts->port);
@@ -108,12 +111,14 @@ TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* str
 
 void
 TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) {
-    /* struct sockaddr_in addr; */
-
     trace();
+
+
+
+
+
     fixme("Not implemented!\n");
-
-
+    /* struct sockaddr_in addr; */
 /*     memset(&addr, 0, sizeof(struct sockaddr_in)); */
 
 /*     self->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); */

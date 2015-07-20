@@ -9,14 +9,25 @@
 #  define error_at_line(...)
 #else
 
-#define trace()							\
-    os_printf("%s:%d %s\n", __FILE__, __LINE__, __func__);
+extern void prints(const char*);
+extern void printi(const int);
 
-#define fixme(MSG)							\
-    os_printf("FIXME: %s (%s:%d %s)\n", MSG, __FILE__, __LINE__, __func__);
+#define trace()					\
+    prints(__FILE__ ":");			\
+    printi(__LINE__);				\
+    prints(" ");				\
+    prints(__func__);				\
+    prints("\n");
+
+#define fixme(MSG)			        \
+    prints("FIXME: " MSG "(" __FILE__ ":");	\
+    printi(__LINE__);				\
+    prints(" ");				\
+    prints(__func__);				\
+    prints(")\n");
 
 #define error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
-    os_printf("Error, " FILE ":" #LINE ": " MESSAGE);
+    prints("Error, " FILE ":" #LINE ": " MESSAGE);
 
 #endif /* DEBUG */
 #endif  /* _ICEC_DEBUG_H_ */

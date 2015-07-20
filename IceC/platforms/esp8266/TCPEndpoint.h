@@ -10,7 +10,7 @@ extern "C" {
 #include <IceC/IceC.h>
 
 #define Ice_EndpointTypeTCP   1
-#define MAX_HOST_SIZE         16
+#define MAX_HOST_SIZE         32
 
 typedef struct TCP_EndpointOptions {
     Object _base;

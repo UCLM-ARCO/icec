@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <osapi.h>
 
+#include <IceC/platforms/esp8266/flags.h>
 #include <IceC/platforms/esp8266/types.h>
 #include <IceC/platforms/esp8266/debug.h>
 #include <IceC/platforms/esp8266/assert.h>
