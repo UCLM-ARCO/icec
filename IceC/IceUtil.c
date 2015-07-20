@@ -6,39 +6,39 @@ void ICEC_FUNC_ATTR
 IceUtil_getIdentity(const char* s, char* result) {
     int end;
 
-    /* trace(); */
-    /* s += my_strspn(s, "\n\r\t "); */
-    /* /\* end = strcspn(s, "\n\r\t "); *\/ */
-    /* strncpy(result, s, end); */
-    /* /\* result[end] = 0; *\/ */
+    trace();
+    s += strspn(s, "\n\r\t ");
+    end = strcspn(s, "\n\r\t ");
+    strncpy(result, s, end);
+    result[end] = 0;
 }
 
 void ICEC_FUNC_ATTR
 IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
-    /* char proto[MAX_PROTO_SIZE]; */
-    /* const char* i; */
-    /* int end; */
+    char proto[MAX_PROTO_SIZE];
+    const char* i;
+    int end;
 
-    /* trace(); */
-    /* proto[0] = 0; */
+    trace();
+    proto[0] = 0;
 
-    /* s += strspn(s, "\n\r\t "); */
+    s += strspn(s, "\n\r\t ");
 
-    /* i = index(s, ':'); */
-    /* if (i != NULL) { */
-    /* 	i++; */
-    /* 	s = i + strspn(i, "\n\r\t "); */
-    /* } */
+    i = index(s, ':');
+    if (i != NULL) {
+    	i++;
+    	s = i + strspn(i, "\n\r\t ");
+    }
 
-    /* end = strcspn(s, "\n\r\t "); */
-    /* strncpy(proto, s, end); */
-    /* proto[end] = 0; */
+    end = strcspn(s, "\n\r\t ");
+    strncpy(proto, s, end);
+    proto[end] = 0;
 
-    /* *result = 0; */
-    /* IcePlugin_getProtocolType(proto, result); */
+    *result = 0;
+    IcePlugin_getProtocolType(proto, result);
 
-    /* if (*result == 0) */
-    /* 	assert(false && "Invalid endpoint type!"); */
+    if (*result == 0)
+    	assert(false && "Invalid endpoint type!");
 }
 
 void ICEC_FUNC_ATTR
@@ -86,22 +86,22 @@ IceUtil_getByteParam(const char* s, byte* result, char flag) {
 
 void ICEC_FUNC_ATTR
 IceUtil_getStringParam(const char* s, char* result, char flag) {
-    /* int end; */
+    int end;
 
-    /* trace(); */
-    /* result[0] = 0; */
+    trace();
+    result[0] = 0;
 
-    /* while (true) { */
-    /* 	s = index(s, '-'); */
-    /* 	if (s == NULL) return; */
-    /* 	if (s[1] == flag) { */
-    /* 	    s += 2;  /\* '-' + flag *\/ */
-    /* 	    s += strspn(s, "\n\r\t "); */
-    /* 	    end = strcspn(s, "\n\r\t "); */
-    /* 	    strncpy(result, s, end); */
-    /* 	    result[end] = 0; */
-    /* 	    return; */
-    /* 	} */
-    /* 	s++; */
-    /* } */
+    while (true) {
+    	s = index(s, '-');
+    	if (s == NULL) return;
+    	if (s[1] == flag) {
+    	    s += 2;  /* '-' + flag */
+    	    s += strspn(s, "\n\r\t ");
+    	    end = strcspn(s, "\n\r\t ");
+    	    strncpy(result, s, end);
+    	    result[end] = 0;
+    	    return;
+    	}
+    	s++;
+    }
 }
