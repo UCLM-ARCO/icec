@@ -856,7 +856,7 @@ Ice_Communicator_loopIteration(Ice_CommunicatorPtr self) {
     uint8_t i;
     Ice_ObjectAdapterPtr result[MAX_NUM_OF_ADAPTERS];
 
-    trace();
+    // trace();
     Ptr_check(self);
 
     IceInternal_selectOnAdapters(&(self->adapters), result, false);
@@ -1006,7 +1006,7 @@ void ICEC_FUNC_ATTR
 IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
-    trace();
+    // trace();
 
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
