@@ -138,7 +138,7 @@ UDP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
 /*     self->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); */
 /*     if (self->fd == -1) { */
-/* 	error("Could not create socoket: %s\n", strerror(errno)); */
+/* 	error("Could not create socket: %s\n", strerror(errno)); */
 /* 	return false; */
 /*     } */
 

@@ -29,5 +29,5 @@ extern void printi(const int);
 #define error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
     prints("Error, " FILE ":" #LINE ": " MESSAGE);
 
-#endif /* DEBUG */
+#endif  /* DEBUG */
 #endif  /* _ICEC_DEBUG_H_ */

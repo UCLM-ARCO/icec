@@ -119,7 +119,7 @@ UDP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
     conn->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (conn->fd == -1) {
-    	error("Could not create socoket: %s\n", strerror(errno));
+    	error("Could not create socket: %s\n", strerror(errno));
     	return false;
     }
 
@@ -151,7 +151,7 @@ UDP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
 
     self->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (self->fd == -1) {
-	error("Could not create socoket: %s\n", strerror(errno));
+	error("Could not create socket: %s\n", strerror(errno));
 	return false;
     }
 

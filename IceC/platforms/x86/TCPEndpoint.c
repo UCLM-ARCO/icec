@@ -115,7 +115,7 @@ TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) 
 
     self->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (self->fd == -1) {
-	error("Could not create socoket: %s\n", strerror(errno));
+	error("Could not create socket: %s\n", strerror(errno));
 	return;
     }
 
@@ -144,7 +144,7 @@ TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
 
     self->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (self->fd == -1) {
-	error("Could not create socoket: %s\n", strerror(errno));
+	error("Could not create socket: %s\n", strerror(errno));
 	return false;
     }
 

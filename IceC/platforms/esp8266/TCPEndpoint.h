@@ -18,6 +18,8 @@ typedef struct TCP_EndpointOptions {
     char host[MAX_HOST_SIZE];
     uint16_t port;
     bool used;
+    byte fd;
+    WiFiClient* client;
 } TCP_EndpointOptions;
 
 typedef TCP_EndpointOptions* TCP_EndpointOptionsPtr;
