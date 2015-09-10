@@ -20,6 +20,18 @@ install:
 	install -d $(DESTDIR)/usr/include/IceC
 	install -m 644 IceC/*.h $(DESTDIR)/usr/include/IceC
 
+arduino-pkg: clean
+	DIR=$$(mktemp -d)/IceC; \
+	mkdir -p $$DIR; \
+	echo $$DIR; \
+	cp -r arduino/* $$DIR; \
+	mkdir -p $$DIR/src/IceC/platforms; \
+	cp IceC/*.* $$DIR/src/IceC; \
+	cp -r IceC/platforms/esp8266 $$DIR/src/IceC/platforms; \
+	cp IceC/IceC.h IceC/platforms/esp8266/TCPEndpoint.h $$DIR/src/; \
+	cd $$DIR/..; zip -r arduino-icec.zip IceC; \
+	cd -; cp $$DIR/../arduino-icec.zip arduino-icec-$$(date +%Y%m%d).zip
+
 .PHONY: clean
 clean:
 	make -C examples $@

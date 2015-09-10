@@ -7,3 +7,5 @@ syntax: glob
 *.bin
 *.out
 *.a
+
+*.zip
