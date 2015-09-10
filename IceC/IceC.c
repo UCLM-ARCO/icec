@@ -559,9 +559,11 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
     if (! self->epinfo.datagram) {
 	IcePlugin_Connection_accept(&(self->connection));
 	Ice_Connection_sendValidate(&(self->connection));
+	assert(self->connection.current_client != -1 && "Invalid client");
 	return self->connection.current_client;
     }
 
+    assert(self->connection.fd != -1 && "Invalid client");
     return self->connection.fd;
 }
 

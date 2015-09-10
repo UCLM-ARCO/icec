@@ -17,10 +17,12 @@ Example_Led servant;
 
 void
 Example_LedI_on(Example_LedPtr self) {
+    Serial.println("\n\nExample LED on\n");
 }
 
 void
 Example_LedI_off(Example_LedPtr self) {
+    Serial.println("\n\nExample LED off\n");
 }
 
 void

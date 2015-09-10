@@ -19,7 +19,8 @@ typedef struct TCP_EndpointOptions {
     uint16_t port;
     bool used;
     byte fd;
-    void* instance;
+    WiFiServer* server;
+    WiFiClient* client;
 
 } TCP_EndpointOptions;
 

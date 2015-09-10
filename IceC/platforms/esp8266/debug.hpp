@@ -21,6 +21,11 @@ printi(const int v) {
     Serial.flush();
 }
 
+int
+printh(const int v) {
+   return Serial.print(v, HEX);
+}
+
 #ifdef __cplusplus
 }
 #endif

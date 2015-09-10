@@ -12,6 +12,7 @@ static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
 static TCP_EndpointOptions ep_options[MAX_TCP_ENDPOINT_INSTANCES];
 
+
 bool ICEC_FUNC_ATTR
 TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
     trace();
@@ -25,13 +26,33 @@ TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
 bool ICEC_FUNC_ATTR
 TCP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
+    Ice_Int size;
+
     trace();
 
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    WiFiClient* client = (WiFiClient*)ep_options[fd].instance;
-    self->size = client->read((byte*)self->data, MAX_MESSAGE_SIZE);
+    assert(fd != -1);
+
+    // wait up to 5 seconds for data to arrive
+    int timeout = 5000;
+    WiFiClient* client = ep_options[fd].client;
+    while (not client->available()) {
+	delay(1);
+	if (! --timeout)
+	    return false;
+    }
+
+    /* first: read header, and get message size */
+    self->size = client->read((byte*)self->data, 14);
+    size = (Ice_Int)*(self->data + 10);
+
+    /* then: read as size specifies */
+    size -= 14;
+    assert(size <= MAX_MESSAGE_SIZE && "Message too big!");
+
+    self->size += client->read((byte*)(self->data + 14), size);
     return true;
 }
 
@@ -134,11 +155,10 @@ TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) 
     Ptr_check(opts);
 
     assert(WiFi.status() == WL_CONNECTED && "WiFi not connected");
-    assert(opts->instance == NULL && "Already used endpoint");
+    assert(opts->client == NULL && "Already used endpoint");
 
-    WiFiClient* client = new WiFiClient;
-    opts->instance = client;
-    bool result = client->connect(host, port);
+    opts->client = new WiFiClient;
+    bool result = opts->client->connect(host, port);
     assert(result && "Connection failed -1");
     self->fd = opts->fd;
 }
@@ -153,26 +173,30 @@ TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     Ptr_check(opts);
 
     assert(WiFi.status() == WL_CONNECTED && "WiFi not connected");
-    assert(opts->instance == NULL && "Already used endpoint");
+    assert(opts->server == NULL && "Already used endpoint");
 
-    WiFiServer* server = new WiFiServer(port);
-    server->begin();
-    opts->instance = server;
-    self->fd = opts->fd;
-
+    opts->server = new WiFiServer(port);
+    opts->server->begin();
     return true;
 }
 
 bool ICEC_FUNC_ATTR
 TCP_Connection_accept(Ice_ConnectionPtr self) {
     trace();
-    fixme("Not implemented!\n");
 
-/*     if (self->type != Ice_EndpointTypeTCP) */
-/* 	return false; */
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
+	return false;
 
-/*     self->current_client = accept(self->fd, NULL, 0); */
-/*     return true; */
+    TCP_EndpointOptions* opts = (TCP_EndpointOptions*)self->epinfo->options;
+    assert(opts->client == NULL && "Already connected client endpoint");
+
+    opts->client = new WiFiClient(opts->server->available());
+    if (opts->client) {
+	self->fd = opts->fd;
+	self->current_client = opts->fd;
+    }
+
+    return true;
 }
 
 bool ICEC_FUNC_ATTR
@@ -182,21 +206,26 @@ TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) 
     if (self->epinfo->type != Ice_EndpointTypeTCP)
 	return false;
 
-    WiFiClient* client = (WiFiClient*)ep_options[fd].instance;
-    *size = client->write((const uint8_t*)data, *size);
+    TCP_EndpointOptions* opts = (TCP_EndpointOptions*)self->epinfo->options;
+    *size = opts->client->write((const uint8_t*)data, *size);
     return true;
 }
 
 bool ICEC_FUNC_ATTR
 TCP_Connection_close(Ice_ConnectionPtr self) {
     trace();
-    fixme("Not implemented!\n");
 
-/*     if (self->type != Ice_EndpointTypeTCP) */
-/* 	return false; */
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
+	return false;
 
-/*     close(self->current_client); */
-/*     return true; */
+    TCP_EndpointOptions* opts = (TCP_EndpointOptions*)self->epinfo->options;
+    if (opts->client == NULL)
+	return true;
+
+    opts->client->stop();
+    delete opts->client;
+    opts->client = NULL;
+    return true;
 }
 
 bool ICEC_FUNC_ATTR
@@ -206,8 +235,8 @@ TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
     if (self->epinfo->type != Ice_EndpointTypeTCP)
 	return false;
 
-    // *ready = UDP_available();
-    check using server.hasClient... or similar
+    TCP_EndpointOptions* opts = (TCP_EndpointOptions*)self->epinfo->options;
+    *result = opts->server->hasClient();
     return true;
 }
 
@@ -221,9 +250,10 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     Ptr_check(ic);
 
     for (byte i=0; i<MAX_TCP_ENDPOINT_INSTANCES; i++) {
-	ep_options[i].fd = i;
 	ep_options[i].used = false;
-	ep_options[i].instance = NULL;
+	ep_options[i].fd = i;
+	ep_options[i].server = NULL;
+	ep_options[i].client = NULL;
 	Object_init((ObjectPtr)&ep_options[i]);
     }
 

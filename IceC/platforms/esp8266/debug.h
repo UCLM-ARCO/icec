@@ -11,6 +11,21 @@
 
 extern void prints(const char*);
 extern void printi(const int);
+extern int printh(const int);
+
+static void
+hexdump(byte* src, int size) {
+    int i;
+
+    for(i = 0; i < size; i++) {
+	int count = printh(src[i]);
+	if (count == 1)
+	    prints(" ");
+	prints(" ");
+	if ((i + 1) % 8 == 0)
+	    prints("\n");
+    }
+}
 
 #define trace()					\
     prints(__FILE__ ":");			\
