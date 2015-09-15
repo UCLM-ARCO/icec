@@ -1362,15 +1362,16 @@ class IceVisitor(sliceparser.Visitor):
     def visitClassDecl(self, classdeclptr):
         self.ifaces.append(ClassDefDecl(self.module, classdeclptr))
 
-        name = classdeclptr.name()
-        if name not in self.declared:
-            self.declared.append(name)
+        full_name = "{}_{}".format(self.module.name, classdeclptr.name())
+        if full_name not in self.declared:
+            self.declared.append(full_name)
             self.items.append(ClassDefForward(self.module, classdeclptr))
 
     def visitClassDefStart(self, classdefptr):
         name = classdefptr.name()
-        has_forward = name in self.declared
-        cls = ClassDefDecl(self.module, classdefptr, has_forward)
+        full_name = "{}_{}".format(self.module.name, name)
+        already_declared = full_name in self.declared
+        cls = ClassDefDecl(self.module, classdefptr, already_declared)
 
         if args.ifaces is not None:
             if cls.full_name not in args.ifaces:
@@ -1379,8 +1380,8 @@ class IceVisitor(sliceparser.Visitor):
         self.items.append(cls)
         self.ifaces.append(cls)
 
-        if name not in self.declared:
-            self.declared.append(name)
+        if not already_declared:
+            self.declared.append(full_name)
 
         return True
 

@@ -341,6 +341,7 @@ Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self) {
 
 void ICEC_FUNC_ATTR
 Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
+    Ice_Int* size;
 
     trace();
     Ptr_check(self);
@@ -348,13 +349,13 @@ Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
 #ifdef ESP8266
     /* Writting a whole int (4 bytes) here could cause an Aligment exception (9).
        Reduce it to 4 writes of one byte each */
-    Ice_Int size;
+    Ice_Int value;
     byte* dst;
     byte* src;
 
-    size = (Ice_Int)(self->next - self->encaps[self->current_encaps]);
+    value = (Ice_Int)(self->next - self->encaps[self->current_encaps]);
     dst = (byte*)self->encaps[self->current_encaps];
-    src = (byte*)&size;
+    src = (byte*)&value;
 
     *dst++ = *src++;
     *dst++ = *src++;
@@ -362,7 +363,6 @@ Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
     *dst = *src;
 
 #else
-    Ice_Int* size;
 
     size = (Ice_Int*)self->encaps[self->current_encaps];
     *size = (Ice_Int)(self->next - self->encaps[self->current_encaps]);
@@ -833,7 +833,6 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
 
 void ICEC_FUNC_ATTR
 Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self) {
-
     uint8_t i;
     Ice_ObjectAdapterPtr result[MAX_NUM_OF_ADAPTERS];
 
@@ -854,11 +853,10 @@ Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self) {
 
 void ICEC_FUNC_ATTR
 Ice_Communicator_loopIteration(Ice_CommunicatorPtr self) {
-
     uint8_t i;
     Ice_ObjectAdapterPtr result[MAX_NUM_OF_ADAPTERS];
 
-    // trace();
+    /* trace(); */
     Ptr_check(self);
 
     IceInternal_selectOnAdapters(&(self->adapters), result, false);
@@ -1008,7 +1006,7 @@ void ICEC_FUNC_ATTR
 IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
-    // trace();
+    /* trace(); */
 
     while(item != NULL) {
     	IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;

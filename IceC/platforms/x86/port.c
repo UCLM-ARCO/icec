@@ -5,7 +5,8 @@
 
 void
 IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
-			     Ice_ObjectAdapterPtr result[]) {
+			     Ice_ObjectAdapterPtr result[],
+			     bool block) {
 
     int i, count;
     fd_set read_set;
