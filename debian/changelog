@@ -1,3 +1,10 @@
+icec (20150915-1) unstable; urgency=low
+
+  * New release
+  * slice2c: fix forward declaration treatment
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 15 Sep 2015 09:58:44 +0200
+
 icec (20150615-1) unstable; urgency=low
 
   * New release
