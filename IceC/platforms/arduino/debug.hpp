@@ -42,6 +42,12 @@ extern "C" {
     }
 
     void
+    printsln(const char* msg) {
+	Serial.println(msg);
+	Serial.flush();
+    }
+
+    void
     printb(const uint8_t* msg, uint8_t size) {
 	Serial.write(msg, size);
 	Serial.flush();

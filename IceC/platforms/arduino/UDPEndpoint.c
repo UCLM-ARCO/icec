@@ -178,6 +178,8 @@ IceC_UDPEndpoint_Connection_dataReady(Ice_ConnectionPtr self, bool* ready) {
 /* plugin specific functions */
 void
 IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic) {
+    byte i;
+
     trace();
 
     /* Note: is important to call IcePlugin_registerEndpoint after
@@ -185,7 +187,7 @@ IceC_UDPEndpoint_init(Ice_CommunicatorPtr ic) {
        initialized. */
     Ptr_check(ic);
 
-    for (byte i=0; i<MAX_UDP_ENDPOINT_INSTANCES; i++) {
+    for (i=0; i<MAX_UDP_ENDPOINT_INSTANCES; i++) {
 	ep_options[i].used = false;
 	Object_init((ObjectPtr)&ep_options[i]);
     }
