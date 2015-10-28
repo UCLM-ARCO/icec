@@ -917,9 +917,10 @@ class OperationDecl(BaseDecl):
                     size_var_ptr = "(Ice_Int*)" + size_var_ptr
                 ins.readSize(size_var_ptr, "false")
 
-                alloca_type = i.type.typeid
-                if kind == "dictionary":
-                    alloca_type += "_Pair"
+                if kind == "sequence":
+                    alloca_type = i.contained_type.typeid
+                else:
+                    alloca_type = i.type.typeid + "_Pair"
 
                 ins.alloca(self.cpp2c_name(alloca_type), items_var, size_var)
 

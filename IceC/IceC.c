@@ -421,16 +421,19 @@ Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size) {
 	return;
     }
 
+    /* FIXME: reconnect! */
     if (res == 0) {
 	error_at_line(0, 0, __FILE__, __LINE__, "Connection lost!\n");
 	return;
     }
 
+    /* FIXME: reset device! */
     if (res == -1) {
 	error_at_line(0, errno, __FILE__, __LINE__, "Error on socket");
 	return;
     }
 
+    /* FIXME: reset device! */
     error_at_line(0, 0, __FILE__, __LINE__, "Could not write all bytes on socket!\n");
 }
 
@@ -543,9 +546,12 @@ Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
     trace();
     Ptr_check(self);
     Ptr_check(servant);
+
     assert(strlen(identity) < MAX_IDENTITY_SIZE);
 
     sm = &(self->servantMap);
+    assert(sm->count < MAX_NUM_OF_SERVANTS);
+
     strcpy(sm->ids[sm->count], identity);
     sm->objects[sm->count] = servant;
     sm->count++;
@@ -628,6 +634,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 
     /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
+
     assert(facetSeqSize == 0);
 
     for (i=0; i<self->servantMap.count; i++) {

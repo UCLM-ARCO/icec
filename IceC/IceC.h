@@ -119,6 +119,10 @@ typedef struct Ice_OutputStream* Ice_OutputStreamPtr;
 struct Ice_Object;
 typedef struct Ice_Object* Ice_ObjectPtr;
 
+typedef struct Ice_Current {
+    char* id;
+} Ice_Current;
+
 typedef void (*Ice_MethodHandlerPtr)(Ice_ObjectPtr,
 				     Ice_InputStreamPtr,
 				     Ice_OutputStreamPtr);

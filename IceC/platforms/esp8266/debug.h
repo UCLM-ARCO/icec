@@ -3,10 +3,11 @@
 #ifndef _ICEC_DEBUG_H_
 #define _ICEC_DEBUG_H_
 
+// See flags.h
 #ifndef DEBUG
 #  define trace()
 #  define fixme(...)
-#  define error_at_line(...)
+#  define error_at_line(...) while(1);   // force a reset
 #else
 
 extern void prints(const char*);
@@ -18,9 +19,10 @@ hexdump(byte* src, int size) {
     int i;
 
     for(i = 0; i < size; i++) {
-	int count = printh(src[i]);
-	if (count == 1)
-	    prints(" ");
+	if (src[i] < 16)
+	    prints("0");
+
+	printh(src[i]);
 	prints(" ");
 	if ((i + 1) % 8 == 0)
 	    prints("\n");
@@ -42,7 +44,8 @@ hexdump(byte* src, int size) {
     prints(")\n");
 
 #define error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
-    prints("Error, " FILE ":" #LINE ": " MESSAGE);
+    prints("Error, " FILE ":" #LINE ": " MESSAGE); \
+    while(1);   // force a reset
 
 #endif  /* DEBUG */
 #endif  /* _ICEC_DEBUG_H_ */
