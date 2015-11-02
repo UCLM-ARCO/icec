@@ -788,6 +788,20 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os)
     IcePlugin_EndpointInfo_writeToOutputStream(&self->epinfo, os);
 }
 
+void ICEC_FUNC_ATTR
+Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self,
+			   const char* newid,
+			   Ice_ObjectPrxPtr result) {
+    trace();
+    assert(strlen(newid) < MAX_IDENTITY_SIZE);
+
+    if (self == result) {
+	strcpy(self->identity, newid);
+	return;
+    }
+
+    fixme("ProxyDeepCopy not supported");
+}
 
 void ICEC_FUNC_ATTR
 Ice_Communicator_init(Ice_CommunicatorPtr self) {

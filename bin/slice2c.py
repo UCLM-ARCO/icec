@@ -479,7 +479,7 @@ class InputStream(CCode):
 
     def alloca(self, typeid, dest, size):
         sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
-        casting = Pointer(typeid, use_ptr=True)
+        casting = Pointer(typeid)
 
         if args.use_alloca:
             alloca = FunctionCall("alloca", sizeof)
