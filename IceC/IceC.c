@@ -799,7 +799,7 @@ void ICEC_FUNC_ATTR
 Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid) {
     trace();
 
-    // 'less than', because needs an extra byte for '\0'
+    /* 'less than', because needs an extra byte for '\0' */
     assert(strlen(newid) < MAX_IDENTITY_SIZE);
 
     strcpy(self->identity, newid);
