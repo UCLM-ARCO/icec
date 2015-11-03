@@ -1005,6 +1005,9 @@ class OperationDecl(BaseDecl):
         func += FunctionCall("Ice_ObjectPrx_send", "self")
         func.nl().comment(" FIXME: wait response and return correct value ")
 
+        func.nl()
+        func += FunctionCall("Ice_ObjectPrx_closeConnection", "self")
+
         c += func
         c.nl()
 
@@ -1039,10 +1042,10 @@ class SequenceDecl(BaseDecl):
     def render_sequence(self, c):
         seq = Struct()
 
-        items = Param(Pointer(self.type), "items")
-        seq.append(items)
         size = Param("Ice_Int", "size")
         seq.append(size)
+        items = Param(Pointer(self.type), "items")
+        seq.append(items)
 
         c += Typedef(self.full_name, seq)
         c.nl()

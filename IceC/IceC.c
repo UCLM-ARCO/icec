@@ -715,8 +715,15 @@ Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr self) {
     if (self->epinfo.datagram)
 	return;
 
+    if (self->connection.fd == -1) {
+	return;
+    }
+
     if (self->mode == Ice_ReferenceModeOneway || self->mode == Ice_ReferenceModeTwoway)
 	Ice_Connection_sendClose(&(self->connection));
+
+    IcePlugin_Connection_close(&(self->connection));
+    self->connection.fd = -1;
 }
 
 void ICEC_FUNC_ATTR
@@ -789,18 +796,13 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os)
 }
 
 void ICEC_FUNC_ATTR
-Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self,
-			   const char* newid,
-			   Ice_ObjectPrxPtr result) {
+Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid) {
     trace();
+
+    // 'less than', because needs an extra byte for '\0'
     assert(strlen(newid) < MAX_IDENTITY_SIZE);
 
-    if (self == result) {
-	strcpy(self->identity, newid);
-	return;
-    }
-
-    fixme("ProxyDeepCopy not supported");
+    strcpy(self->identity, newid);
 }
 
 void ICEC_FUNC_ATTR

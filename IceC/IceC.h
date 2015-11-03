@@ -272,9 +272,7 @@ void Ice_ObjectPrx_send(Ice_ObjectPrxPtr self);
 void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is);
 void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os);
 
-void Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self,
-				const char* newid,
-				Ice_ObjectPrxPtr result);
+void Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid);
 
 typedef struct Ice_Communicator {
     Object _base;
