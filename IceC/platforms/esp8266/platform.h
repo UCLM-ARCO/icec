@@ -18,6 +18,7 @@
 #include <IceC/platforms/esp8266/types.h>
 #include <IceC/platforms/esp8266/debug.h>
 #include <IceC/platforms/esp8266/assert.h>
+#include <IceC/platforms/esp8266/storage.h>
 
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16

@@ -669,9 +669,10 @@ class ClassDefForward(BaseDecl):
 
 
 class ClassDefDecl(BaseDecl, list):
-    def __init__(self, module, ptr, has_forward=False):
+    def __init__(self, module, ptr, has_forward=False, bases=None):
         BaseDecl.__init__(self, module, ptr)
         self.has_forward = has_forward
+        self.bases = bases
 
     def render(self, c):
         self.render_struct(c)
@@ -797,9 +798,19 @@ class ClassDefDecl(BaseDecl, list):
         func += Assert("encapSize - 6 == (is->size - (is->next - is->data))")
         func.nl()
 
+        # render own method calls
         for i in self:
             cond = IfCondition('strcmp(operation, "{0}") == 0'.format(i.name))
             cond += FunctionCall(i.full_name + "__dispatch", "self", "is", "os")
+            cond.ret()
+            func += cond
+            func.nl()
+
+        # render inherited method calls
+        for typeid, i in self.inherited():
+            cond = IfCondition('strcmp(operation, "{0}") == 0'.format(i.name))
+            selfp = "({}Ptr)self".format(typeid)
+            cond += FunctionCall(i.full_name + "__dispatch", selfp, "is", "os")
             cond.ret()
             func += cond
             func.nl()
@@ -811,6 +822,13 @@ class ClassDefDecl(BaseDecl, list):
     def render_proxy_methods(self, c):
         for i in self:
             i.render_as_proxy_method(c)
+
+    def inherited(self):
+        operations = []
+        for iface in self.bases:
+            for op in iface:
+                operations.append((iface.full_name, op))
+        return operations
 
 
 class ParamDecl(BaseDecl):
@@ -1375,7 +1393,18 @@ class IceVisitor(sliceparser.Visitor):
         name = classdefptr.name()
         full_name = "{}_{}".format(self.module.name, name)
         already_declared = full_name in self.declared
-        cls = ClassDefDecl(self.module, classdefptr, already_declared)
+
+        bases = []
+
+        for b in classdefptr.allBases():
+            base_full_name = b.scope().strip("::").replace("::", "_")
+            base_full_name += "_" + b.name()
+            for i in self.ifaces:
+                if i.full_name == base_full_name:
+                    bases.append(i)
+                    break
+
+        cls = ClassDefDecl(self.module, classdefptr, already_declared, bases)
 
         if args.ifaces is not None:
             if cls.full_name not in args.ifaces:

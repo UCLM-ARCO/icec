@@ -162,3 +162,13 @@ class TestExampleDictionaryServer(prego.TestCase, TestMixin):
         client.wait_that(
             self.server.lastcmd.stdout.content,
             hamcrest.contains_string("'type': 'humidity'"))
+
+
+class TestExampleExtendedInterfaces(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/extended_interfaces"
+        self.proxy = 'Server -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client", "hello\nbye")

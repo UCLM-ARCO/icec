@@ -8,6 +8,6 @@
 // compilation. Use this unit to do so.
 //
 
-// #define DEBUG 0
+#define DEBUG 0
 
 #endif // _ICEC_ESP8266_FLAGS_H_
