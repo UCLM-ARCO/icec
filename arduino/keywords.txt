@@ -6,13 +6,13 @@
 # Datatypes (KEYWORD1)
 #######################################
 Ice_Communicator	KEYWORD1
-
+Ice_ObjectPrx		KEYWORD1
+Ice_ObjectPtr		KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 Ice_initialize		KEYWORD2
-
 
 ######################################
 # Constants (LITERAL1)

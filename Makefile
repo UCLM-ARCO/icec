@@ -28,7 +28,7 @@ arduino-pkg: clean
 	mkdir -p $$DIR/src/IceC/platforms; \
 	cp IceC/*.* $$DIR/src/IceC; \
 	cp -r IceC/platforms/esp8266 $$DIR/src/IceC/platforms; \
-	cp IceC/IceC.h IceC/platforms/esp8266/TCPEndpoint.h $$DIR/src/; \
+	cp -r IceC/platforms/arduino $$DIR/src/IceC/platforms; \
 	cd $$DIR/..; zip -r arduino-icec.zip IceC; \
 	cd -; cp $$DIR/../arduino-icec.zip arduino-icec-$$(date +%Y%m%d).zip
 

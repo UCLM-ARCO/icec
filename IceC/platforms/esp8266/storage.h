@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void IceC_Storage_begin();
+void IceC_Storage_clear();
 void IceC_Storage_get(uint16_t addr, char* dst, uint16_t size);
 void IceC_Storage_put(uint16_t addr, const char* src, uint16_t size);
 
