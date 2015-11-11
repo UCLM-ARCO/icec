@@ -8,6 +8,8 @@
 //  - http://clc-wiki.net/wiki/C_standard_library
 //
 
+#ifdef ARDUINO_ARCH_ESP8266
+
 #include <string.h>
 #include <strings.h>
 
@@ -38,3 +40,5 @@ index(const char* s, int c) {
             return 0;
     return (char*)s;
 }
+
+#endif /* ARDUINO_ARCH_ESP8266 */

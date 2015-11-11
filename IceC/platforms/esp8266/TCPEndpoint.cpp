@@ -1,5 +1,7 @@
 /* -*- mode: c++; coding: utf-8 -*- */
 
+#ifdef ARDUINO_ARCH_ESP8266
+
 #include <ESP8266WiFi.h>
 #include <IceC/IceUtil.h>
 #include <IceC/platforms/esp8266/TCPEndpoint.h>
@@ -281,3 +283,5 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_close = &TCP_Connection_close;
     endpoint.Connection_dataReady = &TCP_Connection_dataReady;
 }
+
+#endif /* ARDUINO_ARCH_ESP8266 */

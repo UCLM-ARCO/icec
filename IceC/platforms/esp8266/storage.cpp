@@ -1,5 +1,7 @@
 /* -*- mode: c++; coding: utf-8; truncate-lines: true -*- */
 
+#ifdef ARDUINO_ARCH_ESP8266
+
 #include <EEPROM.h>
 
 #include "storage.h"
@@ -34,3 +36,5 @@ IceC_Storage_put(uint16_t addr, const char* src, uint16_t size) {
 	EEPROM.write(addr+i, *(src+i));
     EEPROM.commit();
 }
+
+#endif /* ARDUINO_ARCH_ESP8266 */
