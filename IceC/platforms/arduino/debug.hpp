@@ -21,11 +21,7 @@ print_log(const char* s) {
 #endif
 
 #ifndef DEBUG_LED
-#  if defined(ARDUINO_AVR_FIO)
-#    define DEBUG_LED 9
-#  else
-#    define DEBUG_LED 13
-#  endif
+#define DEBUG_LED 13
 #endif
 
 #ifdef __cplusplus
