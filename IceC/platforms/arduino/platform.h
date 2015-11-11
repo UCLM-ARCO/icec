@@ -13,6 +13,7 @@
 #include <IceC/platforms/arduino/debug.h>
 #include <IceC/platforms/arduino/assert.h>
 #include <IceC/platforms/arduino/strings.h>
+#include <IceC/platforms/arduino/storage.h>
 
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16
