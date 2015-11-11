@@ -1,5 +1,7 @@
 /* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
+#ifdef ARDUINO_ARCH_AVR
+
 #include <IceC/IceC.h>
 
 void
@@ -32,3 +34,5 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	}
     } while (! count && block);
 }
+
+#endif /* ARDUINO_ARCH_AVR */

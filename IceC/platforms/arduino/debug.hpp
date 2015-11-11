@@ -29,6 +29,24 @@ extern "C" {
 #endif
 
     void
+    led_config() {
+	pinMode(DEBUG_LED, OUTPUT);
+    }
+
+    void
+    led_blink(int wait) {
+	digitalWrite(DEBUG_LED, 1);
+	delay(50);
+	digitalWrite(DEBUG_LED, 0);
+	delay(50);
+	digitalWrite(DEBUG_LED, 1);
+	delay(50);
+	digitalWrite(DEBUG_LED, 0);
+
+	delay(wait);
+    }
+
+    void
     debug_init() {
 	led_config();
 	Serial.begin(115200);
@@ -123,24 +141,6 @@ extern "C" {
 	prints("  ");
 	prints((const char*)buff);
 	prints("\n");
-    }
-
-    void
-    led_config() {
-	pinMode(DEBUG_LED, OUTPUT);
-    }
-
-    void
-    led_blink(int wait) {
-	digitalWrite(DEBUG_LED, 1);
-	delay(50);
-	digitalWrite(DEBUG_LED, 0);
-	delay(50);
-	digitalWrite(DEBUG_LED, 1);
-	delay(50);
-	digitalWrite(DEBUG_LED, 0);
-
-	delay(wait);
     }
 
 #ifdef __cplusplus
