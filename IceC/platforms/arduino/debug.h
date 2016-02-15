@@ -3,16 +3,24 @@
 #ifndef _ICEC_DEBUG_H_
 #define _ICEC_DEBUG_H_
 
+#include <IceC/platforms/arduino/types.h>
+
 #define trace()
 #define fixme(...)
 #define _STOP_HERE_ while(1);
 
+#ifdef LOGGER
+extern void print_log(const char*);
+#else
+#define print_log(...)
+#endif
+
 extern void prints(const char*);
+extern void printsln(const char*);
 extern void printi(const int);
 extern void printhex(const int);
 extern void printb(const uint8_t* msg, uint8_t size);
 extern void printp(const char*, const int);
-extern void print_log(const char*);
 extern void hexdump(const void* addr, int len);
 
 #define DBG_trace()				\

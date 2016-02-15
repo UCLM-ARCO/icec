@@ -156,7 +156,7 @@ TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) 
     opts = (TCP_EndpointOptionsPtr)self->epinfo->options;
     Ptr_check(opts);
 
-    assert(WiFi.status() == WL_CONNECTED && "WiFi not connected");
+    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) && "WiFi not connected");
     assert(opts->client == NULL && "Already used endpoint");
 
     opts->client = new WiFiClient;
@@ -174,7 +174,7 @@ TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     opts = (TCP_EndpointOptionsPtr)self->epinfo->options;
     Ptr_check(opts);
 
-    assert(WiFi.status() == WL_CONNECTED && "WiFi not connected");
+    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) && "WiFi not connected");
     assert(opts->server == NULL && "Already used endpoint");
 
     opts->server = new WiFiServer(port);

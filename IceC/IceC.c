@@ -19,6 +19,8 @@ void ICEC_FUNC_ATTR
 Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
     trace();
 
+    /* prints("is init\n"); */
+
     IcePlugin_InputStream_init(self, fd, type);
 
     self->next = self->data;
@@ -562,6 +564,8 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
+    /* prints("getClient\n"); */
+
     if (! self->epinfo.datagram) {
 	IcePlugin_Connection_accept(&(self->connection));
 	Ice_Connection_sendValidate(&(self->connection));
@@ -569,7 +573,12 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
 	return self->connection.current_client;
     }
 
+    /* prints(" - try\n"); */
+    /* if (self->connection.fd == -1) */
+    /* 	prints(" - bad client\n"); */
+
     assert(self->connection.fd != -1 && "Invalid client");
+    /* prints(" - ok\n"); */
     return self->connection.fd;
 }
 
@@ -607,8 +616,12 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
+    /* prints("in message\n"); */
+
     fd = Ice_ObjectAdapter_getClient(self);
     Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
+
+    /* prints("input stream init\n"); */
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);
@@ -621,6 +634,8 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
     is.next += 10;
 
+    /* prints("header ok\n"); */
+
     Ice_InputStream_readInt(&is, &size);
 
     if (size > MAX_MESSAGE_SIZE) {
@@ -629,8 +644,14 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 	return;
     }
 
+    /* prints("size ok\n"); */
+
     Ice_InputStream_readInt(&is, &requestId);
     Ice_InputStream_readIdentity(&is, identity);
+
+    /* prints("oid: '"); */
+    /* prints(identity); */
+    /* prints("'\n"); */
 
     /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
@@ -669,6 +690,9 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 		Ice_OutputStream_setMessageSize(&os);
 		Ice_Connection_send(&(self->connection), os.data, os.size);
 	    }
+
+	    // FIXME: check if client has sent more messages. If so,
+	    // process them; otherwise, close connection
 
 	    Ice_ObjectAdapter_closeClient(self);
 	    return;

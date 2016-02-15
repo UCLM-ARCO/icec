@@ -22,17 +22,25 @@ extern void led_blink(int);
     prints("Error, " FILE ":" #LINE ": " MESSAGE);
 
 static void
+soft_reset() {
+    asm volatile ("jmp 0");
+}
+
+static void
 __assert(bool status) {
     if (status)
 	return;
 
 #ifdef DEBUG_LED
     led_config();
-    while(true) {
+    byte c=3;
+    while(c) {
 	led_blink(1000);
+	c--;
     }
+    soft_reset();
 #else
-    while(true);
+    soft_reset();
 #endif
 
 }

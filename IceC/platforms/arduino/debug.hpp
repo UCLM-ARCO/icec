@@ -4,16 +4,17 @@
 #define _ICE_DEBUG_HPP_
 
 #include <HardwareSerial.h>
-#include <SoftwareSerial.h>
 
 #ifdef LOGGER
-static SoftwareSerial logger(5, 6); // Rx, Tx
+#include <SoftwareSerial.h>
+
+static SoftwareSerial logger(2, 3); // Rx, Tx
 
 void
 print_log(const char* s) {
     static bool logger_initialized = false;
     if (not logger_initialized)
-	logger.begin(9600);
+	logger.begin(115200);
 
     logger.write(s);
     logger.flush();
