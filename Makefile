@@ -34,5 +34,5 @@ arduino-pkg: clean
 
 .PHONY: clean
 clean:
-	make -C examples $@
+	-make -C examples $@
 	find -name "*.pyc" -delete

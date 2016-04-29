@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define EEPROM_SIZE 256
+#define EEPROM_SIZE 512
 
 #ifdef __cplusplus
 extern "C" {

@@ -545,6 +545,10 @@ Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
 		      const char* identity) {
     Ice_ServantMapPtr sm;
 
+    /* prints("IceC: object added: "); */
+    /* prints(identity); */
+    /* prints("\n"); */
+
     trace();
     Ptr_check(self);
     Ptr_check(servant);
@@ -691,8 +695,8 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 		Ice_Connection_send(&(self->connection), os.data, os.size);
 	    }
 
-	    // FIXME: check if client has sent more messages. If so,
-	    // process them; otherwise, close connection
+	    /* FIXME: check if client has sent more messages. If so, */
+	    /* process them; otherwise, close connection */
 
 	    Ice_ObjectAdapter_closeClient(self);
 	    return;

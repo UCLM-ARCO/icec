@@ -487,6 +487,7 @@ class InputStream(CCode):
 
             self.append(alloca)
         else:
+            # NOTE: could not avoid declaring _data here, size is unknown til now.
             expr = "byte _data[{}];\n".format(sizeof)
             expr += "{} = ({})_data;\n".format(dest, casting)
             self.append(expr)
