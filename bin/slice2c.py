@@ -6,6 +6,32 @@ import sliceparser
 from commodity.pattern import Bunch
 
 
+def get_basic_type(src):
+    return {
+        'Ice_Bool': 'bool',
+        'Ice_Byte': 'byte',
+        'Ice_Short': 'short',
+        'Ice_Int': 'int',
+        'Ice_Long': 'long',
+        'Ice_Float': 'float',
+        'Ice_Double': 'double',
+        'Ice_String': 'string',
+    }.get(src, src)
+
+
+def get_ice_type(src):
+    return {
+        'bool': 'Ice_Bool',
+        'byte': 'Ice_Byte',
+        'short': 'Ice_Short',
+        'int': 'Ice_Int',
+        'long': 'Ice_Long',
+        'float': 'Ice_Float',
+        'double': 'Ice_Double',
+        'string': 'Ice_String'
+    }.get(src, src)
+
+
 class CCode(list):
     def __init__(self):
         self.tabcount = 0
@@ -390,7 +416,8 @@ class OutputStream(CCode):
         params = []
         name = ""
 
-        if typeid in ["bool", "char", "byte", "short", "int"]:
+        typeid = get_basic_type(typeid)
+        if typeid in ["bool", "char", "byte", "short", "int", "long", "float", "double"]:
             if toPointer:
                 param = "&({0})".format(param)
             name = "Ice_OutputStream_write{0}".format(typeid.capitalize())
@@ -448,6 +475,7 @@ class InputStream(CCode):
         if toPointer:
             param = "&({0})".format(param)
 
+        typeid = get_basic_type(typeid)
         if typeid in ["bool", "char", "byte", "short", "int"]:
             name = "Ice_InputStream_read{0}".format(typeid.capitalize())
 
@@ -1275,7 +1303,7 @@ class StructDecl(BaseDecl):
         self.members = []
         for i in ptr.dataMembers():
             type = i.type()
-            member = Bunch(typeid = type.typeId(),
+            member = Bunch(typeid = get_ice_type(type.typeId()),
                            name = i.name(),
                            kind = str(type.__class__.__name__).lower())
             self.members.append(member)
