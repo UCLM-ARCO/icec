@@ -25,6 +25,7 @@ arduino-pkg: clean
 	mkdir -p $$DIR; \
 	echo $$DIR; \
 	cp -r arduino/* $$DIR; \
+	cp -r IceC/IceC.h $$DIR; \
 	mkdir -p $$DIR/src/IceC/platforms; \
 	cp IceC/*.* $$DIR/src/IceC; \
 	cp -r IceC/platforms/esp8266 $$DIR/src/IceC/platforms; \

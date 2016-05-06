@@ -848,6 +848,10 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
     Ice_EndpointType type;
     (void) name; /* avoid compiler warnings */
 
+    /* prints("adapter eps: '"); */
+    /* prints(endpoints); */
+    /* prints("'\n") */
+
     trace();
     Ptr_check(self);
 
