@@ -626,6 +626,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
 
     /* prints("input stream init\n"); */
+    /* hexdump(is.data, is.size); */
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);

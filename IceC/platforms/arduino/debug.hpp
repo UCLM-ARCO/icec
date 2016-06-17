@@ -4,6 +4,7 @@
 #define _ICE_DEBUG_HPP_
 
 #include <HardwareSerial.h>
+#include "flags.h"
 
 #ifdef LOGGER
 #include <SoftwareSerial.h>
