@@ -7,6 +7,7 @@ test:
 	-nosetests test/$(T) -s
 	make -C examples clean > /dev/null
 
+install: ARDUINO_DIST = $(DESTDIR)/usr/share/icec/arduino
 install:
 	install -d $(DESTDIR)/usr/share/icec/bin
 	install -m 755 bin/slice2c.py $(DESTDIR)/usr/share/icec/bin
@@ -20,18 +21,18 @@ install:
 	install -d $(DESTDIR)/usr/include/IceC
 	install -m 644 IceC/*.h $(DESTDIR)/usr/include/IceC
 
-arduino-pkg: clean
-	DIR=$$(mktemp -d)/IceC; \
-	mkdir -p $$DIR; \
-	echo $$DIR; \
-	cp -r arduino/* $$DIR; \
-	mkdir -p $$DIR/src/IceC/platforms; \
-	cp -r IceC/IceC.h $$DIR/src/; \
-	cp IceC/*.* $$DIR/src/IceC; \
-	cp -r IceC/platforms/esp8266 $$DIR/src/IceC/platforms; \
-	cp -r IceC/platforms/arduino $$DIR/src/IceC/platforms; \
-	cd $$DIR/..; zip -r arduino-icec.zip IceC; \
-	cd -; cp $$DIR/../arduino-icec.zip arduino-icec-$$(date +%Y%m%d).zip
+####### arduino dist
+	install -d $(ARDUINO_DIST)
+	cp -r arduino/* $(ARDUINO_DIST)
+
+	install -d $(ARDUINO_DIST)/src/IceC
+	install -m 644 IceC/IceC.h $(ARDUINO_DIST)/src
+	install -m 644 IceC/*.* $(ARDUINO_DIST)/src/IceC
+
+	install -d $(ARDUINO_DIST)/src/IceC/platforms
+	cp -r IceC/platforms/esp8266 $(ARDUINO_DIST)/src/IceC/platforms
+	cp -r IceC/platforms/arduino $(ARDUINO_DIST)/src/IceC/platforms
+
 
 .PHONY: clean
 clean:
