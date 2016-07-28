@@ -2,7 +2,7 @@
 
 BASEDIR  = ../..
 ICEC_SRC = $(BASEDIR)/IceC
-SLICE2C  = $(BASEDIR)/bin/slice2c.py
+SLICE2C  = python $(BASEDIR)/bin/slice2c.py
 
 TARGETS ?= client
 SLICE    = example.ice
