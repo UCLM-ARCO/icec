@@ -7,6 +7,7 @@ import hamcrest
 class TestMixin(object):
     def build_example(self):
         build = prego.Task("build example using make")
+        print "BUILD COMMAND:", self.cwd
         build.command("make", cwd=self.cwd)
         return build
 
