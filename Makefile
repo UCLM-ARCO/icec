@@ -38,3 +38,4 @@ install:
 clean:
 	-make -C examples $@
 	find -name "*.pyc" -delete
+	$(RM) *.zip
