@@ -11,4 +11,5 @@ pipelines:
           - pip install nose
           - pip install prego
           - pip install PyHamcrest
+          -
           - nosetests test/test_examples.py:TestExampleDictionaryClient
