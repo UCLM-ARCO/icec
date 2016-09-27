@@ -1,43 +1,69 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#ifndef _ICEC_DEBUG_H_
-#define _ICEC_DEBUG_H_
+#ifndef _ICEC_ARDUINO_DEBUG_H_
+#define _ICEC_ARDUINO_DEBUG_H_
 
-#include <IceC/platforms/arduino/types.h>
-
-#define trace()
-#define fixme(...)
-#define _STOP_HERE_ while(1);
-
-#ifdef LOGGER
-extern void print_log(const char*);
-#else
-#define print_log(...)
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-extern void prints(const char*);
-extern void printsln(const char*);
-extern void printi(const int);
-extern void printhex(const int);
-extern void printb(const uint8_t* msg, uint8_t size);
-extern void printp(const char*, const int);
-extern void hexdump(const void* addr, int len);
+#include <IceC/platforms/arduino/flags.h>
+#include <IceC/platforms/arduino/types.h>
 
-#define DBG_trace()				\
-    prints(__FILE__);				\
-    prints(":");				\
-    printi(__LINE__);				\
-    prints(" ");				\
-    prints(__func__);				\
-    prints("\n");
+#ifndef LOGGER
+    #define print_log(...)
+#else
+    void print_log(const char* s);
+    void printi_log(const int i);
+#endif
 
-/* got somewhere on SO or Arduino Playground */
-static int
-get_free_ram_size() {
-    extern int __heap_start, *__brkval;
-    int v;
-    int a = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-    return a;
+#ifndef DEBUG
+    #define trace()
+    #define fixme(...)
+#else
+    void trace();
+    void prints(const char*);
+// extern void printsln(const char*);
+// extern void printi(const int);
+// extern void printhex(const int);
+// extern void printb(const uint8_t* msg, uint8_t size);
+// extern void printp(const char*, const int);
+// extern void hexdump(const void* addr, int len);
+
+// #define DBG_trace()				\
+//     prints(__FILE__);				\
+//     prints(":");				\
+//     printi(__LINE__);				\
+//     prints(" ");				\
+//     prints(__func__);				\
+//     prints("\n");
+
+// /* got somewhere on SO or Arduino Playground */
+// static int
+// get_free_ram_size() {
+//     extern int __heap_start, *__brkval;
+//     int v;
+//     int a = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+//     return a;
+// }
+#endif
+
+#ifndef DEBUG_LED
+    #define led_config()
+    #define led_blink(...)
+#else
+
+    #ifndef DEBUG_LED_PIN
+    #define DEBUG_LED_PIN 13
+    #endif
+
+    void led_config();
+    void led_blink(int wait);
+
+#endif
+
+#ifdef __cplusplus
 }
+#endif
 
-#endif  /* _ICEC_DEBUG_H_ */
+#endif  /* _ICEC_ARDUINO_DEBUG_H_ */

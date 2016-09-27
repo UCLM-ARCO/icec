@@ -3,6 +3,10 @@
 #ifndef _ICE_ASSERT_H_
 #define _ICE_ASSERT_H_
 
+//
+// FIXME: refactor and document!!
+//
+
 #ifndef DEBUG
 #  define error_at_line(...)
 #  define assert(token) __assert(token)
