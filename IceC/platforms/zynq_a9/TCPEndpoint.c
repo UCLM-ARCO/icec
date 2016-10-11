@@ -7,7 +7,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOSIPConfig.h"
 
-#include "IceUtil.h"
+#include <IceC/IceUtil.h>
 #include "TCPEndpoint.h"
 
 #ifndef MAX_TCP_ENDPOINT_INSTANCES
@@ -286,18 +286,6 @@ TCP_Connection_close(Ice_ConnectionPtr self) {
 }
 
 
-/*
-bool ICEC_FUNC_ATTR
-TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
-     trace();
-
-    if (self->epinfo->type != Ice_EndpointTypeTCP)
-	return false;
-
-    return true;
-}
-*/
-
 void ICEC_FUNC_ATTR
 TCPEndpoint_init(Ice_CommunicatorPtr ic) {
 	byte i;
@@ -334,5 +322,4 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;
-    //endpoint.Connection_dataReady = &TCP_Connection_dataReady;
 }

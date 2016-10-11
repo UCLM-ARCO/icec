@@ -16,6 +16,7 @@
 #include <IceC/platforms/zynq_a9/debug.h>
 #include <IceC/platforms/zynq_a9/assert.h>
 
+#define ICEC_FUNC_ATTR
 
 #define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       16
