@@ -16,6 +16,9 @@
 #elif defined(CONTIKI_TARGET_Z1)
 #   include <IceC/platforms/z1/platform.h>
 
+#elif defined(ZYNQ_A9)
+#   include <IceC/platforms/zynq_a9/platform.h>
+
 #else
 #   error "Unknown architecture"
 #endif
