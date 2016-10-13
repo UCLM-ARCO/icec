@@ -16,7 +16,7 @@
 #include <IceC/platforms/arduino/strings.h>
 #include <IceC/platforms/arduino/storage.h>
 
-#define MAX_MESSAGE_SIZE        75
+#define MAX_MESSAGE_SIZE        128
 #define MAX_IDENTITY_SIZE       8
 #define MAX_NESTED_ENCAPS       3
 #define MAX_NUM_OF_ADAPTERS     1

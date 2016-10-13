@@ -3,6 +3,16 @@
 #include "debug.h"
 #include <Arduino.h>
 
+// used regardless of the state of DEBUG flag
+void print_dbg(const char* msg) {
+    Serial.print(msg);
+    Serial.flush();
+}
+
+void printi_dbg(const int i) {
+    Serial.print(i);
+    Serial.flush();
+}
 
 #ifdef LOGGER  // -------------------------------------------------------
 #include <SoftwareSerial.h>
@@ -36,8 +46,14 @@ void trace() {
     // NOTE: not implemented to avoid consuming too much space
 }
 
-void fixme() {
+void fixme(const char* msg) {
     // NOTE: not implemented to avoid consuming too much space
+}
+
+void
+prints(const char* msg) {
+    Serial.print(msg);
+    Serial.flush();
 }
 #endif
 
@@ -56,18 +72,14 @@ led_blink(int wait) {
 
     delay(wait);
 }
+#endif
+
 
 //     void
 //     debug_init() {
 // 	led_config();
 // 	Serial.begin(115200);
 // 	while(!Serial);
-//     }
-
-//     void
-//     prints(const char* msg) {
-// 	Serial.print(msg);
-// 	Serial.flush();
 //     }
 
 //     void
@@ -153,5 +165,3 @@ led_blink(int wait) {
 // 	prints((const char*)buff);
 // 	prints("\n");
 //     }
-
-#endif

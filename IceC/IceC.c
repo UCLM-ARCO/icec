@@ -931,6 +931,8 @@ void ICEC_FUNC_ATTR
 Ice_initialize(Ice_CommunicatorPtr ic) {
     trace();
 
+    /* prints("initialize"); */
+
     Ice_Communicator_init(ic);
     IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);
 }

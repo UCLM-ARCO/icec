@@ -10,8 +10,13 @@ extern "C" {
 #include <IceC/platforms/arduino/flags.h>
 #include <IceC/platforms/arduino/types.h>
 
+// used regardless of the state of DEBUG flag
+void print_dbg(const char* msg);
+void printi_dbg(const int i);
+
 #ifndef LOGGER
     #define print_log(...)
+    #define printi_log(...)
 #else
     void print_log(const char* s);
     void printi_log(const int i);
@@ -20,8 +25,11 @@ extern "C" {
 #ifndef DEBUG
     #define trace()
     #define fixme(...)
+    #define prints(...)
 #else
+
     void trace();
+    void fixme(const char*);
     void prints(const char*);
 // extern void printsln(const char*);
 // extern void printi(const int);
