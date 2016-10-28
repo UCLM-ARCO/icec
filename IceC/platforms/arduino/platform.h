@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MAX_NUM_OF_SERVANTS
-#define MAX_NUM_OF_SERVANTS     10
+#define MAX_NUM_OF_SERVANTS     12
 #endif
 
 #ifndef MAX_PROTO_SIZE
