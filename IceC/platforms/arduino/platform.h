@@ -16,12 +16,32 @@
 #include <IceC/platforms/arduino/strings.h>
 #include <IceC/platforms/arduino/storage.h>
 
+#ifndef MAX_MESSAGE_SIZE
 #define MAX_MESSAGE_SIZE        128
+#endif
+
+#ifndef MAX_IDENTITY_SIZE
 #define MAX_IDENTITY_SIZE       8
+#endif
+
+#ifndef MAX_NESTED_ENCAPS
 #define MAX_NESTED_ENCAPS       3
+#endif
+
+#ifndef MAX_NUM_OF_ADAPTERS
 #define MAX_NUM_OF_ADAPTERS     1
+#endif
+
+#ifndef MAX_NUM_OF_SERVANTS
 #define MAX_NUM_OF_SERVANTS     10
+#endif
+
+#ifndef MAX_PROTO_SIZE
 #define MAX_PROTO_SIZE          8
+#endif
+
+#ifndef MAX_OPERATION_NAME_SIZE
 #define MAX_OPERATION_NAME_SIZE 16
+#endif
 
 #endif /* _ICE_PLATFORM_ARDUINO_H_ */
