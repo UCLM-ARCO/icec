@@ -33,6 +33,7 @@ bool TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t po
 bool TCP_Connection_accept(Ice_ConnectionPtr self);
 bool TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size);
 bool TCP_Connection_close(Ice_ConnectionPtr self);
+bool TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
 
 /* plugin specific functions */
 void TCPEndpoint_init(Ice_CommunicatorPtr ic);

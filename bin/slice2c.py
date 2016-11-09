@@ -240,13 +240,21 @@ class Param(object):
 
 
 class ParamArray(object):
-    def __init__(self, typeid, count, name):
+    def __init__(self, typeid, count, name, *initial_values):
         self.typeid = typeid
         self.name = name
         self.count = count
+        self.initial_values = initial_values
 
     def declare(self):
-        return "{0} {1}[{2}];\n".format(self.typeid, self.name, self.count)
+        dcl = "{0} {1}[{2}]".format(self.typeid, self.name, self.count)
+        if self.initial_values:
+            dcl += "= {"
+            for i in self.initial_values:
+                dcl += i + ", "
+            dcl = dcl[:-2] + "}"
+        dcl += ";\n"
+        return dcl
 
     def readFromStream(self, ins_name):
         ins = InputStream(ins_name)
@@ -1028,7 +1036,8 @@ class OperationDecl(BaseDecl):
         outs.writeBlob("Ice_header", "sizeof(Ice_header)")
 
         outs.nl().comment(" request body ")
-        outs.write("int", 0, toPointer=False)              # request id
+        #outs.write("int", 0, toPointer=False)              # request id
+        outs.write("int", 1, toPointer=False)              # FIXME: should not be fixed
         outs.write("Ice_Identity", "self->identity")       # object identity
         outs.writeString("")                               # facet, only empty allowed
         outs.writeString(self.name)                        # operation
@@ -1050,11 +1059,78 @@ class OperationDecl(BaseDecl):
         func.nl()
 
         func += FunctionCall("Ice_ObjectPrx_send", "self")
-        func.nl().comment(" FIXME: wait response and return correct value ")
 
+        # parse reply message
+        func.nl()        
+        result = Param("bool", "result")
+        func.declare_var(result)        
+        func += FunctionCall("IcePlugin_Connection_dataReady", "&(self->connection)", "&result")
+
+        cond = IfCondition('!result')
+        cond.comment(" FIXME: do something ")
+        if self.retval.typeid != "void":
+            cond.ret(0)
+        else:
+            cond.ret()
+        func += cond
         func.nl()
+
+        expected = ParamArray("char", 10, "expected", "'I'","'c'","'e'", "'P'", '1', '0', '1', '0', 'Ice_replyMsg', '0');
+        func.declare_var(expected)
+        istream = Param("Ice_InputStream", "is");
+        func.declare_var(istream)
+        func += FunctionCall("Ice_InputStream_init", "&is","self->connection.fd", "self->connection.epinfo->type")
+
+        func.nl().comment(" Reply header ")        
+        cond = IfCondition("(memcmp(expected, is.next, 10) != 0)")
+        cond += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
+        if self.retval.typeid != "void":
+            cond.ret(0)
+        else:
+            cond.ret()
+        func += cond
+        func += "is.next += 10;\n"
+        func.nl()
+
+        size = Param("Ice_Int", "size");
+        func.declare_var(size)        
+        func += FunctionCall("Ice_InputStream_readInt", "&is", "&size")
+        cond = IfCondition("(size > MAX_MESSAGE_SIZE)")
+        cond += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
+        if self.retval.typeid != "void":
+            cond.ret(0)
+        else:
+            cond.ret()
+        func += cond
+        func.nl()
+
+        func.comment(" Reply body ")
+        requestId = Param("Ice_Int", "requestId");
+        func.declare_var(requestId)                
+        func += FunctionCall("Ice_InputStream_readInt", "&is","&requestId")
+        replyStatus = Param("Ice_Byte", "replyStatus");
+        func.declare_var(replyStatus)                
+        func += FunctionCall("Ice_InputStream_readByte", "&is","&replyStatus")
+        func.comment(" FIXME: check replyStatus ")
+        func.nl()
+
+        encapsSize = Param("Ice_Int", "encapsSize");
+        func.declare_var(encapsSize)                
+        func += FunctionCall("Ice_InputStream_readInt", "&is","&encapsSize")
+        skipByte = Param("Ice_Byte", "skipByte");
+        func.declare_var(skipByte)                
+        func += FunctionCall("Ice_InputStream_readByte", "&is","&skipByte")
+        func += FunctionCall("Ice_InputStream_readByte", "&is","&skipByte")        
+        if self.retval.typeid != "void":
+            retval = Param("Ice_" + str(self.retval.typeid).capitalize(), "_retval");
+            func.declare_var(retval)
+            func += FunctionCall("Ice_InputStream_read" + str(self.retval.typeid).capitalize(), "&is", "&_retval")
+            func.nl()
+        
         func += FunctionCall("Ice_ObjectPrx_closeConnection", "self")
 
+        if self.retval.typeid != "void":
+            func.ret("_retval")
         c += func
         c.nl()
 

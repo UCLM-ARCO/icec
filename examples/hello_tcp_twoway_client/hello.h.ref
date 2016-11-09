@@ -1,0 +1,290 @@
+/* -*- mode: c; coding: utf-8 -*- */
+
+#include <IceC/IceC.h>
+
+typedef struct {
+    Ice_Object __base;
+} Example_Writer;
+
+typedef Example_Writer* Example_WriterPtr;
+
+typedef Ice_ObjectPrx Example_WriterPrx;
+typedef Ice_ObjectPrx* Example_WriterPrxPtr;
+
+/* forward declaration */
+static void
+Example_Writer_methodHandler(Example_WriterPtr self,
+                             Ice_InputStreamPtr is,
+                             Ice_OutputStreamPtr os);
+
+static void
+Example_Writer_init(Example_WriterPtr self) {
+
+    trace();
+    
+    Ice_Object_init((Ice_ObjectPtr)self,
+            (Ice_MethodHandlerPtr)Example_Writer_methodHandler);
+}
+
+void
+Example_WriterI_write(Example_WriterPtr self,
+                      Ice_Int code) __attribute__((weak));
+
+static void
+Example_Writer_write__dispatch(Example_WriterPtr self,
+                               Ice_InputStreamPtr is,
+                               Ice_OutputStreamPtr os) {
+    Ice_Int code = 0;
+
+    trace();
+    
+    Ice_InputStream_readInt(is, &code);
+    
+    Example_WriterI_write(self, code);
+}
+
+static void
+Example_Writer_methodHandler(Example_WriterPtr self,
+                             Ice_InputStreamPtr is,
+                             Ice_OutputStreamPtr os) {
+    Ice_Int operationSize = 0;
+    char operation[MAX_OPERATION_NAME_SIZE];
+    byte mode = 0;
+    byte contextSize = 0;
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+
+    trace();
+    
+    Ptr_check(self);
+    Ptr_check(is);
+    Ptr_check(os);
+    
+    Ice_InputStream_readSize(is, &operationSize, false);
+    assert(operationSize <= MAX_OPERATION_NAME_SIZE);
+    
+    Ice_InputStream_readString(is, operation);
+    
+    /* FIXME: operationMode ignored */
+    Ice_InputStream_readByte(is, &mode);
+    
+    /* FIXME: Context not supported */
+    Ice_InputStream_readByte(is, &contextSize);
+    assert(contextSize == 0);
+    
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 == (is->size - (is->next - is->data)));
+    
+    if (strcmp(operation, "write") == 0) {
+        Example_Writer_write__dispatch(self, is, os);
+        return;
+    }
+    
+    c_throw("Ice_OperationNotExistException", __FILE__, __LINE__);
+}
+
+static void
+Example_Writer_write(Example_WriterPrxPtr self,
+                     Ice_Int code) {
+    Ice_OutputStreamPtr os = &(self->stream);
+    bool result = 0;
+
+    trace();
+    
+    Ptr_check(self);
+    
+    Ice_ObjectPrx_connect(self);
+    Ice_OutputStream_init(os);
+    
+    /* request header */
+    Ice_OutputStream_writeBlob(os, Ice_header, sizeof(Ice_header));
+    
+    /* request body */
+    Ice_OutputStream_writeInt(os, 0);
+    Ice_OutputStream_writeIdentity(os, self->identity);
+    Ice_OutputStream_writeString(os, "");
+    Ice_OutputStream_writeString(os, "write");
+    Ice_OutputStream_writeByte(os, Ice_Normal);
+    Ice_OutputStream_writeByte(os, 0);
+    
+    /* encapsulated params */
+    Ice_OutputStream_startWriteEncaps(os);
+    Ice_OutputStream_writeInt(os, code);
+    Ice_OutputStream_endWriteEncaps(os);
+    Ice_OutputStream_setMessageSize(os);
+    
+    Ice_ObjectPrx_send(self);
+    
+    /* FIXME: wait response and return correct value */
+    
+    IcePlugin_Connection_dataReady(&(self->connection), &result);
+    
+    Ice_ObjectPrx_closeConnection(self);
+}
+
+typedef struct {
+    Ice_Object __base;
+} Example_Reader;
+
+typedef Example_Reader* Example_ReaderPtr;
+
+typedef Ice_ObjectPrx Example_ReaderPrx;
+typedef Ice_ObjectPrx* Example_ReaderPrxPtr;
+
+/* forward declaration */
+static void
+Example_Reader_methodHandler(Example_ReaderPtr self,
+                             Ice_InputStreamPtr is,
+                             Ice_OutputStreamPtr os);
+
+static void
+Example_Reader_init(Example_ReaderPtr self) {
+
+    trace();
+    
+    Ice_Object_init((Ice_ObjectPtr)self,
+            (Ice_MethodHandlerPtr)Example_Reader_methodHandler);
+}
+
+Ice_Int
+Example_ReaderI_read(Example_ReaderPtr self) __attribute__((weak));
+
+static void
+Example_Reader_read__dispatch(Example_ReaderPtr self,
+                              Ice_InputStreamPtr is,
+                              Ice_OutputStreamPtr os) {
+    Ice_Int _retval = 0;
+
+    trace();
+    
+    _retval = Example_ReaderI_read(self);
+    Ice_OutputStream_writeInt(os, _retval);
+}
+
+static void
+Example_Reader_methodHandler(Example_ReaderPtr self,
+                             Ice_InputStreamPtr is,
+                             Ice_OutputStreamPtr os) {
+    Ice_Int operationSize = 0;
+    char operation[MAX_OPERATION_NAME_SIZE];
+    byte mode = 0;
+    byte contextSize = 0;
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+
+    trace();
+    
+    Ptr_check(self);
+    Ptr_check(is);
+    Ptr_check(os);
+    
+    Ice_InputStream_readSize(is, &operationSize, false);
+    assert(operationSize <= MAX_OPERATION_NAME_SIZE);
+    
+    Ice_InputStream_readString(is, operation);
+    
+    /* FIXME: operationMode ignored */
+    Ice_InputStream_readByte(is, &mode);
+    
+    /* FIXME: Context not supported */
+    Ice_InputStream_readByte(is, &contextSize);
+    assert(contextSize == 0);
+    
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 == (is->size - (is->next - is->data)));
+    
+    if (strcmp(operation, "read") == 0) {
+        Example_Reader_read__dispatch(self, is, os);
+        return;
+    }
+    
+    c_throw("Ice_OperationNotExistException", __FILE__, __LINE__);
+}
+
+static Ice_Int
+Example_Reader_read(Example_ReaderPrxPtr self) {
+    Ice_OutputStreamPtr os = &(self->stream);
+    bool result = 0;
+	Ice_InputStream is;	
+	Ice_Int size, requestId;
+	Ice_Byte replyStatus;
+	Ice_Int encapsSize, value;
+	Ice_Byte skipByte;
+
+    char expected[] = {
+	'I', 'c', 'e', 'P',        /* int  magic */
+	1,                         /* byte protocolMajor */
+	0,                         /* byte protocolMinor */
+	1,                         /* byte encodingMajor */
+	0,                         /* byte encodingMinor */
+	Ice_replyMsg,              /* byte messageType (2 -> reply) */
+	0};                        /* byte compressionStatus (0 -> no compress) */
+
+	
+    trace();
+    
+    Ptr_check(self);
+    
+    Ice_ObjectPrx_connect(self);
+    Ice_OutputStream_init(os);
+    
+    /* request header */
+    Ice_OutputStream_writeBlob(os, Ice_header, sizeof(Ice_header));
+    
+    /* request body */
+    Ice_OutputStream_writeInt(os, 1);
+    Ice_OutputStream_writeIdentity(os, self->identity);
+    Ice_OutputStream_writeString(os, "");
+    Ice_OutputStream_writeString(os, "read");
+    Ice_OutputStream_writeByte(os, Ice_Normal);
+    Ice_OutputStream_writeByte(os, 0);
+    
+    /* encapsulated params */
+    Ice_OutputStream_startWriteEncaps(os);
+    Ice_OutputStream_endWriteEncaps(os);
+    Ice_OutputStream_setMessageSize(os);
+    
+    Ice_ObjectPrx_send(self);
+    
+    /* FIXME: wait response and return correct value */
+    
+    IcePlugin_Connection_dataReady(&(self->connection), &result);
+	if (!result) {
+		/* FIXME: do something */
+	}
+	
+	Ice_InputStream_init(&is, self->connection.fd, self->connection.epinfo->type);
+		
+	if (memcmp(expected, is.next, 10) != 0) {
+		c_throw("Ice_ProtocolException", __FILE__, __LINE__);
+		return 0;
+	}
+	is.next += 1;0
+		
+	Ice_InputStream_readInt(&is, &size);
+	if (size > MAX_MESSAGE_SIZE) {
+		c_throw("Ice_MemoryLimitException", __FILE__, __LINE__);
+		return 0;
+	}	
+
+    Ice_InputStream_readInt(&is, &requestId);
+    Ice_InputStream_readByte(&is, &replyStatus);
+
+    Ice_InputStream_readInt(&is, &encapsSize);
+	Ice_InputStream_readByte(&is, &skipByte);
+	Ice_InputStream_readByte(&is, &skipByte);
+    Ice_InputStream_readInt(&is, &value);	
+		
+    Ice_ObjectPrx_closeConnection(self);
+
+	return value;
+}
+

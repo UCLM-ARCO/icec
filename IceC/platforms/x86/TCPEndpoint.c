@@ -5,6 +5,7 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <arpa/inet.h>
 
 /* NOTE: only one endpoint instance allowed */
@@ -197,6 +198,31 @@ TCP_Connection_close(Ice_ConnectionPtr self) {
     return true;
 }
 
+bool
+TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
+	fd_set read_set;
+    struct timeval tv;
+	
+    trace();
+	
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
+		return false;
+
+	FD_ZERO(&read_set);
+	FD_SET(self->fd + 1, &read_set);
+
+	/* Wait up to one second. */
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+    if (select(1, &read_set, NULL, NULL, &tv) < 0) {
+		error("Error while reading from descriptors: %s\n", strerror(errno));
+		return false;
+    }
+
+	*result = true;
+	return true;
+}
+
 void
 TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     trace();
@@ -222,4 +248,5 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;
+    endpoint.Connection_dataReady = &TCP_Connection_dataReady;	
 }
