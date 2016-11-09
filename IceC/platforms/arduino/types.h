@@ -5,7 +5,9 @@
 
 #include <stdint.h>
 
+#ifdef ARDUINO_ARCH_AVR
 typedef uint16_t ssize_t;
+#endif
 
 #if !defined(__cplusplus) && !defined(BOOL_TYPE)
 #undef false
