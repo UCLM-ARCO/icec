@@ -64,7 +64,15 @@ class TestExampleHelloTCPOnewayClient(prego.TestCase, TestMixin):
         self.run_server("./server.py")
         self.run_client("./client_x86", "'write' request, got: 1551")
 
+class TestExampleHelloTCPTwowayClient(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/hello_tcp_twoway_client"
+        self.proxy = "ReaderServer -e 1.0:tcp -h 127.0.0.1 -p 7893"
 
+        self.build_example()
+        self.run_server("./server.py")
+        self.run_client("./client_x86", "'write' request, got: 1551")
+        
 class TestExampleHelloTCPOnewayServer(prego.TestCase, TestMixin):
     def test_works(self):
         self.cwd = "examples/hello_tcp_oneway_server"
