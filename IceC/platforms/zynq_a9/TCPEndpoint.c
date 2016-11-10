@@ -285,6 +285,28 @@ TCP_Connection_close(Ice_ConnectionPtr self) {
     return true;
 }
 
+bool ICEC_FUNC_ATTR
+TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
+	SocketSet_t xFD_Set;
+    struct timeval tv;
+	
+    trace();
+	
+    if (self->epinfo->type != Ice_EndpointTypeTCP)
+		return false;
+
+	xFD_Set = FreeRTOS_CreateSocketSet();
+	TCP_EndpointOptionsPtr options = ((TCP_EndpointOptionsPtr)(self->epinfo->options));	
+	FreeRTOS_FD_SET(options->socket, xFD_Set, eSELECT_READ); 
+	if ( FreeRTOS_select(xFD_Set, portMAX_DELAY) == 0) {
+		//		error("Error while reading from descriptors: %s\n", strerror(errno));	
+		return false;
+	}
+
+	*result = true;
+	return true;
+}
+
 
 void ICEC_FUNC_ATTR
 TCPEndpoint_init(Ice_CommunicatorPtr ic) {
@@ -322,4 +344,5 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;
+    endpoint.Connection_dataReady = &TCP_Connection_dataReady;	
 }
