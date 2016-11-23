@@ -3,5 +3,6 @@
 module Example {
     interface Hello {
 	void sayHelloFrom(string name, int times);
+	string whoAreYou();
     };
 };

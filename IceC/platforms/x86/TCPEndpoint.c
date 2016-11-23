@@ -200,27 +200,27 @@ TCP_Connection_close(Ice_ConnectionPtr self) {
 
 bool
 TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
-	fd_set read_set;
+    fd_set read_set;
     struct timeval tv;
-	
+
     trace();
-	
+
     if (self->epinfo->type != Ice_EndpointTypeTCP)
-		return false;
+	return false;
 
-	FD_ZERO(&read_set);
-	FD_SET(self->fd + 1, &read_set);
+    FD_ZERO(&read_set);
+    FD_SET(self->fd + 1, &read_set);
 
-	/* Wait up to one second. */
+    /* Wait up to one second. */
     tv.tv_sec = 1;
     tv.tv_usec = 0;
     if (select(1, &read_set, NULL, NULL, &tv) < 0) {
-		error("Error while reading from descriptors: %s\n", strerror(errno));
-		return false;
+	error("Error while reading from descriptors: %s\n", strerror(errno));
+	return false;
     }
 
-	*result = true;
-	return true;
+    *result = true;
+    return true;
 }
 
 void
@@ -243,10 +243,12 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.InputStream_init = &TCP_InputStream_init;
     endpoint.ObjectAdapter_activate = &TCP_ObjectAdapter_activate;
     endpoint.EndpointInfo_init = &TCP_EndpointInfo_init;
-    endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
+    endpoint.EndpointInfo_writeToOutputStream = NULL;  /* FIXME: not implemented */
+    endpoint.EndpointInfo_readFromInputStream = NULL;  /* FIXME: not implemented */
     endpoint.ObjectPrx_init = &TCP_ObjectPrx_init;
+    endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;
-    endpoint.Connection_dataReady = &TCP_Connection_dataReady;	
+    endpoint.Connection_dataReady = &TCP_Connection_dataReady;
 }

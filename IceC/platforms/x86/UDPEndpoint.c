@@ -204,9 +204,13 @@ UDPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.InputStream_init = &UDP_InputStream_init;
     endpoint.ObjectAdapter_activate = &UDP_ObjectAdapter_activate;
     endpoint.EndpointInfo_init = &UDP_EndpointInfo_init;
-    endpoint.ObjectPrx_connect = &UDP_ObjectPrx_connect;
+    endpoint.EndpointInfo_writeToOutputStream = NULL;  /* FIXME: not implemented */
+    endpoint.EndpointInfo_readFromInputStream = NULL;  /* FIXME: not implemented */
     endpoint.ObjectPrx_init = &UDP_ObjectPrx_init;
+    endpoint.ObjectPrx_connect = &UDP_ObjectPrx_connect;
     endpoint.Connection_accept = NULL;
     endpoint.Connection_send = &UDP_Connection_send;
     endpoint.Connection_close = NULL;
+    endpoint.Connection_dataReady = NULL;  /* FIXME: not implemented */
+
 }
