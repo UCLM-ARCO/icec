@@ -33,6 +33,24 @@ install:
 	cp -r IceC/platforms/esp8266 $(ARDUINO_DIST)/src/IceC/platforms
 	cp -r IceC/platforms/arduino $(ARDUINO_DIST)/src/IceC/platforms
 
+arduino-package: ARDUINO_DIST=/tmp/icec/arduino/IceC
+arduino-package: clean
+	$(RM) -rf $(ARDUINO_DIST)
+
+	install -d $(ARDUINO_DIST)
+	cp -r arduino/* $(ARDUINO_DIST)
+
+	install -d $(ARDUINO_DIST)/src/IceC
+	install -m 644 IceC/IceC.h $(ARDUINO_DIST)/src
+	install -m 644 IceC/*.* $(ARDUINO_DIST)/src/IceC
+
+	install -d $(ARDUINO_DIST)/src/IceC/platforms
+	cp -r IceC/platforms/esp8266 $(ARDUINO_DIST)/src/IceC/platforms
+	cp -r IceC/platforms/arduino $(ARDUINO_DIST)/src/IceC/platforms
+
+	cd $(ARDUINO_DIST)/..; zip -r arduino-icec-$$(date +%Y%m%d).zip IceC
+	mv $(ARDUINO_DIST)/../*.zip .
+
 
 .PHONY: clean
 clean:
