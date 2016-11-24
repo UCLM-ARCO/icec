@@ -82,13 +82,19 @@ class CCode(list):
             retval = retval[:-len(self.tab)]
         return retval
 
-    def start_condition(self, *args, **kwargs):
-        self.nested = IfCondition(*args, **kwargs)
+    def condition(self, condition):
+        c = getattr(self, 'nested') or self
 
-    def end_condition(self):
-        nested = self.nested
-        self.nested = None
-        self.append(nested)
+        class Context:
+            def __enter__(self):
+                c.nested = IfCondition(condition)
+
+            def __exit__(self, type, value, traceback):
+                nested = c.nested
+                c.nested = None
+                c.append(nested)
+
+        return Context()
 
     def append(self, item):
         if not hasattr(self, "nested") or self.nested is None:
@@ -218,11 +224,14 @@ class Struct(CCode):
 
 
 class Param(object):
-    def __init__(self, typeid, name, kind=None):
+    def __init__(self, typeid, name, kind=None, scope=None):
         self.typeid = typeid
         self.name = name
         self.kind = kind
         self.is_proxy = False
+
+        if scope is not None:
+            scope.declare_var(self)
 
     def declare(self):
         retval = ""
@@ -249,16 +258,22 @@ class Param(object):
             ins.read(self.typeid, "&" + self.name)
         return ins
 
+    def ref(self):
+        return "&" + self.name
+
     def __str__(self):
         return "{0} {1}".format(self.typeid, self.name)
 
 
 class ParamArray(object):
-    def __init__(self, typeid, count, name, *initial_values):
+    def __init__(self, typeid, count, name, initial_values=None, scope=None):
         self.typeid = typeid
         self.name = name
         self.count = count
         self.initial_values = initial_values
+
+        if scope is not None:
+            scope.declare_var(self)
 
     def declare(self):
         dcl = "{0} {1}[{2}]".format(self.typeid, self.name, self.count)
@@ -403,10 +418,13 @@ def Ptr_check(param):
 
 
 class OutputStream(CCode):
-    def __init__(self, this, initializer=None):
+    def __init__(self, this, initializer=None, scope=None):
         CCode.__init__(self)
         self.initializer = initializer
         self.this = this
+
+        if scope is not None:
+            scope.declare_var(self)
 
     def declare(self):
         retval = "Ice_OutputStream"
@@ -810,38 +828,31 @@ class ClassDefDecl(BaseDecl, list):
         func += Ptr_check(outs)
         func.nl()
 
-        operationSize = Param("Ice_Int", "operationSize")
-        func.declare_var(operationSize)
+        operationSize = Param("Ice_Int", "operationSize", scope=func)
         func += operationSize.readFromStream("is", opargs=["false"], as_size=True)
         func += Assert("operationSize <= MAX_OPERATION_NAME_SIZE")
         func.nl()
 
-        operation = ParamArray("char", "MAX_OPERATION_NAME_SIZE", "operation")
-        func.declare_var(operation)
+        operation = ParamArray("char", "MAX_OPERATION_NAME_SIZE", "operation", scope=func)
         func += operation.readFromStream("is")
         func.nl()
 
         func += Comment(" FIXME: operationMode ignored ")
-        mode = Param("byte", "mode")
-        func.declare_var(mode)
+        mode = Param("byte", "mode", scope=func)
         func += mode.readFromStream("is")
         func.nl()
 
         func += Comment(" FIXME: Context not supported ")
-        contextSize = Param("byte", "contextSize")
-        func.declare_var(contextSize)
+        contextSize = Param("byte", "contextSize", scope=func)
         func += contextSize.readFromStream("is")
         func += Assert("contextSize == 0")
         func.nl()
 
-        encapSize = Param("Ice_Int", "encapSize")
-        func.declare_var(encapSize)
+        encapSize = Param("Ice_Int", "encapSize", scope=func)
         func += encapSize.readFromStream("is")
 
-        major = Param("byte", "major")
-        minor = Param("byte", "minor")
-        func.declare_var(major)
-        func.declare_var(minor)
+        major = Param("byte", "major", scope=func)
+        minor = Param("byte", "minor", scope=func)
         func += major.readFromStream("is")
         func += minor.readFromStream("is")
 
@@ -1005,20 +1016,18 @@ class OperationDecl(BaseDecl):
         # call to servant method
         name = self.iface_name + "I_" + self.name
         method = FunctionCall(name, *call_args)
+        retval = self.get_retval(self.retval.typeid)
+
         if self.retval.typeid != "void":
-            method.result("_retval")
-            if self.retval.typeid in ["bool", "byte", "short", "int", "long", "string"]:
-                retval_type = "Ice_" + str(self.retval.typeid).capitalize()
-            else:
-                retval_type = self.cpp2c_name(self.retval.typeid)
-            func.declare_var(Param(retval_type, "_retval"))
+            func.declare_var(retval)
+            method.result(retval.name)
 
         func += method
 
         # write result on output stream
         if self.retval.typeid != "void":
             outs = OutputStream("os")
-            outs.write(self.cpp2c_name(self.retval.typeid), "_retval", toPointer=False)
+            outs.write(self.cpp2c_name(self.retval.typeid), retval.name, toPointer=False)
             func += outs
 
         c += func
@@ -1037,30 +1046,26 @@ class OperationDecl(BaseDecl):
         for p in self.params:
             func.param(p)
 
-        mode = "Ice_{}".format(str(self.mode))
-
         func += Ptr_check(this)
         func.nl()
 
+        mode = "Ice_{}".format(str(self.mode))
         func += FunctionCall("Ice_ObjectPrx_connect", "self")
-        outs = OutputStream("os", "&(self->stream)")
+        outs = OutputStream("os", "&(self->stream)", scope=func)
         outs.init()
 
         outs.nl().comment(" request header ")
         outs.writeBlob("Ice_header", "sizeof(Ice_header)")
-
         outs.nl().comment(" request body ")
 
         # FIXME: 0 must be for oneway/datagram invocations, >0 for twoway
         # FIXME: use 'else' branching
-        outs.start_condition('self->mode == Ice_ReferenceModeTwoway')
-        outs.write("int", 1, toPointer=False)              # request id
-        outs.end_condition()
-        outs.start_condition('self->mode != Ice_ReferenceModeTwoway')
-        outs.write("int", 0, toPointer=False)              # request id
-        outs.end_condition()
-        outs.nl()
+        with outs.condition('self->mode == Ice_ReferenceModeTwoway'):
+            outs.write("int", 1, toPointer=False)          # request id
+        with outs.condition('self->mode != Ice_ReferenceModeTwoway'):
+            outs.write("int", 0, toPointer=False)          # request id
 
+        outs.nl()
         outs.write("Ice_Identity", "self->identity")       # object identity
         outs.writeString("")                               # facet, only empty allowed
         outs.writeString(self.name)                        # operation
@@ -1068,7 +1073,6 @@ class OperationDecl(BaseDecl):
         outs.write("byte", 0, toPointer=False)             # context, not supported
 
         outs.nl().comment(" encapsulated params ")
-
         outs.startWriteEncaps()
 
         for p in self.params:
@@ -1077,7 +1081,6 @@ class OperationDecl(BaseDecl):
         outs.endWriteEncaps()
         outs.setMessageSize()
 
-        func.declare_var(outs)
         func += outs
         func.nl()
 
@@ -1086,100 +1089,112 @@ class OperationDecl(BaseDecl):
 
         # parse reply message
         func.comment(" parse reply message (only on twoway invocations) ")
-        twoway = IfCondition('self->mode == Ice_ReferenceModeTwoway')
+        with func.condition('self->mode == Ice_ReferenceModeTwoway'):
+            ready = Param("bool", "ready", scope=func)
+            func += FunctionCall(
+                "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
 
-        result = Param("bool", "result")
-        func.declare_var(result)
-        twoway += FunctionCall("IcePlugin_Connection_dataReady", "&(self->connection)", "&result")
+            with func.condition('!' + ready.name):
+                func.comment(" FIXME: do something ")
+                # FIXME return correct type!
+                if self.retval.typeid != "void":
+                    func.ret(0)
+                else:
+                    func.ret()
 
-        # FIXME return correct type!
-        cond = IfCondition('!result')
-        cond.comment(" FIXME: do something ")
-        if self.retval.typeid != "void":
-            cond.ret(0)
-        else:
-            cond.ret()
-        twoway += cond
+            expected = ["'I'", "'c'", "'e'", "'P'", '1', '0', '1', '0', 'Ice_replyMsg', '0']
+            expected = ParamArray("char", 10, "expected", expected, scope=func)
 
-        expected = ParamArray(
-            "char", 10, "expected",
-            "'I'", "'c'", "'e'", "'P'", '1', '0', '1', '0', 'Ice_replyMsg', '0')
-        func.declare_var(expected)
-        istream = Param("Ice_InputStream", "is")
-        func.declare_var(istream)
+#        func.declare_var(expected)
+#
+#        ins = InputStream("is")
+#
+#        # istream = Param("Ice_InputStream", "is")
+#        # func.declare_var(istream)
+#
+#        twoway.nl()
+#        twoway += FunctionCall(
+#            "Ice_InputStream_init", "&is", "self->connection.fd", "self->connection.epinfo->type")
+#
+#        twoway.nl().comment(" reply header ")
+#        cond = IfCondition("(memcmp(expected, is.next, 10) != 0)")
+#        cond += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
+#
+#        # FIXME return correct type!
+#        if self.retval.typeid != "void":
+#            cond.ret(0)
+#        else:
+#            cond.ret()
+#
+#        twoway += cond
+#        twoway.nl()
+#        twoway += "is.next += 10;\n"
+#        twoway.nl()
+#
+#        size = Param("Ice_Int", "size")
+#        func.declare_var(size)
+#
+#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&size")
+#        cond = IfCondition("(size > MAX_MESSAGE_SIZE)")
+#        cond += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
+#
+#        # FIXME return correct type!
+#        if self.retval.typeid != "void":
+#            cond.ret(0)
+#        else:
+#            cond.ret()
+#        twoway += cond
+#        twoway.nl()
+#
+#        twoway.comment(" Reply body ")
+#        requestId = Param("Ice_Int", "requestId")
+#        func.declare_var(requestId)
+#
+#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&requestId")
+#        replyStatus = Param("Ice_Byte", "replyStatus")
+#        func.declare_var(replyStatus)
+#
+#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&replyStatus")
+#        twoway.comment(" FIXME: check replyStatus ")
+#        twoway.nl()
+#
+#        encapsSize = Param("Ice_Int", "encapsSize")
+#        func.declare_var(encapsSize)
+#
+#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&encapsSize")
+#        skipByte = Param("Ice_Byte", "skipByte")
+#        func.declare_var(skipByte)
+#
+#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
+#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
+#
+#        # FIXME: convert type properly
+#        # FIXME: initialize it to a default value
+#        if self.retval.typeid != "void":
+#            retval = self.get_retval(self.retval.typeid)
+#            func.declare_var(retval)
+#            twoway += self.read(self.retval.typeid, retval)
+#
+#            # FunctionCall(
+#            #     "Ice_InputStream_read" + str(self.retval.typeid).capitalize(), "&is", retval.ref())
+#
+#       func += twoway
 
-        twoway.nl()
-        twoway += FunctionCall(
-            "Ice_InputStream_init", "&is", "self->connection.fd", "self->connection.epinfo->type")
-
-        twoway.nl().comment(" reply header ")
-        cond = IfCondition("(memcmp(expected, is.next, 10) != 0)")
-        cond += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
-
-        # FIXME return correct type!
-        if self.retval.typeid != "void":
-            cond.ret(0)
-        else:
-            cond.ret()
-
-        twoway += cond
-        twoway.nl()
-        twoway += "is.next += 10;\n"
-        twoway.nl()
-
-        size = Param("Ice_Int", "size")
-        func.declare_var(size)
-
-        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&size")
-        cond = IfCondition("(size > MAX_MESSAGE_SIZE)")
-        cond += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
-
-        # FIXME return correct type!
-        if self.retval.typeid != "void":
-            cond.ret(0)
-        else:
-            cond.ret()
-        twoway += cond
-        twoway.nl()
-
-        twoway.comment(" Reply body ")
-        requestId = Param("Ice_Int", "requestId")
-        func.declare_var(requestId)
-
-        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&requestId")
-        replyStatus = Param("Ice_Byte", "replyStatus")
-        func.declare_var(replyStatus)
-
-        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&replyStatus")
-        twoway.comment(" FIXME: check replyStatus ")
-        twoway.nl()
-
-        encapsSize = Param("Ice_Int", "encapsSize")
-        func.declare_var(encapsSize)
-
-        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&encapsSize")
-        skipByte = Param("Ice_Byte", "skipByte")
-        func.declare_var(skipByte)
-
-        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
-        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
-
-        # FIXME: convert type properly
-        if self.retval.typeid != "void":
-            retval = Param("Ice_" + str(self.retval.typeid).capitalize(), "_retval")
-            func.declare_var(retval)
-            twoway += FunctionCall(
-                "Ice_InputStream_read" + str(self.retval.typeid).capitalize(), "&is", "&_retval")
-
-        func += twoway
         func.nl()
         func += FunctionCall("Ice_ObjectPrx_closeConnection", "self")
-
-        if self.retval.typeid != "void":
-            func.ret("_retval")
+#
+#        if self.retval.typeid != "void":
+#            func.ret("_retval")
 
         c += func
         c.nl()
+
+    def get_retval(self, typeid):
+        if self.retval.typeid in ["bool", "byte", "short", "int", "long", "string"]:
+            retval_type = "Ice_" + str(self.retval.typeid).capitalize()
+        else:
+            retval_type = self.cpp2c_name(self.retval.typeid)
+        return Param(retval_type, "retval")
 
 
 class TypeDecl(BaseDecl):
