@@ -60,6 +60,8 @@ class CCode(list):
 
     def ret(self, value=None):
         retval = ""
+        if isinstance(value, Param):
+            value = value.name
         if value is not None:
             retval = " {0}".format(value)
         self.append("return{0};\n".format(retval))
@@ -224,14 +226,17 @@ class Struct(CCode):
 
 
 class Param(object):
-    def __init__(self, typeid, name, kind=None, scope=None):
+    def __init__(self, typeid, name, kind=None, scope=None, local=False):
         self.typeid = typeid
         self.name = name
         self.kind = kind
         self.is_proxy = False
 
         if scope is not None:
-            scope.declare_var(self)
+            if local:
+                scope += self.declare()
+            else:
+                scope.declare_var(self)
 
     def declare(self):
         retval = ""
@@ -250,8 +255,13 @@ class Param(object):
         retval += ";\n"
         return retval
 
-    def readFromStream(self, ins_name, opargs=None, as_size=False):
-        ins = InputStream(ins_name)
+    def readFromStream(self, ins, opargs=None, as_size=False):
+        if isinstance(ins, Param):
+            ins = InputStream(ins.name)
+        elif isinstance(ins, str):
+            ins = InputStream(ins)
+
+        assert(isinstance(ins, InputStream))
         if as_size:
             ins.readSize("&" + self.name, *opargs)
         else:
@@ -266,14 +276,17 @@ class Param(object):
 
 
 class ParamArray(object):
-    def __init__(self, typeid, count, name, initial_values=None, scope=None):
+    def __init__(self, typeid, count, name, initial_values=None, scope=None, local=False):
         self.typeid = typeid
         self.name = name
         self.count = count
         self.initial_values = initial_values
 
         if scope is not None:
-            scope.declare_var(self)
+            if local:
+                scope += self.declare()
+            else:
+                scope.declare_var(self)
 
     def declare(self):
         dcl = "{0} {1}[{2}]".format(self.typeid, self.name, self.count)
@@ -501,12 +514,35 @@ class OutputStream(CCode):
 
 
 class InputStream(CCode):
-    def __init__(self, this):
+    def __init__(self, this, initializer=None, is_pointer=True, scope=None, local=False):
         self.this = this
+        self.initializer = initializer
+        self.is_pointer = is_pointer or initializer is not None
+        self.holder = scope or self
+
+        if scope is not None:
+            if local:
+                scope += self.declare()
+            else:
+                scope.declare_var(self)
+
+    def declare(self):
+        retval = "Ice_InputStream"
+        if self.initializer is not None:
+            retval += "Ptr"
+        retval += " " + str(self.this)
+        if self.initializer is not None:
+            retval += " = {0}".format(self.initializer)
+        retval += ";\n"
+        return retval
+
+    def init(self, source, type):
+        name = "Ice_InputStream_init"
+        self.holder += FunctionCall(name, self.ref(), source, type)
 
     def readSize(self, *params):
         name = "Ice_InputStream_readSize"
-        self.append(FunctionCall(name, self.this, *params))
+        self.holder += FunctionCall(name, self.ref(), *params)
 
     def read(self, typeid, param, kind=None, toPointer=False):
         params = []
@@ -534,16 +570,21 @@ class InputStream(CCode):
 
         if kind in ["proxy"]:
             name = "Ice_ObjectPrx_readFromInputStream"
-            params = [param, self.this]
+            params = [param, self.ref()]
 
         if name and not params:
-            params = [self.this, param]
+            params = [self.ref(), param]
 
         if not params:
             name = typeid + "_readFromInputStream"
-            params = [param, self.this]
+            params = [param, self.ref()]
 
-        self.append(FunctionCall(name, *params))
+        self.holder += FunctionCall(name, *params)
+
+    def ref(self):
+        if self.is_pointer:
+            return self.this
+        return "&" + self.this
 
     def alloca(self, typeid, dest, size):
         sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
@@ -553,12 +594,12 @@ class InputStream(CCode):
             alloca = FunctionCall("alloca", sizeof)
             alloca.result(dest, casting_to=casting)
 
-            self.append(alloca)
+            self.holder += alloca
         else:
             # NOTE: could not avoid declaring _data here, size is unknown til now.
             expr = "byte _data[{}];\n".format(sizeof)
             expr += "{} = ({})_data;\n".format(dest, casting)
-            self.append(expr)
+            self.holder += expr
 
 
 class ForLoop(CCode):
@@ -1036,6 +1077,7 @@ class OperationDecl(BaseDecl):
     def render_as_proxy_method(self, c):
         name = self.iface_name + "_" + self.name
         this = Param(Pointer(self.iface_name + "Prx", True), "self")
+        retval = self.get_retval(self.retval.typeid)
 
         func = (Function()
                 .static()
@@ -1090,6 +1132,16 @@ class OperationDecl(BaseDecl):
         # parse reply message
         func.comment(" parse reply message (only on twoway invocations) ")
         with func.condition('self->mode == Ice_ReferenceModeTwoway'):
+            ins = InputStream("is", scope=func, local=True, is_pointer=False)
+            expected = ["'I'", "'c'", "'e'", "'P'", '1', '0', '1', '0', 'Ice_replyMsg', '0']
+            expected = ParamArray("char", 10, "expected", expected, scope=func, local=True)
+            size = Param("Ice_Int", "size", scope=func, local=True)
+            requestId = Param("Ice_Int", "requestId", scope=func, local=True)
+            replyStatus = Param("Ice_Byte", "replyStatus", scope=func, local=True)
+            encapsSize = Param("Ice_Int", "encapsSize", scope=func, local=True)
+            skipByte = Param("Ice_Byte", "skipByte", scope=func, local=True)
+            func.nl()
+
             ready = Param("bool", "ready", scope=func)
             func += FunctionCall(
                 "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
@@ -1098,93 +1150,57 @@ class OperationDecl(BaseDecl):
                 func.comment(" FIXME: do something ")
                 # FIXME return correct type!
                 if self.retval.typeid != "void":
-                    func.ret(0)
+                    func.ret(retval)
                 else:
                     func.ret()
 
-            expected = ["'I'", "'c'", "'e'", "'P'", '1', '0', '1', '0', 'Ice_replyMsg', '0']
-            expected = ParamArray("char", 10, "expected", expected, scope=func)
+            func.nl().comment(" reply header ")
+            ins.init("self->connection.fd", "self->connection.epinfo->type")
+            with func.condition("memcmp(expected, is.next, 10) != 0"):
+                func += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
 
-#        func.declare_var(expected)
-#
-#        ins = InputStream("is")
-#
-#        # istream = Param("Ice_InputStream", "is")
-#        # func.declare_var(istream)
-#
-#        twoway.nl()
-#        twoway += FunctionCall(
-#            "Ice_InputStream_init", "&is", "self->connection.fd", "self->connection.epinfo->type")
-#
-#        twoway.nl().comment(" reply header ")
-#        cond = IfCondition("(memcmp(expected, is.next, 10) != 0)")
-#        cond += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
-#
-#        # FIXME return correct type!
-#        if self.retval.typeid != "void":
-#            cond.ret(0)
-#        else:
-#            cond.ret()
-#
-#        twoway += cond
-#        twoway.nl()
-#        twoway += "is.next += 10;\n"
-#        twoway.nl()
-#
-#        size = Param("Ice_Int", "size")
-#        func.declare_var(size)
-#
-#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&size")
-#        cond = IfCondition("(size > MAX_MESSAGE_SIZE)")
-#        cond += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
-#
-#        # FIXME return correct type!
-#        if self.retval.typeid != "void":
-#            cond.ret(0)
-#        else:
-#            cond.ret()
-#        twoway += cond
-#        twoway.nl()
-#
-#        twoway.comment(" Reply body ")
-#        requestId = Param("Ice_Int", "requestId")
-#        func.declare_var(requestId)
-#
-#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&requestId")
-#        replyStatus = Param("Ice_Byte", "replyStatus")
-#        func.declare_var(replyStatus)
-#
-#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&replyStatus")
-#        twoway.comment(" FIXME: check replyStatus ")
-#        twoway.nl()
-#
-#        encapsSize = Param("Ice_Int", "encapsSize")
-#        func.declare_var(encapsSize)
-#
-#        twoway += FunctionCall("Ice_InputStream_readInt", "&is", "&encapsSize")
-#        skipByte = Param("Ice_Byte", "skipByte")
-#        func.declare_var(skipByte)
-#
-#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
-#        twoway += FunctionCall("Ice_InputStream_readByte", "&is", "&skipByte")
-#
-#        # FIXME: convert type properly
-#        # FIXME: initialize it to a default value
-#        if self.retval.typeid != "void":
-#            retval = self.get_retval(self.retval.typeid)
-#            func.declare_var(retval)
-#            twoway += self.read(self.retval.typeid, retval)
-#
-#            # FunctionCall(
-#            #     "Ice_InputStream_read" + str(self.retval.typeid).capitalize(), "&is", retval.ref())
-#
-#       func += twoway
+                # FIXME return correct type!
+                if self.retval.typeid != "void":
+                    func.ret(retval)
+                else:
+                    func.ret()
+
+            func.nl().comment(" skip header from input stream ")
+            func += "is.next += 10;\n"
+            func += size.readFromStream(ins)
+
+            with func.condition("size > MAX_MESSAGE_SIZE"):
+                func += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
+
+                # FIXME return correct type!
+                if self.retval.typeid != "void":
+                    func.ret(retval)
+                else:
+                    func.ret()
+
+            func.nl().comment(" reply body ")
+            func += requestId.readFromStream(ins)
+            func += replyStatus.readFromStream(ins)
+
+            func.nl().comment(" FIXME: check replyStatus ").nl()
+
+            func += encapsSize.readFromStream(ins)
+
+            # FIXME: what are these??
+            func += skipByte.readFromStream(ins)
+            func += skipByte.readFromStream(ins)
+
+            # FIXME: convert type properly
+            # FIXME: initialize it to a default value
+            if self.retval.typeid != "void":
+                func.declare_var(retval)
+                func += retval.readFromStream(ins)
 
         func.nl()
         func += FunctionCall("Ice_ObjectPrx_closeConnection", "self")
-#
-#        if self.retval.typeid != "void":
-#            func.ret("_retval")
+
+        if self.retval.typeid != "void":
+            func.ret(retval)
 
         c += func
         c.nl()

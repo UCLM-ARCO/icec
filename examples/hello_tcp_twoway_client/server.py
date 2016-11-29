@@ -7,11 +7,12 @@ import Ice
 Ice.loadSlice("hello.ice")
 import Example
 
+
 class ReaderI(Example.Reader):
     def read(self, current):
         print " - 'read' request, returns 1999"
         return 1999
-        
+
 
 class Server(Ice.Application):
     def run(self, args):

@@ -7,8 +7,8 @@ int
 main(int argc, char* argv[]) {
     Ice_Communicator ic;
     Ice_ObjectPrx reader;
-	int result;
-	
+    int result;
+
     if (argc < 2)
 	return printf("USAGE: %s <proxy>\n", argv[0]);
 
@@ -17,14 +17,14 @@ main(int argc, char* argv[]) {
     TCPEndpoint_init(&ic);
 
     /* create proxy to server */
-    Ice_Communicator_stringToProxy(&ic, argv[1], &reader);	
+    Ice_Communicator_stringToProxy(&ic, argv[1], &reader);
 
-	/* read invocation*/
+    /* read invocation*/
     result = Example_Reader_read(&reader);
-	printf("returned value is: %d\n", result);
+    printf("returned value is: %d\n", result);
 
     /* IMPORTANT! close each proxy connection */
     Ice_ObjectPrx_closeConnection(&reader);
-	
+
     return 0;
 }
