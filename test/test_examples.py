@@ -195,3 +195,13 @@ class TestExampleDefaultServant(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server", expected=-15)
         self.run_client("./client.py", "'ping' request")
+
+
+class TestExampleDynamicIceServer(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/dynamic_ice_server"
+        self.proxy = "DynServer -e 1.0 -o:tcp -h 127.0.0.1 -p 7901"
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client.py", "'ice_invoke' called")

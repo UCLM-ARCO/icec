@@ -121,6 +121,7 @@ typedef struct Ice_Object* Ice_ObjectPtr;
 
 typedef struct Ice_Current {
     char* id;
+    char* operation;
 } Ice_Current;
 
 typedef void (*Ice_MethodHandlerPtr)(Ice_ObjectPtr,
@@ -132,7 +133,26 @@ typedef struct Ice_Object {
     Ice_MethodHandlerPtr handler;
 } Ice_Object;
 
-void Ice_Object_init(Ice_ObjectPtr self, Ice_MethodHandlerPtr handler);
+typedef struct Ice_Blobject* Ice_BlobjectPtr;
+
+void Ice_Object_init(Ice_ObjectPtr self,
+		     Ice_MethodHandlerPtr handler);
+
+typedef void (*Ice_Blobject_HandlerPtr)(Ice_BlobjectPtr,
+					Ice_InputStreamPtr,
+					Ice_Current,
+					Ice_OutputStreamPtr);
+
+typedef struct Ice_Blobject {
+    Ice_Object _base;
+    Ice_Blobject_HandlerPtr user_handler;
+} Ice_Blobject;
+
+void Ice_Blobject_dispatch(Ice_ObjectPtr self,
+			   Ice_InputStreamPtr is,
+			   Ice_OutputStreamPtr os);
+void Ice_Blobject_init(Ice_BlobjectPtr self,
+		       Ice_Blobject_HandlerPtr handler);
 
 typedef struct Ice_InputStream {
     Object _base;

@@ -16,6 +16,60 @@ Ice_Object_init(Ice_ObjectPtr self, Ice_MethodHandlerPtr handler) {
 }
 
 void ICEC_FUNC_ATTR
+Ice_Blobject_dispatch(Ice_ObjectPtr self, Ice_InputStreamPtr is, Ice_OutputStreamPtr os) {
+    Ice_Int operationSize = 0;
+    byte identity_size = 0;
+    char identity[MAX_IDENTITY_SIZE];
+    char operation[MAX_OPERATION_NAME_SIZE];
+    byte mode = 0;
+    byte contextSize = 0;
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+    Ice_Current current;
+
+    trace();
+
+    Ptr_check(self);
+    Ptr_check(is);
+    Ptr_check(os);
+
+    Ice_InputStream_readSize(is, &operationSize, false);
+    assert(operationSize <= MAX_OPERATION_NAME_SIZE);
+
+    Ice_InputStream_readString(is, operation);
+
+    /* FIXME: operationMode ignored */
+    Ice_InputStream_readByte(is, &mode);
+
+    /* FIXME: Context not supported */
+    Ice_InputStream_readByte(is, &contextSize);
+    assert(contextSize == 0);
+
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 == (is->size - (is->next - is->data)));
+
+    /* call user 'ice_invoke' handler */
+    identity_size = *(is->data + 18);
+    strncpy(identity, (const char*)(is->data + 19), identity_size);
+    identity[identity_size] = 0;
+    current.id = identity;
+    current.operation = operation;
+
+    ((Ice_BlobjectPtr)self)->user_handler((Ice_BlobjectPtr)self, is, current, os);
+}
+
+void ICEC_FUNC_ATTR
+Ice_Blobject_init(Ice_BlobjectPtr self, Ice_Blobject_HandlerPtr handler) {
+    trace();
+    self->user_handler = handler;
+    Ice_Object_init((Ice_ObjectPtr)self, &Ice_Blobject_dispatch);
+}
+
+void ICEC_FUNC_ATTR
 Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
     trace();
 
