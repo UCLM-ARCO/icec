@@ -504,6 +504,7 @@ void ICEC_FUNC_ATTR
 Ice_ServantMap_init(Ice_ServantMapPtr self) {
     trace();
     self->count = 0;
+    self->default_servant = NULL;
     Object_init((ObjectPtr)self);
 }
 
@@ -561,6 +562,17 @@ Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
     strcpy(sm->ids[sm->count], identity);
     sm->objects[sm->count] = servant;
     sm->count++;
+}
+
+void ICEC_FUNC_ATTR
+Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
+				    Ice_ObjectPtr servant) {
+    trace();
+    Ptr_check(self);
+    Ptr_check(servant);
+
+    self->servantMap.default_servant = servant;
+
 }
 
 int ICEC_FUNC_ATTR
@@ -663,48 +675,56 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 
     assert(facetSeqSize == 0);
 
+    /* use default servant when defined */
+    Ice_ObjectPtr servant = self->servantMap.default_servant;
+
+    /* and search for an identified servant if available */
     for (i=0; i<self->servantMap.count; i++) {
 	if (streq(self->servantMap.ids[i], identity)) {
-	    Ice_OutputStream os;
-
-	    Ice_ObjectPtr servant = self->servantMap.objects[i];
-	    assert(servant->handler != NULL);
-
-	    /* prepare reply message */
-	    Ice_OutputStream_init(&os);
-
-	    /* reply header (if twoway) */
-	    if (requestId > 0) {
-		Ice_OutputStream_writeBlob(&os, Ice_header, 8);
-		Ice_OutputStream_writeByte(&os, Ice_replyMsg);
-		Ice_OutputStream_writeByte(&os, 0);  /* compression */
-		Ice_OutputStream_writeInt(&os, 0);   /* size (placeholder) */
-
-		/* reply data */
-		Ice_OutputStream_writeInt(&os, requestId);
-		Ice_OutputStream_writeByte(&os, 0);  /* reply status */
-
-		/* user data encapsulation */
-		Ice_OutputStream_startWriteEncaps(&os);
-	    }
-
-	    servant->handler(servant, &is, &os);
-
-	    if (requestId > 0) {
-		Ice_OutputStream_endWriteEncaps(&os);
-		Ice_OutputStream_setMessageSize(&os);
-		Ice_Connection_send(&(self->connection), os.data, os.size);
-	    }
-
-	    /* FIXME: check if client has sent more messages. If so, */
-	    /* process them; otherwise, close connection */
-
-	    Ice_ObjectAdapter_closeClient(self);
-	    return;
+	    servant = self->servantMap.objects[i];
+	    break;
 	}
     }
 
-    c_throw("Ice_ObjectNotExistException", __FILE__, __LINE__);
+    if (servant == NULL) {
+	c_throw("Ice_ObjectNotExistException", __FILE__, __LINE__);
+	Ice_ObjectAdapter_closeClient(self);
+	return;
+    }
+
+    /* servant found (named or default) */
+    assert(servant->handler != NULL);
+
+    /* prepare reply message */
+    Ice_OutputStream os;
+    Ice_OutputStream_init(&os);
+
+    /* reply header (if twoway) */
+    if (requestId > 0) {
+	Ice_OutputStream_writeBlob(&os, Ice_header, 8);
+	Ice_OutputStream_writeByte(&os, Ice_replyMsg);
+	Ice_OutputStream_writeByte(&os, 0);  /* compression */
+	Ice_OutputStream_writeInt(&os, 0);   /* size (placeholder) */
+
+	/* reply data */
+	Ice_OutputStream_writeInt(&os, requestId);
+	Ice_OutputStream_writeByte(&os, 0);  /* reply status */
+
+	/* user data encapsulation */
+	Ice_OutputStream_startWriteEncaps(&os);
+    }
+
+    servant->handler(servant, &is, &os);
+
+    if (requestId > 0) {
+	Ice_OutputStream_endWriteEncaps(&os);
+	Ice_OutputStream_setMessageSize(&os);
+	Ice_Connection_send(&(self->connection), os.data, os.size);
+    }
+
+    /* FIXME: check if client has sent more messages. If so, */
+    /* process them; otherwise, close connection */
+
     Ice_ObjectAdapter_closeClient(self);
 }
 

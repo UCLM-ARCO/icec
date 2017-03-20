@@ -212,6 +212,7 @@ typedef struct {
 
     char ids[MAX_NUM_OF_SERVANTS][MAX_IDENTITY_SIZE];
     Ice_ObjectPtr objects[MAX_NUM_OF_SERVANTS];
+    Ice_ObjectPtr default_servant;
     int count;
 } Ice_ServantMap;
 
@@ -237,6 +238,8 @@ void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
 			   Ice_ObjectPtr servant,
 			   const char* identity);
+void Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
+					 Ice_ObjectPtr servant);
 int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self);
 int Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self);

@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Oscar Aceña Herrera <oscaracena@gmail.com>
 Build-Depends: debhelper (>= 9.0.0)
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: https://bitbucket.org/arco_group/icec
 
 Package: icec

@@ -2,6 +2,7 @@
 
 import prego
 import hamcrest
+import uuid
 
 
 class TestMixin(object):
@@ -183,3 +184,14 @@ class TestExampleExtendedInterfaces(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server", expected=-15)
         self.run_client("./client", "hello\nbye")
+
+
+class TestExampleDefaultServant(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/default_servant"
+        oid = uuid.uuid1().hex[:6]
+        self.proxy = "{} -e 1.0 -d:udp -h 127.0.0.1 -p 7900".format(oid)
+
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client.py", "'ping' request")
