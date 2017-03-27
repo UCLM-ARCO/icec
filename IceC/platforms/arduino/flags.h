@@ -5,8 +5,7 @@
 
 //
 // NOTE: in Arduino IDE, there is not an easy way to define flags for
-// compilation. Use this unit to do so. You can copy it on your
-// project and include it manually *before* IceC.h
+// compilation. Use this unit to do so.
 //
 
 // #define DEBUG 1

@@ -13,16 +13,16 @@ extern "C" {
 
 #define TAG_OK 4444
 
-#define Ptr_check(ptr)							\
-    do {								\
-	assert(ptr && "Invalid pointer");				\
-	assert(((ObjectPtr)ptr)->tag == TAG_OK && "Uninitialized");	\
+#define Ptr_check(ptr)                                                  \
+    do {                                                                \
+        assert(ptr && "Invalid pointer");                               \
+        assert(((ObjectPtr)ptr)->tag == TAG_OK && "Uninitialized");     \
     } while(0)
 
-#define c_throw(EXC, FILE, LINE)					\
-    do {								\
-	error_at_line(0, 0, FILE, LINE, EXC);				\
-	assert(false && "Exception c_thrown");				\
+#define c_throw(EXC, FILE, LINE)                                        \
+    do {                                                                \
+        error_at_line(0, 0, FILE, LINE, EXC);                           \
+        assert(false && "Exception c_thrown");                          \
     } while(0)
 
 typedef bool Ice_Bool;
@@ -39,23 +39,23 @@ typedef struct Ice_String {
 typedef Ice_String* Ice_StringPtr;
 
 #define Ice_String_init(NAME, VALUE)            \
-    do {					\
-	NAME.value = VALUE;			\
-	NAME.size = strlen(VALUE);		\
+    do {                                        \
+        NAME.value = VALUE;                     \
+        NAME.size = strlen(VALUE);              \
     } while(0);
 
 #define Ice_String_eq(A, B) (strncmp(A.value, B, A.size) == 0)
 
 #define Ice_Dict_init(DICT, DICT_ITEMS, SIZE)   \
-    do {					\
-	DICT.size = SIZE;			\
-	DICT.items = DICT_ITEMS;		\
+    do {                                        \
+        DICT.size = SIZE;                       \
+        DICT.items = DICT_ITEMS;                \
     } while(0);
 
-#define Ice_Dict_set(DICT, INDEX, KEY, VALUE)	\
-    do {					\
-	DICT.items[INDEX].key = KEY;		\
-	DICT.items[INDEX].value = VALUE;	\
+#define Ice_Dict_set(DICT, INDEX, KEY, VALUE)   \
+    do {                                        \
+        DICT.items[INDEX].key = KEY;            \
+        DICT.items[INDEX].value = VALUE;        \
     } while(0);
 
 #define protocolMajor 1
@@ -125,8 +125,8 @@ typedef struct Ice_Current {
 } Ice_Current;
 
 typedef void (*Ice_MethodHandlerPtr)(Ice_ObjectPtr,
-				     Ice_InputStreamPtr,
-				     Ice_OutputStreamPtr);
+                                     Ice_InputStreamPtr,
+                                     Ice_OutputStreamPtr);
 
 typedef struct Ice_Object {
     Object _base;
@@ -136,12 +136,12 @@ typedef struct Ice_Object {
 typedef struct Ice_Blobject* Ice_BlobjectPtr;
 
 void Ice_Object_init(Ice_ObjectPtr self,
-		     Ice_MethodHandlerPtr handler);
+                     Ice_MethodHandlerPtr handler);
 
 typedef void (*Ice_Blobject_HandlerPtr)(Ice_BlobjectPtr,
-					Ice_InputStreamPtr,
-					Ice_Current,
-					Ice_OutputStreamPtr);
+                                        Ice_InputStreamPtr,
+                                        Ice_Current,
+                                        Ice_OutputStreamPtr);
 
 typedef struct Ice_Blobject {
     Ice_Object _base;
@@ -149,10 +149,10 @@ typedef struct Ice_Blobject {
 } Ice_Blobject;
 
 void Ice_Blobject_dispatch(Ice_ObjectPtr self,
-			   Ice_InputStreamPtr is,
-			   Ice_OutputStreamPtr os);
+                           Ice_InputStreamPtr is,
+                           Ice_OutputStreamPtr os);
 void Ice_Blobject_init(Ice_BlobjectPtr self,
-		       Ice_Blobject_HandlerPtr handler);
+                       Ice_Blobject_HandlerPtr handler);
 
 typedef struct Ice_InputStream {
     Object _base;
@@ -253,13 +253,13 @@ typedef struct {
 typedef Ice_ObjectAdapter* Ice_ObjectAdapterPtr;
 
 void Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr self,
-			    Ice_CommunicatorPtr communicator);
+                            Ice_CommunicatorPtr communicator);
 void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
-			   Ice_ObjectPtr servant,
-			   const char* identity);
+                           Ice_ObjectPtr servant,
+                           const char* identity);
 void Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
-					 Ice_ObjectPtr servant);
+                                         Ice_ObjectPtr servant);
 int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self);
 int Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self);
@@ -274,8 +274,8 @@ typedef Ice_ObjectAdapter_List* Ice_ObjectAdapter_ListPtr;
 
 void Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self);
 void IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr source,
-				  Ice_ObjectAdapterPtr result[],
-				  bool block);
+                                  Ice_ObjectAdapterPtr result[],
+                                  bool block);
 
 typedef struct {
     Object _base;
@@ -304,13 +304,13 @@ typedef struct Ice_Communicator {
 
 void Ice_Communicator_init(Ice_CommunicatorPtr self);
 void Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
-						       const char* name,
-						       const char* endpoints,
-						       Ice_ObjectAdapterPtr result);
+                                                       const char* name,
+                                                       const char* endpoints,
+                                                       Ice_ObjectAdapterPtr result);
 void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
-				      Ice_ObjectAdapterPtr adapter);
+                                      Ice_ObjectAdapterPtr adapter);
 void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
-				    Ice_ObjectPrx* result);
+                                    Ice_ObjectPrx* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self);
 void Ice_Communicator_loopIteration(Ice_CommunicatorPtr self);
 void Ice_initialize(Ice_CommunicatorPtr ic);
@@ -359,17 +359,17 @@ int IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16
 void IcePlugin_Connection_close(Ice_ConnectionPtr self);
 void IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
-				 Ice_EndpointType type,
-				 const char* endpoint);
+                                 Ice_EndpointType type,
+                                 const char* endpoint);
 void IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
-						Ice_OutputStreamPtr os);
+                                                Ice_OutputStreamPtr os);
 void IcePlugin_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
-						Ice_InputStreamPtr is);
+                                                Ice_InputStreamPtr is);
 
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
-			      Ice_EndpointType type,
-			      const char* strprx);
+                              Ice_EndpointType type,
+                              const char* strprx);
 void IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr self);
 
 #ifdef __cplusplus

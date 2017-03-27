@@ -10,7 +10,7 @@ void print_dbg(const char* msg) {
 }
 
 void printi_dbg(const int i) {
-    Serial.print(i);
+    Serial.print(i, DEC);
     Serial.flush();
 }
 
@@ -73,95 +73,3 @@ led_blink(int wait) {
     delay(wait);
 }
 #endif
-
-
-//     void
-//     debug_init() {
-// 	led_config();
-// 	Serial.begin(115200);
-// 	while(!Serial);
-//     }
-
-//     void
-//     printsln(const char* msg) {
-// 	Serial.println(msg);
-// 	Serial.flush();
-//     }
-
-//     void
-//     printb(const uint8_t* msg, uint8_t size) {
-// 	Serial.write(msg, size);
-// 	Serial.flush();
-//     }
-
-//     void
-//     printi(const int v) {
-// 	Serial.print(v);
-// 	Serial.flush();
-//     }
-
-//     void
-//     printp(const char* msg, const int i) {
-// 	prints(msg);
-// 	printi(i);
-// 	prints("\n");
-//     }
-
-//     char*
-//     tohex(uint8_t d) {
-// 	char alpha[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-// 			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-// 	uint8_t l = d / 16;
-// 	uint8_t r = d % 16;
-// 	static char result[3];
-// 	result[0] = alpha[l];
-// 	result[1] = alpha[r];
-// 	result[2] = 0;
-// 	return result;
-//     }
-
-//     void
-//     printhex(const int v) {
-// 	Serial.print(tohex(v));
-// 	Serial.flush();
-//     }
-
-//     void
-//     hexdump(const void* addr, int len) {
-// 	int i;
-// 	unsigned char buff[17];
-// 	unsigned char* pc = (unsigned char*)addr;
-
-// 	for (i = 0; i < len; i++) {
-// 	    if ((i % 16) == 0) {
-// 		if (i != 0) {
-// 		    prints("  ");
-// 		    prints((const char*)buff);
-// 		    prints("\n");
-// 		}
-
-// 		prints("  ");
-// 		printhex(i);
-// 		prints(" ");
-// 	    }
-
-// 	    prints(" ");
-// 	    printhex(pc[i]);
-
-// 	    if ((pc[i] < 0x20) || (pc[i] > 0x7e))
-// 		buff[i % 16] = '.';
-// 	    else
-// 		buff[i % 16] = pc[i];
-// 	    buff[(i % 16) + 1] = '\0';
-// 	}
-
-// 	while ((i % 16) != 0) {
-// 	    prints("   ");
-// 	    i++;
-// 	}
-
-// 	prints("  ");
-// 	prints((const char*)buff);
-// 	prints("\n");
-//     }
