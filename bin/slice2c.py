@@ -1019,6 +1019,11 @@ class OperationDecl(BaseDecl):
                 .param(ins)
                 .param(outs))
 
+        # check if handler is defined (return otherwise)
+        method_name = self.iface_name + "I_" + self.name
+        with func.condition('&{} == 0'.format(method_name)):
+            func.ret()
+
         # unmarshall params
         call_args = ["self"]
         for i in self.params:
@@ -1055,8 +1060,7 @@ class OperationDecl(BaseDecl):
             call_args.append(arg)
 
         # call to servant method
-        name = self.iface_name + "I_" + self.name
-        method = FunctionCall(name, *call_args)
+        method = FunctionCall(method_name, *call_args)
         retval = self.get_retval(self.retval.typeid)
 
         if self.retval.typeid != "void":
