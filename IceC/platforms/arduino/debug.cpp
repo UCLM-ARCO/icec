@@ -14,6 +14,45 @@ void printi_dbg(const int i) {
     Serial.flush();
 }
 
+void printh_dbg(const int i) {
+    if (i<16)
+        Serial.print("0");
+    Serial.print(i, HEX);
+    Serial.flush();
+}
+
+void hexdump(const void* addr, int len) {
+    int i;
+    unsigned char buff[17];
+    unsigned char* pc = (unsigned char*)addr;
+    for (i = 0; i < len; i++) {
+        if ((i % 16) == 0) {
+            if (i != 0) {
+                print_dbg("  ");
+                print_dbg((const char*)buff);
+                print_dbg("\n");
+            }
+            print_dbg("  ");
+            printh_dbg(i);
+            print_dbg(" ");
+        }
+        print_dbg(" ");
+        printh_dbg(pc[i]);
+        if ((pc[i] < 0x20) || (pc[i] > 0x7e))
+            buff[i % 16] = '.';
+        else
+            buff[i % 16] = pc[i];
+        buff[(i % 16) + 1] = '\0';
+    }
+    while ((i % 16) != 0) {
+        print_dbg("   ");
+        i++;
+    }
+    print_dbg("  ");
+    print_dbg((const char*)buff);
+    print_dbg("\n");
+}
+
 #ifdef LOGGER  // -------------------------------------------------------
 #include <SoftwareSerial.h>
 
@@ -23,7 +62,7 @@ void
 logger_init() {
     static bool logger_initialized = false;
     if (not logger_initialized)
-  	logger.begin(115200);
+        logger.begin(115200);
 }
 
 void
@@ -66,8 +105,8 @@ led_config() {
 void
 led_blink(int wait) {
     for (byte i=0; i<4; i++) {
-	digitalWrite(DEBUG_LED_PIN, (i+1)%2);
-	delay(50);
+        digitalWrite(DEBUG_LED_PIN, (i+1)%2);
+        delay(50);
     }
 
     delay(wait);

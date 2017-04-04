@@ -73,7 +73,7 @@ void ICEC_FUNC_ATTR
 Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
     trace();
 
-    /* prints("is init\n"); */
+    /* print_dbg("is init\n"); */
 
     IcePlugin_InputStream_init(self, fd, type);
 
@@ -600,9 +600,9 @@ Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
                       const char* identity) {
     Ice_ServantMapPtr sm;
 
-    /* prints("IceC: object added: "); */
-    /* prints(identity); */
-    /* prints("\n"); */
+    /* print_dbg("IceC: object added: "); */
+    /* print_dbg(identity); */
+    /* print_dbg("\n"); */
 
     trace();
     Ptr_check(self);
@@ -634,7 +634,7 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
-    /* prints("getClient\n"); */
+    /* print_dbg("getClient\n"); */
 
     if (! self->epinfo.datagram) {
         IcePlugin_Connection_accept(&(self->connection));
@@ -643,12 +643,12 @@ Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
         return self->connection.current_client;
     }
 
-    /* prints(" - try\n"); */
+    /* print_dbg(" - try\n"); */
     /* if (self->connection.fd == -1) */
-    /*  prints(" - bad client\n"); */
+    /*  print_dbg(" - bad client\n"); */
 
     assert(self->connection.fd != -1 && "Invalid client");
-    /* prints(" - ok\n"); */
+    /* print_dbg(" - ok\n"); */
     return self->connection.fd;
 }
 
@@ -686,13 +686,20 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
-    /* prints("in message\n"); */
+    // {
+    //     static int counter = 1;
+    //     print_dbg("in message #");
+    //     printi_dbg(counter++);
+    //     print_dbg("\n");
+    // }
 
     fd = Ice_ObjectAdapter_getClient(self);
     Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
 
-    /* prints("input stream init\n"); */
-    /* hexdump(is.data, is.size); */
+    // if (is.size) {
+    //     print_dbg(" - contents: \n");
+    //     hexdump(is.data, is.size);
+    // }
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);
@@ -705,7 +712,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
     is.next += 10;
 
-    /* prints("header ok\n"); */
+    // print_dbg("header ok\n");
 
     Ice_InputStream_readInt(&is, &size);
 
@@ -715,14 +722,14 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
         return;
     }
 
-    /* prints("size ok\n"); */
+    // print_dbg("size ok\n");
 
     Ice_InputStream_readInt(&is, &requestId);
     Ice_InputStream_readIdentity(&is, identity);
 
-    /* prints("oid: '"); */
-    /* prints(identity); */
-    /* prints("'\n"); */
+    // print_dbg("oid: '");
+    // print_dbg(identity);
+    // print_dbg("'\n");
 
     /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
@@ -747,6 +754,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
 
     /* servant found (named or default) */
+    // print_dbg("servant available\n");
     assert(servant->handler != NULL);
 
     /* prepare reply message */
@@ -769,6 +777,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
 
     servant->handler(servant, &is, &os);
+    // print_dbg("servant called\n");
 
     if (requestId > 0) {
         Ice_OutputStream_endWriteEncaps(&os);
@@ -923,9 +932,9 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
     Ice_EndpointType type;
     (void) name; /* avoid compiler warnings */
 
-    /* prints("adapter eps: '"); */
-    /* prints(endpoints); */
-    /* prints("'\n") */
+    /* print_dbg("adapter eps: '"); */
+    /* print_dbg(endpoints); */
+    /* print_dbg("'\n") */
 
     trace();
     Ptr_check(self);
@@ -1005,7 +1014,7 @@ void ICEC_FUNC_ATTR
 Ice_initialize(Ice_CommunicatorPtr ic) {
     trace();
 
-    /* prints("initialize"); */
+    /* print_dbg("initialize"); */
 
     Ice_Communicator_init(ic);
     IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);

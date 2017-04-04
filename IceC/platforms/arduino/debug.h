@@ -13,6 +13,8 @@ extern "C" {
 // used regardless of the state of DEBUG flag
 void print_dbg(const char* msg);
 void printi_dbg(const int i);
+void printh_dbg(const int i);
+void hexdump(const void* addr, int len);
 
 #ifndef LOGGER
     #define print_log(...)
