@@ -1,3 +1,9 @@
+icec (20170502-1) unstable; urgency=low
+
+  * New release, update DEPENDS
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 02 May 2017 11:34:14 +0200
+
 icec (20170404-1) unstable; urgency=low
 
   * New release
