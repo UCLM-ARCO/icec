@@ -686,20 +686,20 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
-    // {
-    //     static int counter = 1;
-    //     print_dbg("in message #");
-    //     printi_dbg(counter++);
-    //     print_dbg("\n");
-    // }
+    /* {
+        static int counter = 1;
+        print_dbg("in message #");
+        printi_dbg(counter++);
+        print_dbg("\n");
+    } */
 
     fd = Ice_ObjectAdapter_getClient(self);
     Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
 
-    // if (is.size) {
-    //     print_dbg(" - contents: \n");
-    //     hexdump(is.data, is.size);
-    // }
+    /* if (is.size) {
+        print_dbg(" - contents: \n");
+        hexdump(is.data, is.size);
+    } */
 
 #ifdef ICE_TRACE_PROTOCOL
     dissect_message(is.data, is.size);
@@ -712,7 +712,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
     is.next += 10;
 
-    // print_dbg("header ok\n");
+    /* print_dbg("header ok\n"); */
 
     Ice_InputStream_readInt(&is, &size);
 
@@ -722,14 +722,14 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
         return;
     }
 
-    // print_dbg("size ok\n");
+    /* print_dbg("size ok\n"); */
 
     Ice_InputStream_readInt(&is, &requestId);
     Ice_InputStream_readIdentity(&is, identity);
 
-    // print_dbg("oid: '");
-    // print_dbg(identity);
-    // print_dbg("'\n");
+    /* print_dbg("oid: '"); */
+    /* print_dbg(identity); */
+    /* print_dbg("'\n"); */
 
     /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
@@ -754,7 +754,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
 
     /* servant found (named or default) */
-    // print_dbg("servant available\n");
+    /* print_dbg("servant available\n"); */
     assert(servant->handler != NULL);
 
     /* prepare reply message */
@@ -777,7 +777,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     }
 
     servant->handler(servant, &is, &os);
-    // print_dbg("servant called\n");
+    /* print_dbg("servant called\n"); */
 
     if (requestId > 0) {
         Ice_OutputStream_endWriteEncaps(&os);

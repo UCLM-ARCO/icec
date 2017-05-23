@@ -79,7 +79,7 @@ IceUtil_getPort(const char* s, uint16_t* result) {
 
 void ICEC_FUNC_ATTR
 IceUtil_getByteParam(const char* s, byte* result, char flag) {
-    char strvalue[10];  // bigger for some extra security
+    char strvalue[10];  /* bigger for some extra security */
     IceUtil_getStringParam(s, strvalue, flag);
     *result = atoi(strvalue);
 }
