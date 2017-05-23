@@ -9,4 +9,4 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-          - make test
+          - TEST_RUNNER=nosetests make test
