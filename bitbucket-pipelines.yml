@@ -10,6 +10,6 @@ image: python:2.7
 pipelines:
   default:
     - step:
-        script: # Modify the commands below to build your repository.
+        script:
           - pip install prego
-          - make tests
+          - TERM=xterm-256color make tests

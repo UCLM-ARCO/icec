@@ -214,4 +214,4 @@ class TestExampleFloat(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_server("./server", expected=-15)
-        self.run_client("./client", "Temperature: got 25.6 ºC")
+        self.run_client("./client", "Temperature: got 25.6 C")
