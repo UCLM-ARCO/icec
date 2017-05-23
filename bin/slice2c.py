@@ -249,7 +249,7 @@ class Param(object):
         if tid.startswith("Ice_"):
             tid = tid[len("Ice_"):].lower()
 
-        if self.kind == "enum" or tid in ["bool", "char", "byte", "int", "short"]:
+        if self.kind == "enum" or tid in ["bool", "char", "byte", "int", "short", "float"]:
             retval += " = 0"
 
         retval += ";\n"
@@ -552,7 +552,7 @@ class InputStream(CCode):
             param = "&({0})".format(param)
 
         typeid = get_basic_type(typeid)
-        if typeid in ["bool", "char", "byte", "short", "int"]:
+        if typeid in ["bool", "char", "byte", "short", "int", "float"]:
             name = "Ice_InputStream_read{0}".format(typeid.capitalize())
 
         if typeid in ["Ice_Int"]:

@@ -14,6 +14,9 @@
 #define hexdump(...)
 #define dissect_message(...)
 
+#define print_dbg(MSG) printf("%s", MSG)
+#define printi_dbg(INT) printf("%d", INT)
+
 #else
 
 #include <stdint.h>

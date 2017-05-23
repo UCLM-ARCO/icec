@@ -208,10 +208,10 @@ class TestExampleDynamicIceServer(prego.TestCase, TestMixin):
 
 
 class TestExampleFloat(prego.TestCase, TestMixin):
-    def test_works(self):
+    def test_server_works(self):
         self.cwd = "examples/float"
-        self.proxy = 'Temperature -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
+        self.proxy = 'Thermostat -e 1.0 -o:tcp -h 127.0.0.1 -p 7892'
 
         self.build_example()
         self.run_server("./server", expected=-15)
-        self.run_client("./client", "Temperature: got 25.6 C")
+        self.run_client("./client.py", "setTemperature to 25.6000000 C")

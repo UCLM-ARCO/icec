@@ -25,11 +25,21 @@ extern "C" {
         assert(false && "Exception c_thrown");                          \
     } while(0)
 
+#ifdef __STDC_IEC_559__
+  #define _HAS_32BIT_FLOAT_ 1
+#else
+  #pragma message("Your compiler does not support IEEE 754 (single precision) float")
+#endif
+
 typedef bool Ice_Bool;
 typedef uint8_t Ice_Byte;
 typedef int16_t Ice_Short;
 typedef int32_t Ice_Int;
 typedef int64_t Ice_Long;
+
+#ifdef _HAS_32BIT_FLOAT_
+  typedef float Ice_Float;
+#endif
 
 typedef struct Ice_String {
     Ice_Int size;
@@ -173,6 +183,10 @@ void Ice_InputStream_readIceString(Ice_InputStreamPtr self, Ice_StringPtr v);
 void Ice_InputStream_readBlob(Ice_InputStreamPtr self, byte* v, int size);
 void Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* name);
 
+#ifdef _HAS_32BIT_FLOAT_
+void Ice_InputStream_readFloat(Ice_InputStreamPtr self, Ice_Float* v);
+#endif
+
 typedef struct Ice_OutputStream {
     Object _base;
 
@@ -196,6 +210,10 @@ void Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id);
 void Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self);
 void Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self);
 void Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self);
+
+#ifdef _HAS_32BIT_FLOAT_
+void Ice_OutputStream_writeFloat(Ice_OutputStreamPtr self, Ice_Float v);
+#endif
 
 typedef struct {
     Object _base;

@@ -156,6 +156,39 @@ Ice_InputStream_readInt(Ice_InputStreamPtr self, Ice_Int* v) {
 }
 
 void ICEC_FUNC_ATTR
+Ice_InputStream_readFloat(Ice_InputStreamPtr self, Ice_Float* v) {
+    Ice_Byte* src;
+    Ice_Byte* dest;
+
+    trace();
+    Ptr_check(self);
+
+    hexdump(NULL, self->next, 4);
+
+    if (self->next - self->data + sizeof(Ice_Float) > (unsigned int)self->size) {
+        c_throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
+        return;
+    }
+
+    src = self->next;
+    self->next += sizeof(Ice_Float);
+
+#ifdef ICE_BIG_ENDIAN
+    dest = (Ice_Byte*)(v + sizeof(Ice_Float) - 1);
+    *dest-- = *src++;
+    *dest-- = *src++;
+    *dest-- = *src++;
+    *dest = *src;
+#else
+    dest = (Ice_Byte*)v;
+    *dest++ = *src++;
+    *dest++ = *src++;
+    *dest++ = *src++;
+    *dest = *src;
+#endif
+}
+
+void ICEC_FUNC_ATTR
 Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment) {
     Ice_Byte b = 0;
 
@@ -319,6 +352,38 @@ Ice_OutputStream_writeInt(Ice_OutputStreamPtr self, Ice_Int v) {
 
     self->next += size;
     self->size += size;
+}
+
+void ICEC_FUNC_ATTR
+Ice_OutputStream_writeFloat(Ice_OutputStreamPtr self, Ice_Float v) {
+/*     byte size; */
+/*     byte* dest; */
+/*     byte* src; */
+
+    trace();
+    Ptr_check(self);
+
+/*     size = sizeof(Ice_Int); */
+/*     assert((self->size + size <= MAX_MESSAGE_SIZE) && "Too long message!"); */
+
+/*     dest = self->next; */
+
+/* #ifdef ICE_BIG_ENDIAN */
+/*     src = (byte*)&v + sizeof(Ice_Int) - 1; */
+/*     *dest++ = *src--; */
+/*     *dest++ = *src--; */
+/*     *dest++ = *src--; */
+/*     *dest = *src; */
+/* #else */
+/*     src = (byte*)&v; */
+/*     *dest++ = *src++; */
+/*     *dest++ = *src++; */
+/*     *dest++ = *src++; */
+/*     *dest = *src; */
+/* #endif */
+
+/*     self->next += size; */
+/*     self->size += size; */
 }
 
 void ICEC_FUNC_ATTR
@@ -673,6 +738,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     Ice_InputStream is;
     char identity[MAX_IDENTITY_SIZE];
     byte facetSeqSize;
+    Ice_ObjectPtr servant;
 
     char header[] = {
         'I', 'c', 'e', 'P',    /* int  magic */
@@ -686,12 +752,12 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     trace();
     Ptr_check(self);
 
-    /* {
-        static int counter = 1;
-        print_dbg("in message #");
-        printi_dbg(counter++);
-        print_dbg("\n");
-    } */
+    /* { */
+    /*     static int counter = 1; */
+    /*     print_dbg("in message #"); */
+    /*     printi_dbg(counter++); */
+    /*     print_dbg("\n"); */
+    /* } */
 
     fd = Ice_ObjectAdapter_getClient(self);
     Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
@@ -737,7 +803,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     assert(facetSeqSize == 0);
 
     /* use default servant when defined */
-    Ice_ObjectPtr servant = self->servantMap.default_servant;
+    servant = self->servantMap.default_servant;
 
     /* and search for an identified servant if available */
     for (i=0; i<self->servantMap.count; i++) {
