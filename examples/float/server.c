@@ -12,6 +12,7 @@
 void
 Example_ThermostatI_setTemperature(Example_ThermostatPtr this, Ice_Float temp) {
     printf("setTemperature to %f C\n", temp);
+    fflush(NULL);
 }
 
 int

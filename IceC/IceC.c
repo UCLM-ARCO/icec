@@ -356,34 +356,35 @@ Ice_OutputStream_writeInt(Ice_OutputStreamPtr self, Ice_Int v) {
 
 void ICEC_FUNC_ATTR
 Ice_OutputStream_writeFloat(Ice_OutputStreamPtr self, Ice_Float v) {
-/*     byte size; */
-/*     byte* dest; */
-/*     byte* src; */
+
+    byte size;
+    byte* dest;
+    byte* src;
 
     trace();
     Ptr_check(self);
 
-/*     size = sizeof(Ice_Int); */
-/*     assert((self->size + size <= MAX_MESSAGE_SIZE) && "Too long message!"); */
+    size = sizeof(Ice_Int);
+    assert((self->size + size <= MAX_MESSAGE_SIZE) && "Too long message!");
 
-/*     dest = self->next; */
+    dest = self->next;
 
-/* #ifdef ICE_BIG_ENDIAN */
-/*     src = (byte*)&v + sizeof(Ice_Int) - 1; */
-/*     *dest++ = *src--; */
-/*     *dest++ = *src--; */
-/*     *dest++ = *src--; */
-/*     *dest = *src; */
-/* #else */
-/*     src = (byte*)&v; */
-/*     *dest++ = *src++; */
-/*     *dest++ = *src++; */
-/*     *dest++ = *src++; */
-/*     *dest = *src; */
-/* #endif */
+#ifdef ICE_BIG_ENDIAN
+    src = (byte*)&v + sizeof(Ice_Float) - 1;
+    *dest++ = *src--;
+    *dest++ = *src--;
+    *dest++ = *src--;
+    *dest = *src;
+#else
+    src = (byte*)&v;
+    *dest++ = *src++;
+    *dest++ = *src++;
+    *dest++ = *src++;
+    *dest = *src;
+#endif
 
-/*     self->next += size; */
-/*     self->size += size; */
+    self->next += size;
+    self->size += size;
 }
 
 void ICEC_FUNC_ATTR

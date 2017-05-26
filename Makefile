@@ -6,7 +6,7 @@ all:
 
 .PHONY: tests
 tests:
-	$(TEST_RUNNER) -veo test/$(T)
+	$(TEST_RUNNER) test/$(T)
 	make -C examples clean > /dev/null
 
 install: ARDUINO_DIST = $(DESTDIR)/usr/share/icec/arduino

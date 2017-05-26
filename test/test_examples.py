@@ -214,4 +214,12 @@ class TestExampleFloat(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_server("./server", expected=-15)
-        self.run_client("./client.py", "setTemperature to 25.6000000 C")
+        self.run_client("./client.py", "setTemperature to 25.6")
+
+    def test_client_works(self):
+        self.cwd = "examples/float"
+        self.proxy = 'Thermostat -e 1.0 -o:tcp -h 127.0.0.1 -p 7892'
+
+        self.build_example()
+        self.run_server("./server.py")
+        self.run_client("./client", "setTemperature to 25.6")
