@@ -10,6 +10,7 @@
 #  define trace()
 #  define fixme(...)
 #  define error_at_line(...) while(1);   // force a reset
+#  define hexdump(...)
 #else
 
 extern void prints(const char*);

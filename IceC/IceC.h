@@ -25,7 +25,7 @@ extern "C" {
         assert(false && "Exception c_thrown");                          \
     } while(0)
 
-#ifdef __STDC_IEC_559__
+#if defined(__STDC_IEC_559__) || defined(ESP8266) || defined(ARDUINO)
   #define _HAS_32BIT_FLOAT_ 1
 #else
   #pragma message("Your compiler does not support IEEE 754 (single precision) float")

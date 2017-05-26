@@ -589,6 +589,11 @@ class InputStream(CCode):
     def alloca(self, typeid, dest, size):
         sizeof = "sizeof({0}) * {1}".format(str(typeid), size)
         casting = Pointer(typeid)
+        data_name = (
+            dest.strip()
+            .replace(".", "_")
+            .replace("&", "")
+            .replace("*", "")) + "_data"
 
         if args.use_alloca:
             alloca = FunctionCall("alloca", sizeof)
@@ -596,9 +601,9 @@ class InputStream(CCode):
 
             self.holder += alloca
         else:
-            # NOTE: could not avoid declaring _data here, size is unknown til now.
-            expr = "byte _data[{}];\n".format(sizeof)
-            expr += "{} = ({})_data;\n".format(dest, casting)
+            # NOTE: could not avoid declaring _data here, size is unknown until now.
+            expr = "byte {}[{}];\n".format(data_name, sizeof)
+            expr += "{} = ({}){};\n".format(dest, casting, data_name)
             self.holder += expr
 
 
@@ -1506,7 +1511,7 @@ class StructDecl(BaseDecl):
         for m in self.members:
             param = "self->{0}".format(m.name)
 
-            if m.typeid in ["bool", "char", "byte", "int", "short"]:
+            if m.typeid in ["bool", "char", "byte", "int", "short", "float"]:
                 fn += "{0} = 0;\n".format(param)
                 initialized = True
 
