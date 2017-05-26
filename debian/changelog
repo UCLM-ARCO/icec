@@ -1,3 +1,9 @@
+icec (20170502.20170526-1) unstable; urgency=low
+
+  * New release, added support for float
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 26 May 2017 10:32:23 +0200
+
 icec (20170502-1) unstable; urgency=low
 
   * New release, update DEPENDS
