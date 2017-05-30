@@ -13,7 +13,7 @@
             "name": "Arco Research Group (UCLM)",
             "url": "http://www.arcoresearch.com"
 	}
-    ]
+    ],
     "version": "0.20170526",
     "downloadUrl": "https://bitbucket.org/arco_group/icec/downloads/arduino-icec-latest.zip",
     "frameworks": "*",
