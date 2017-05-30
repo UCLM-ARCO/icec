@@ -1,0 +1,21 @@
+{
+    "name": "IceC",
+    "keywords": "icec, zeroc-ice, middleware, iot, sensor, actuator, network",
+    "description": "Object oriented middleware compatible with ZeroC Ice. It supports a basic feature set, ready for AVR and ESP8266 platforms.",
+    "authors":
+    [
+	{
+	    "name": "Oscar Aceña",
+	    "email": "oscar.acena@uclm.es",
+	    "maintainer": true
+	},
+	{
+            "name": "Arco Research Group (UCLM)",
+            "url": "http://www.arcoresearch.com"
+	}
+    ]
+    "version": "0.20170526",
+    "downloadUrl": "https://bitbucket.org/arco_group/icec/downloads/arduino-icec-latest.zip",
+    "frameworks": "*",
+    "platforms": "atmelavr,espressif8266"
+}

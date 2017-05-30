@@ -1,6 +1,7 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
 TEST_RUNNER ?= prego
+VER ?= 0.$(shell head -n 1 debian/changelog | cut -d' ' -f2 | cut -d'.' -f1 | tr -d "()")
 
 all:
 
@@ -50,8 +51,12 @@ arduino-package: clean
 	cp -r IceC/platforms/esp8266 $(ARDUINO_DIST)/src/IceC/platforms
 	cp -r IceC/platforms/arduino $(ARDUINO_DIST)/src/IceC/platforms
 
-	cd $(ARDUINO_DIST)/..; zip -r arduino-icec-$$(date +%Y%m%d).zip IceC
+	cd $(ARDUINO_DIST)/..; zip -r arduino-icec-$(VER).zip IceC
 	mv $(ARDUINO_DIST)/../*.zip .
+
+update-versions:
+	sed -i -E "s/(^version=)(.+)/\1$(VER)/g" arduino/library.properties; \
+	sed -i -E "s/(^ *\"version\": *)(\".+\")/\1\"$(VER)\"/g" arduino/library.json
 
 
 .PHONY: clean
