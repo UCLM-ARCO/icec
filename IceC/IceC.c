@@ -163,7 +163,7 @@ Ice_InputStream_readFloat(Ice_InputStreamPtr self, Ice_Float* v) {
     trace();
     Ptr_check(self);
 
-    hexdump(NULL, self->next, 4);
+    /* hexdump(NULL, self->next, 4); */
 
     if (self->next - self->data + sizeof(Ice_Float) > (unsigned int)self->size) {
         c_throw("Ice_UnmarshalOutOfBoundsException", __FILE__, __LINE__);
