@@ -5,16 +5,16 @@
     "authors":
     [
 	{
-	    "name": "Oscar Aceña",
+	    "name": "Oscar Acena",
 	    "email": "oscar.acena@uclm.es",
 	    "maintainer": true
 	},
 	{
             "name": "Arco Research Group (UCLM)",
-            "url": "http://www.arcoresearch.com"
+            "url": "https://arcoresearchgroup.wordpress.com"
 	}
     ],
-    "version": "0.20170526",
+    "version": "0.20170614",
     "downloadUrl": "https://bitbucket.org/arco_group/icec/downloads/arduino-icec-latest.zip",
     "frameworks": "*",
     "platforms": "atmelavr,espressif8266"
