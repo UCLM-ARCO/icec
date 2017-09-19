@@ -1,3 +1,9 @@
+icec (20170614.20170919-1) unstable; urgency=low
+
+  * New release, add support for --ice flag
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 19 Sep 2017 09:34:21 +0200
+
 icec (20170614-1) unstable; urgency=low
 
   * New release, remove debug code

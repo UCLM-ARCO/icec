@@ -8,7 +8,6 @@ import uuid
 class TestMixin(object):
     def build_example(self):
         build = prego.Task("build example using make")
-        build.command("ls ../../bin", cwd=self.cwd)
         build.command("make", cwd=self.cwd)
         return build
 
@@ -223,3 +222,12 @@ class TestExampleFloat(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server.py")
         self.run_client("./client", "setTemperature to 25.6")
+
+
+class TestExampleUseIcePrefix(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/slice2c_ice_prefix"
+        self.proxy = "DynServer -e 1.0 -o:tcp -h 127.0.0.1 -p 7901"
+
+        build = prego.Task("build example using make")
+        build.command("make", cwd=self.cwd)

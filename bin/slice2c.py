@@ -1638,10 +1638,14 @@ if __name__ == "__main__":
                       help="Specify the interface to generate")
     args.add_argument('--use-alloca', action="store_true",
                       help="Use alloca() instead of dynamic memory")
+    args.add_argument('--ice', action="store_true",
+                      help="Allow reserved Ice prefix in Slice identifiers")
     args = args.parse_args()
 
     parser = sliceparser.Parser(args.input)
-    parser.addArgument("-I/usr/share/Ice/slice")
+    if args.ice:
+        parser.addArgument("--ice")
+
     if args.includes is not None:
         for p in args.includes:
             parser.addArgument("-I" + p)
