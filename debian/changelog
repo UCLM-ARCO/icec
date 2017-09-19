@@ -1,4 +1,4 @@
-icec (20170614.20170919-1) unstable; urgency=low
+icec (20170919-1) unstable; urgency=low
 
   * New release, add support for --ice flag
 
