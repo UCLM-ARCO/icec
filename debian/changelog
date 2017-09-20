@@ -1,3 +1,9 @@
+icec (20170920-1) unstable; urgency=low
+
+  * New release, include i386 platform
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 20 Sep 2017 08:36:38 +0200
+
 icec (20170919-1) unstable; urgency=low
 
   * New release, add support for --ice flag

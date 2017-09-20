@@ -18,11 +18,13 @@ install:
 	install -d $(DESTDIR)/usr/bin
 	ln -s /usr/share/icec/bin/slice2c.py $(DESTDIR)/usr/bin/slice2c
 
-	install -d $(DESTDIR)/usr/src/IceC
+	install -d $(DESTDIR)/usr/src/IceC/platforms/x86
 	install -m 644 IceC/*.c $(DESTDIR)/usr/src/IceC
+	install -m 644 IceC/platforms/x86/*.c $(DESTDIR)/usr/src/IceC/platforms/x86
 
-	install -d $(DESTDIR)/usr/include/IceC
+	install -d $(DESTDIR)/usr/include/IceC/platforms/x86
 	install -m 644 IceC/*.h $(DESTDIR)/usr/include/IceC
+	install -m 644 IceC/platforms/x86/*.h $(DESTDIR)/usr/include/IceC/platforms/x86
 
 ####### arduino dist
 	install -d $(ARDUINO_DIST)
@@ -51,8 +53,8 @@ arduino-package: clean
 	cp -r IceC/platforms/esp8266 $(ARDUINO_DIST)/src/IceC/platforms
 	cp -r IceC/platforms/arduino $(ARDUINO_DIST)/src/IceC/platforms
 
-	cd $(ARDUINO_DIST)/..; zip -r arduino-icec-$(VER).zip IceC
-	mv $(ARDUINO_DIST)/../*.zip .
+	cd $(ARDUINO_DIST); zip -r arduino-icec-$(VER).zip *
+	mv $(ARDUINO_DIST)/*.zip .
 
 update-versions:
 	sed -i -E "s/(^version=)(.+)/\1$(VER)/g" arduino/library.properties; \
