@@ -227,7 +227,16 @@ class TestExampleFloat(prego.TestCase, TestMixin):
 class TestExampleUseIcePrefix(prego.TestCase, TestMixin):
     def test_works(self):
         self.cwd = "examples/slice2c_ice_prefix"
-        self.proxy = "DynServer -e 1.0 -o:tcp -h 127.0.0.1 -p 7901"
 
         build = prego.Task("build example using make")
         build.command("make", cwd=self.cwd)
+
+
+class TestSendProxy(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/proxy_send"
+        self.proxy = "Speaker -e 1.0 -t:tcp -h 127.0.0.1 -p 7902"
+
+        self.build_example()
+        self.run_server("./server.py")
+        self.run_client("./client", "Speaker called properly")

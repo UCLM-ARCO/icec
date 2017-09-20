@@ -1,0 +1,30 @@
+/* -*- mode: c; coding: utf-8 -*- */
+
+#include <IceC/platforms/x86/TCPEndpoint.h>
+#include "hello.h"
+
+int
+main(int argc, char* argv[]) {
+    Ice_Communicator ic;
+    Ice_ObjectPrx speaker;
+
+    if (argc < 2)
+	return printf("USAGE: %s <proxy>\n", argv[0]);
+
+    /* create communicator */
+    Ice_initialize(&ic);
+    TCPEndpoint_init(&ic);
+
+    /* create proxy to server */
+    Ice_Communicator_stringToProxy(&ic, argv[1], &speaker);
+
+    /* read invocation*/
+    char* msg_data = "Speaker called properly";
+    Ice_String msg;
+    Ice_String_init(msg, msg_data);
+    Example_Speaker_sayToSpeaker(&speaker, &speaker, msg);
+
+    /* IMPORTANT! close each proxy connection */
+    Ice_ObjectPrx_closeConnection(&speaker);
+    return 0;
+}
