@@ -242,11 +242,11 @@ class TestSendProxy(prego.TestCase, TestMixin):
         self.run_client("./client", "Speaker called properly")
 
 
-# class TestReceiveProxy(prego.TestCase, TestMixin):
-#     def test_works(self):
-#         self.cwd = "examples/proxy_receive"
-#         self.proxy = "Speaker -e 1.0 -t:tcp -h 127.0.0.1 -p 7903"
+class TestReceiveProxy(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/proxy_receive"
+        self.proxy = "Speaker -e 1.0 -t:tcp -h 127.0.0.1 -p 7903"
 
-#         self.build_example()
-#         self.run_server("./server")
-#         self.run_client("./client.py", "Speaker called properly")
+        self.build_example()
+        self.run_server("./server", expected=-15)
+        self.run_client("./client.py", "Speaker called properly")

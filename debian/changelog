@@ -1,3 +1,9 @@
+icec (20170922-1) unstable; urgency=low
+
+  * New release, TCPEndpoint supports proxy marshalling
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 22 Sep 2017 16:05:32 +0200
+
 icec (20170920-1) unstable; urgency=low
 
   * New release, include i386 platform

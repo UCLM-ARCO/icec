@@ -947,6 +947,10 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
 
     /* Endpoint related fields */
     IcePlugin_EndpointInfo_readFromInputStream(&self->epinfo, is);
+
+    /* init internal state */
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    Ice_OutputStream_init(&(self->stream));
 }
 
 void ICEC_FUNC_ATTR

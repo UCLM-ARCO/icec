@@ -322,6 +322,7 @@ TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
 
 void
 TCPEndpoint_init(Ice_CommunicatorPtr ic) {
+    byte i;
     trace();
 
     /* Note: is important to call IcePlugin_registerEndpoint after
@@ -329,7 +330,7 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
        initialized. */
     Ptr_check(ic);
 
-    for (byte i=0; i<MAX_TCP_ENDPOINT_INSTANCES; i++) {
+    for (i=0; i<MAX_TCP_ENDPOINT_INSTANCES; i++) {
 	ep_options[i].used = false;
 	ep_options[i].ep_index = i;
 	ep_options[i].timeout = TCP_DEFAULT_TIMEOUT;
