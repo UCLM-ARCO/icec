@@ -7,18 +7,23 @@ void
 Example_SpeakerI_sayToSpeaker(Example_SpeakerPtr self,
                               Ice_ObjectPrxPtr s,
                               Ice_String msg) {
+
+    - Nota: el proxy (s) no está construido corretamente, revisar -
+
+    printf("CALL to sayToSpeaker\n");
+    Example_Speaker_say(s, msg);
 }
 
 void
 Example_SpeakerI_say(Example_SpeakerPtr self,
                      Ice_String msg) {
+    printf("CALL to say\n");
 }
 
 int
 main(int argc, char* argv[]) {
     Ice_Communicator ic;
     Ice_ObjectAdapter adapter;
-    Ice_ObjectPrx speaker;
     Example_Speaker servant;
 
     /* create communicator */

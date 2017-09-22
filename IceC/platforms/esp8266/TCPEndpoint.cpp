@@ -95,7 +95,6 @@ TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
     ObjectPtr ptr;
 
     trace();
-
     if (type != Ice_EndpointTypeTCP)
 	return false;
 

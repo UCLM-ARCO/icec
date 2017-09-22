@@ -925,6 +925,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     trace();
     Ptr_check(is);
 
+    Object_init((ObjectPtr)self);
     Ice_InputStream_readIdentity(is, self->identity);
 
     /* empty proxy, no more fields encoded */

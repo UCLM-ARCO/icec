@@ -8,10 +8,13 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
-/* NOTE: only one endpoint instance allowed */
+#ifndef MAX_TCP_ENDPOINT_INSTANCES
+#define MAX_TCP_ENDPOINT_INSTANCES 3
+#endif
+
 static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
-static TCP_EndpointOptions ep_options;
+static TCP_EndpointOptions ep_options[MAX_TCP_ENDPOINT_INSTANCES];
 
 bool
 TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
@@ -49,45 +52,61 @@ TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
     return TCP_Connection_listen(&(self->connection), opts->host, opts->port);
 }
 
+void ICEC_FUNC_ATTR
+_get_options_slot(TCP_EndpointOptionsPtr* options) {
+    byte i;
+
+    *options = NULL;
+    for (i=0; i<MAX_TCP_ENDPOINT_INSTANCES; i++) {
+	if (ep_options[i].used)
+	    continue;
+	*options = &ep_options[i];
+	break;
+    }
+
+    assert(*options != NULL && "Max number of endpoints reached!");
+}
+
 bool
 TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 		      Ice_EndpointType type,
-		      const char* endpoint) {
-    ObjectPtr ptr;
+		      const char* str_endpoint) {
+    TCP_EndpointOptionsPtr options;
 
     trace();
     if (type != Ice_EndpointTypeTCP)
 	return false;
 
-    ptr = (ObjectPtr)&ep_options;
-    Ptr_check(ptr);
-    assert(! ep_options.used && "Only one instance of this endpoint allowed!");
+    _get_options_slot(&options);
+    Ptr_check(options);
 
     self->type = type;
     self->datagram = false;
-    self->options = &ep_options;
-    ep_options.used = true;
+    self->options = options;
+    options->used = true;
 
-    IceUtil_getHost(endpoint, ep_options.host);
-    IceUtil_getPort(endpoint, &(ep_options.port));
+    IceUtil_getHost(str_endpoint, options->host);
+    IceUtil_getPort(str_endpoint, &(options->port));
     Object_init((ObjectPtr)self);
     return true;
 }
 
-// TCP proxy marshalling (inside an encap), version 1.0:
-// - Identity (name + category: string)            |
-// - facet: stringSeq				   |
-// - mode: byte (0:toway, 1:oneway, 3:datagram)	   |
-// - secure: bool				   |-> done by IceC
-// - number of endpoints: size			   |
-// - for each endpoint:				   |
-//    - type: short (1:tcp, 2:ssl, 3:udp...)       |
+/*
+  TCP proxy marshalling (inside an encap), version 1.0:
+  - Identity (name + category: string)             |
+  - facet: stringSeq				   |
+  - mode: byte (0:toway, 1:oneway, 3:datagram)	   |
+  - secure: bool				   |-> done by IceC
+  - number of endpoints: size			   |
+  - for each endpoint:				   |
+      - type: short (1:tcp, 2:ssl, 3:udp...)       |
 
-//    - encap header (int size + version)          |
-//    - host: string				   |
-//    - port: int				   |-> must be done here
-//    - timeout: int				   |
-//    - compress: bool                             |
+      - encap header (int size + version)          |
+      - host: string				   |
+      - port: int				   |-> must be done here
+      - timeout: int				   |
+      - compress: bool                             |
+*/
 
 bool
 TCP_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self, Ice_OutputStreamPtr os) {
@@ -100,21 +119,56 @@ TCP_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self, Ice_OutputStreamP
 
     opts = self->options;
     Ptr_check(opts);
+    Ptr_check(os);
 
     Ice_OutputStream_startWriteEncaps(os);
     Ice_OutputStream_writeString(os, opts->host);
     Ice_OutputStream_writeInt(os, opts->port);
-    Ice_OutputStream_writeInt(os, DEFAULT_TIMEOUT);
+    Ice_OutputStream_writeInt(os, opts->timeout);
     Ice_OutputStream_writeBool(os, false);
     Ice_OutputStream_endWriteEncaps(os);
 
-    return false;
+    return true;
 }
 
 bool
 TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self, Ice_InputStreamPtr is) {
-    fixme("RFIS");
-    return false;
+    TCP_EndpointOptionsPtr opts;
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+    trace();
+
+    /* Note: type is set previously by IceC engine */
+    if (self->type != Ice_EndpointTypeTCP)
+	return false;
+
+    _get_options_slot(&opts);
+    self->options = opts;
+    Ptr_check(opts);
+    Ptr_check(is);
+
+    /* read and check encapsulation header (note that this encap is
+       nested, may be more data after it) */
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 <= (is->size - (is->next - is->data)));
+
+    /* read other endpoint params */
+    Ice_InputStream_readString(is, opts->host);
+    Ice_InputStream_readInt(is, (Ice_Int*)&(opts->port));
+    Ice_InputStream_readInt(is, (Ice_Int*)&(opts->timeout));
+
+    /* Note: compression not supported */
+    {
+	bool comp;
+	Ice_InputStream_readBool(is, &comp);
+    }
+
+    Object_init((ObjectPtr)self);
+    return true;
 }
 
 bool
@@ -275,8 +329,12 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
        initialized. */
     Ptr_check(ic);
 
-    ep_options.used = false;
-    Object_init((ObjectPtr)&ep_options);
+    for (byte i=0; i<MAX_TCP_ENDPOINT_INSTANCES; i++) {
+	ep_options[i].used = false;
+	ep_options[i].ep_index = i;
+	ep_options[i].timeout = TCP_DEFAULT_TIMEOUT;
+	Object_init((ObjectPtr)&ep_options[i]);
+    }
 
     IcePlugin_EndpointObject_init(&endpoint);
     IcePlugin_PluginListItem_init(&item, (ObjectPtr)&endpoint);
