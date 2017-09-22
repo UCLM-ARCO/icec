@@ -7,6 +7,7 @@
 
 #define Ice_EndpointTypeTCP   1
 #define MAX_HOST_SIZE         16
+#define DEFAULT_TIMEOUT       60000
 
 typedef struct TCP_EndpointOptions {
     Object _base;
@@ -21,9 +22,12 @@ typedef TCP_EndpointOptions* TCP_EndpointOptionsPtr;
 bool TCP_getProtocolType(const char* proto, Ice_EndpointType* result);
 bool TCP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
 bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
+
 bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 			   Ice_EndpointType type,
 			   const char* endpoint);
+bool TCP_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self, Ice_OutputStreamPtr os);
+bool TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self, Ice_InputStreamPtr is);
 
 bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self);
 bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx);

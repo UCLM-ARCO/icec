@@ -74,6 +74,49 @@ TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
     return true;
 }
 
+// TCP proxy marshalling (inside an encap), version 1.0:
+// - Identity (name + category: string)            |
+// - facet: stringSeq				   |
+// - mode: byte (0:toway, 1:oneway, 3:datagram)	   |
+// - secure: bool				   |-> done by IceC
+// - number of endpoints: size			   |
+// - for each endpoint:				   |
+//    - type: short (1:tcp, 2:ssl, 3:udp...)       |
+
+//    - encap header (int size + version)          |
+//    - host: string				   |
+//    - port: int				   |-> must be done here
+//    - timeout: int				   |
+//    - compress: bool                             |
+
+bool
+TCP_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self, Ice_OutputStreamPtr os) {
+    TCP_EndpointOptionsPtr opts;
+    trace();
+
+    Ptr_check(self);
+    if (self->type != Ice_EndpointTypeTCP)
+	return false;
+
+    opts = self->options;
+    Ptr_check(opts);
+
+    Ice_OutputStream_startWriteEncaps(os);
+    Ice_OutputStream_writeString(os, opts->host);
+    Ice_OutputStream_writeInt(os, opts->port);
+    Ice_OutputStream_writeInt(os, DEFAULT_TIMEOUT);
+    Ice_OutputStream_writeBool(os, false);
+    Ice_OutputStream_endWriteEncaps(os);
+
+    return false;
+}
+
+bool
+TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self, Ice_InputStreamPtr is) {
+    fixme("RFIS");
+    return false;
+}
+
 bool
 TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     TCP_EndpointOptionsPtr opts;
@@ -243,8 +286,8 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.InputStream_init = &TCP_InputStream_init;
     endpoint.ObjectAdapter_activate = &TCP_ObjectAdapter_activate;
     endpoint.EndpointInfo_init = &TCP_EndpointInfo_init;
-    endpoint.EndpointInfo_writeToOutputStream = NULL;  /* FIXME: not implemented */
-    endpoint.EndpointInfo_readFromInputStream = NULL;  /* FIXME: not implemented */
+    endpoint.EndpointInfo_writeToOutputStream = &TCP_EndpointInfo_writeToOutputStream;
+    endpoint.EndpointInfo_readFromInputStream = &TCP_EndpointInfo_readFromInputStream;
     endpoint.ObjectPrx_init = &TCP_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
     endpoint.Connection_accept = &TCP_Connection_accept;
