@@ -14,7 +14,7 @@ CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 vpath %.c $(ICEC_SRC)/
 vpath %.c $(ICEC_SRC)/platforms/x86/
 
-all: $(SLICE:%.ice=%.h) $(TARGETS)
+all: clean $(SLICE:%.ice=%.h) $(TARGETS)
 
 $(TARGETS): IceC.o IceUtil.o TCPEndpoint.o port.o $@
 

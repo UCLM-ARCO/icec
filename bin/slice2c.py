@@ -6,6 +6,9 @@ import sliceparser
 from commodity.pattern import Bunch
 
 
+basic_types = ['bool', 'byte', 'short', 'int', 'long', 'float', 'double']
+extended_types = basic_types + ['string']
+
 def get_basic_type(src):
     return {
         'Ice_Bool': 'bool',
@@ -225,6 +228,7 @@ class Struct(CCode):
         return retval
 
 
+# FIXME: mix this with ParamDecl
 class Param(object):
     def __init__(self, typeid, name, kind=None, scope=None, local=False):
         self.typeid = typeid
@@ -243,13 +247,14 @@ class Param(object):
         typeid = self.typeid
         if self.is_proxy:
             typeid += "Prx"
+
         retval += "{0} {1}".format(typeid, self.name)
 
         tid = self.typeid
         if tid.startswith("Ice_"):
             tid = tid[len("Ice_"):].lower()
 
-        if self.kind == "enum" or tid in ["bool", "char", "byte", "int", "short", "float"]:
+        if self.kind == "enum" or tid in basic_types:
             retval += " = 0"
 
         retval += ";\n"
@@ -265,7 +270,7 @@ class Param(object):
         if as_size:
             ins.readSize("&" + self.name, *opargs)
         else:
-            ins.read(self.typeid, "&" + self.name)
+            ins.read(self.typeid, "&" + self.name, self.kind)
         return ins
 
     def ref(self):
@@ -470,7 +475,7 @@ class OutputStream(CCode):
         name = ""
 
         typeid = get_basic_type(typeid)
-        if typeid in ["bool", "char", "byte", "short", "int", "long", "float", "double"]:
+        if typeid in extended_types:
             if toPointer:
                 param = "&({0})".format(param)
             name = "Ice_OutputStream_write{0}".format(typeid.capitalize())
@@ -552,7 +557,7 @@ class InputStream(CCode):
             param = "&({0})".format(param)
 
         typeid = get_basic_type(typeid)
-        if typeid in ["bool", "char", "byte", "short", "int", "float"]:
+        if typeid in extended_types:
             name = "Ice_InputStream_read{0}".format(typeid.capitalize())
 
         if typeid in ["Ice_Int"]:
@@ -693,10 +698,18 @@ class BaseDecl(object):
         self.name = ptr.name()
         self.full_name = module.name + "_" + self.name
 
-    def cpp2c_name(self, name):
+    def cpp2c_name(self, name, kind, add_prx=True):
+        if name in basic_types:
+            return name
+
         if name.startswith("::"):
-            name = name[2:]
-        return name.replace("::", "_")
+            name = name[2:].replace("::", "_")
+            if kind == 'type':
+                name = name.strip('*')
+                if add_prx:
+                    name += 'Prx'
+
+        return name
 
     def render(self, c):
         c += "Not implemented"
@@ -939,14 +952,15 @@ class ClassDefDecl(BaseDecl, list):
         return operations
 
 
+# FIXME: mix this with Param
 class ParamDecl(BaseDecl):
     def __init__(self, st, ptr):
         self.name = ptr.name()
-        self.type = TypeDecl(ptr.type())
+        self.type = TypeDecl(st, ptr.type())
 
         self.contained_type = None
         if self.type.kind == "sequence":
-            self.contained_type = TypeDecl(ptr.type().type())
+            self.contained_type = TypeDecl(st, ptr.type().type())
 
         self.is_proxy = self.get_is_proxy(st)
 
@@ -954,31 +968,25 @@ class ParamDecl(BaseDecl):
         if self.type.typeid == "::Ice::Object*":
             return True
 
-        if st.is_interface(self.cpp2c_name(self.type.typeid)):
+        if st.is_interface(self.cpp2c_name(self.type.typeid, self.type.kind)):
             return True
 
         return False
 
     def __str__(self):
-        prx = ""
-
         typeid = str(self.type)
+        prx = ""
         if self.is_proxy:
-            typeid = typeid.strip("*")
-            prx = "PrxPtr"
+            prx = "Ptr"
 
         return "{0}{1} {2}".format(typeid, prx, self.name)
 
     def declare(self):
         retval = CCode()
-
         typeid = str(self.type)
-        if self.is_proxy:
-            typeid = typeid.strip("*")
-            typeid += "Prx"
-
         param = Param(typeid, self.name, kind=self.type.kind)
         retval += param.declare()
+
         return retval
 
 
@@ -989,7 +997,7 @@ class OperationDecl(BaseDecl):
         self.mode = ptr.mode()
         self.iface_name = iface.full_name
         self.full_name = self.iface_name + "_" + self.name
-        self.retval = TypeDecl(ptr.returnType())
+        self.retval = TypeDecl(st, ptr.returnType())
 
         self.params = []
         for p in ptr.parameters():
@@ -1053,9 +1061,9 @@ class OperationDecl(BaseDecl):
                 else:
                     alloca_type = i.type.typeid + "_Pair"
 
-                ins.alloca(self.cpp2c_name(alloca_type), items_var, size_var)
+                ins.alloca(self.cpp2c_name(alloca_type, i.type.kind), items_var, size_var)
 
-            ins.read(self.cpp2c_name(i.type.typeid), "&" + i.name, kind)
+            ins.read(self.cpp2c_name(i.type.typeid, i.type.kind), "&" + i.name, kind)
             func += ins
             func.nl()
 
@@ -1066,7 +1074,7 @@ class OperationDecl(BaseDecl):
 
         # call to servant method
         method = FunctionCall(method_name, *call_args)
-        retval = self.get_retval(self.retval.typeid)
+        retval = self.get_retval_param()
 
         if self.retval.typeid != "void":
             func.declare_var(retval)
@@ -1076,8 +1084,13 @@ class OperationDecl(BaseDecl):
 
         # write result on output stream
         if self.retval.typeid != "void":
+            kind = 'proxy' if self.retval.is_interface else self.retval.kind
             outs = OutputStream("os")
-            outs.write(self.cpp2c_name(self.retval.typeid), retval.name, toPointer=False)
+            outs.write(
+                self.cpp2c_name(self.retval.typeid, self.retval.kind),
+                retval.name,
+                kind = kind,
+                toPointer = True if kind == 'proxy' else False)
             func += outs
 
         c += func
@@ -1086,7 +1099,7 @@ class OperationDecl(BaseDecl):
     def render_as_proxy_method(self, c):
         name = self.iface_name + "_" + self.name
         this = Param(Pointer(self.iface_name + "Prx", True), "self")
-        retval = self.get_retval(self.retval.typeid)
+        retval = self.get_retval_param()
 
         func = (Function()
                 .static()
@@ -1128,7 +1141,8 @@ class OperationDecl(BaseDecl):
 
         for p in self.params:
             kind = "proxy" if p.is_proxy else p.type.kind
-            outs.write(self.cpp2c_name(p.type.typeid), p.name, kind=kind, toPointer=False)
+            outs.write(self.cpp2c_name(p.type.typeid, p.type.kind),
+                       p.name, kind=kind, toPointer=False)
         outs.endWriteEncaps()
         outs.setMessageSize()
 
@@ -1214,16 +1228,17 @@ class OperationDecl(BaseDecl):
         c += func
         c.nl()
 
-    def get_retval(self, typeid):
-        if self.retval.typeid in ["bool", "byte", "short", "int", "long", "string"]:
+    def get_retval_param(self):
+        if self.retval.typeid in extended_types:
             retval_type = "Ice_" + str(self.retval.typeid).capitalize()
         else:
-            retval_type = self.cpp2c_name(self.retval.typeid)
-        return Param(retval_type, "retval")
+            retval_type = self.cpp2c_name(self.retval.typeid, self.retval.kind)
+        kind = 'proxy' if self.retval.is_interface else self.retval.kind
+        return Param(retval_type, "retval", kind=kind)
 
 
 class TypeDecl(BaseDecl):
-    def __init__(self, ptr):
+    def __init__(self, st, ptr):
         self.typeid = "void"
         self.kind = None
 
@@ -1231,17 +1246,20 @@ class TypeDecl(BaseDecl):
             self.typeid = ptr.typeId()
             self.kind = str(ptr.__class__.__name__).lower()
 
+        name = self.cpp2c_name(self.typeid, self.kind, False)
+        self.is_interface = st.is_interface(name)
+
     def __repr__(self):
-        if self.typeid in ["bool", "byte", "int", "short", "string"]:
+        if self.typeid in extended_types:
             return "Ice_" + self.typeid.capitalize()
 
-        return self.cpp2c_name(self.typeid)
+        return self.cpp2c_name(self.typeid, self.kind)
 
 
 class SequenceDecl(BaseDecl):
-    def __init__(self, module, ptr):
-        BaseDecl.__init__(self, module, ptr)
-        self.type = TypeDecl(ptr.type())
+    def __init__(self, st, ptr):
+        BaseDecl.__init__(self, st.module, ptr)
+        self.type = TypeDecl(st, ptr.type())
 
     def render(self, c):
         self.render_sequence(c)
@@ -1272,7 +1290,7 @@ class SequenceDecl(BaseDecl):
         # write items of sequence
         outs2 = OutputStream("os")
         outs2.write(
-            self.cpp2c_name(self.type.typeid),
+            self.cpp2c_name(self.type.typeid, self.type.kind),
             "*(self->items + i)",
             self.type.kind,
             toPointer = False)
@@ -1304,7 +1322,7 @@ class SequenceDecl(BaseDecl):
         else:
             ins2 = InputStream("is")
             ins2.read(
-                self.cpp2c_name(self.type.typeid),
+                self.cpp2c_name(self.type.typeid, self.type.kind),
                 "self->items + i",
                 self.type.kind)
 
@@ -1318,10 +1336,10 @@ class SequenceDecl(BaseDecl):
 
 
 class DictionaryDecl(BaseDecl):
-    def __init__(self, module, ptr):
-        BaseDecl.__init__(self, module, ptr)
-        self.key_type = TypeDecl(ptr.keyType())
-        self.value_type = TypeDecl(ptr.valueType())
+    def __init__(self, st, ptr):
+        BaseDecl.__init__(self, st.module, ptr)
+        self.key_type = TypeDecl(st, ptr.keyType())
+        self.value_type = TypeDecl(st, ptr.valueType())
 
     def render(self, c):
         self.render_dictionary_pair(c)
@@ -1405,13 +1423,13 @@ class DictionaryDecl(BaseDecl):
         # write items of dictionary
         outs2 = OutputStream("os")
         outs2.write(
-            self.cpp2c_name(self.key_type.typeid),
+            self.cpp2c_name(self.key_type.typeid, self.key_type.kind),
             "self->items[i].key",
             self.key_type.kind,
             toPointer=False)
 
         outs2.write(
-            self.cpp2c_name(self.value_type.typeid),
+            self.cpp2c_name(self.value_type.typeid, self.value_type.kind),
             "self->items[i].value",
             self.value_type.kind,
             toPointer=False)
@@ -1441,12 +1459,12 @@ class DictionaryDecl(BaseDecl):
         # read items of dictionary
         ins2 = InputStream("is")
         ins2.read(
-            self.cpp2c_name(self.key_type.typeid),
+            self.cpp2c_name(self.key_type.typeid, self.key_type.kind),
             "&(self->items[i].key)",
             self.key_type.kind)
 
         ins2.read(
-            self.cpp2c_name(self.value_type.typeid),
+            self.cpp2c_name(self.value_type.typeid, self.value_type.kind),
             "&(self->items[i].value)",
             self.value_type.kind)
 
@@ -1485,7 +1503,7 @@ class StructDecl(BaseDecl):
             if m.typeid == "string":
                 typeid = "Ice_String"
 
-            p = Param(self.cpp2c_name(typeid), m.name)
+            p = Param(self.cpp2c_name(typeid, m.kind), m.name)
             struct.append(p)
 
         c += Typedef(self.full_name, struct)
@@ -1497,7 +1515,7 @@ class StructDecl(BaseDecl):
         outs = OutputStream("os")
         for m in self.members:
             param = "self->{0}".format(m.name)
-            outs.write(self.cpp2c_name(m.typeid), param, m.kind, toPointer=False)
+            outs.write(self.cpp2c_name(m.typeid, m.kind), param, m.kind, toPointer=False)
         fn += outs
 
         c += fn
@@ -1511,11 +1529,11 @@ class StructDecl(BaseDecl):
         for m in self.members:
             param = "self->{0}".format(m.name)
 
-            if m.typeid in ["bool", "char", "byte", "int", "short", "float"]:
+            if m.typeid in basic_types + ['char']:
                 fn += "{0} = 0;\n".format(param)
                 initialized = True
 
-            ins.read(self.cpp2c_name(m.typeid), param, m.kind, toPointer=True)
+            ins.read(self.cpp2c_name(m.typeid, m.kind), param, m.kind, toPointer=True)
 
         if initialized:
             fn.nl()
@@ -1560,7 +1578,7 @@ class IceVisitor(sliceparser.Visitor):
         for i in self.ifaces:
             if i.full_name == typeid:
                 return True
-        return False
+        return typeid == 'Ice_Object'
 
     def visitModuleStart(self, moduleptr):
         self.module = ModuleDecl(moduleptr)
@@ -1618,10 +1636,10 @@ class IceVisitor(sliceparser.Visitor):
         self.top.append(OperationDecl(self, operationptr))
 
     def visitSequence(self, sequenceptr):
-        self.items.append(SequenceDecl(self.module, sequenceptr))
+        self.items.append(SequenceDecl(self, sequenceptr))
 
     def visitDictionary(self, dictionaryptr):
-        self.items.append(DictionaryDecl(self.module, dictionaryptr))
+        self.items.append(DictionaryDecl(self, dictionaryptr))
 
     def visitEnum(self, enumptr):
         self.items.append(EnumDecl(self.module, enumptr))

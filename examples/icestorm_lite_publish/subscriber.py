@@ -1,0 +1,46 @@
+#!/usr/bin/python3 -u
+# -*- mode: python; coding: utf-8 -*-
+
+import sys
+import Ice
+import IceStorm
+
+Ice.loadSlice('example.ice')
+import Example  # noqa
+
+
+class HelloI(Example.Hello):
+    def sayHello(self, current):
+        print('Hello from IceStorm!')
+
+
+class Subscriber(Ice.Application):
+    def run(self, args):
+        ic = self.communicator()
+
+        adapter = ic.createObjectAdapterWithEndpoints(
+            'Adapter', 'tcp -h 127.0.0.1')
+        adapter.activate()
+
+        proxy = adapter.addWithUUID(HelloI())
+        topic = self.get_topic('HelloTopic')
+        topic.subscribeAndGetPublisher({}, proxy)
+
+        print('OK, waiting events...')
+        self.shutdownOnInterrupt()
+        ic.waitForShutdown()
+
+    def get_topic(self, name):
+        ic = self.communicator()
+        mgr = 'IceStorm/TopicManager -t:tcp -h 127.0.0.1 -p 7910'
+        mgr = ic.stringToProxy(mgr)
+        mgr = IceStorm.TopicManagerPrx.checkedCast(mgr)
+
+        try:
+            return mgr.retrieve(name)
+        except IceStorm.NoSuchTopic:
+            return mgr.create(name)
+
+
+if __name__ == '__main__':
+    Subscriber().main(sys.argv)

@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 
 #ifndef MAX_TCP_ENDPOINT_INSTANCES
-#define MAX_TCP_ENDPOINT_INSTANCES 3
+#define MAX_TCP_ENDPOINT_INSTANCES 5
 #endif
 
 static IcePlugin_PluginListItem item;
