@@ -24,10 +24,7 @@ main(int argc, char* argv[]) {
     Ice_String msg;
     Ice_String_init(msg, msg_data);
 
-    // FIXME: can't be used this way
-    speaker = Example_Manager_getSpeaker(&manager);
-    // Example_Manager_getSpeaker(&manager, &speaker);
-
+    Example_Manager_getSpeaker(&manager, &speaker);
     Example_Speaker_say(&speaker, msg);
 
     /* IMPORTANT! close each proxy connection */

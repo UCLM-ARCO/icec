@@ -17,11 +17,12 @@ class TestMixin(object):
 
     def run_client(self, cmd, expected):
         client = prego.Task("client")
-        client.wait_that(self.server, prego.running())
+        client.wait_that(self.server, prego.running(), delta=0.1)
         client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd)
         client.wait_that(
             self.server.lastcmd.stdout.content,
-            hamcrest.contains_string(expected))
+            hamcrest.contains_string(expected),
+            delta=0.1)
 
 
 class TestExampleHelloUDPDatagramClient(prego.TestCase, TestMixin):
@@ -162,16 +163,18 @@ class TestExampleDictionaryServer(prego.TestCase, TestMixin):
         self.run_server("./server", expected=-15)
 
         client = prego.Task("client")
-        client.wait_that(self.server, prego.running())
+        client.wait_that(self.server, prego.running(), delta=0.1)
         client.command("{0} '{1}'".format("./client.py", self.proxy), cwd=self.cwd)
 
         client.wait_that(
             self.server.lastcmd.stdout.content,
-            hamcrest.contains_string("'name': 'sensor'"))
+            hamcrest.contains_string("'name': 'sensor'"),
+            delta=0.1)
 
         client.wait_that(
             self.server.lastcmd.stdout.content,
-            hamcrest.contains_string("'type': 'humidity'"))
+            hamcrest.contains_string("'type': 'humidity'"),
+            delta=0.1)
 
 
 class TestExampleExtendedInterfaces(prego.TestCase, TestMixin):
@@ -257,7 +260,7 @@ class TestProxyAsReturnValue(prego.TestCase, TestMixin):
         self.proxy = "Manager -e 1.0 -t:tcp -h 127.0.0.1 -p 7904"
 
         self.build_example()
-        self.run_server("./server.py", expected=-15)
+        self.run_server("./server.py")
         self.run_client("./client", "Speaker called properly")
 
 

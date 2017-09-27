@@ -22,10 +22,10 @@
 #define ICEC_FUNC_ATTR
 
 #ifndef MAX_MESSAGE_SIZE
-#define MAX_MESSAGE_SIZE        128
+#define MAX_MESSAGE_SIZE        256
 #endif
 
-#define MAX_IDENTITY_SIZE       16
+#define MAX_IDENTITY_SIZE       64
 #define MAX_NESTED_ENCAPS       5
 #define MAX_NUM_OF_ADAPTERS     5
 #define MAX_NUM_OF_SERVANTS     5

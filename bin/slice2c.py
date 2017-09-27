@@ -234,7 +234,6 @@ class Param(object):
         self.typeid = typeid
         self.name = name
         self.kind = kind
-        self.is_proxy = False
 
         if scope is not None:
             if local:
@@ -245,9 +244,6 @@ class Param(object):
     def declare(self):
         retval = ""
         typeid = self.typeid
-        if self.is_proxy:
-            typeid += "Prx"
-
         retval += "{0} {1}".format(typeid, self.name)
 
         tid = self.typeid
@@ -260,7 +256,7 @@ class Param(object):
         retval += ";\n"
         return retval
 
-    def readFromStream(self, ins, opargs=None, as_size=False):
+    def readFromStream(self, ins, opargs=None, as_size=False, is_pointer=False):
         if isinstance(ins, Param):
             ins = InputStream(ins.name)
         elif isinstance(ins, str):
@@ -270,7 +266,8 @@ class Param(object):
         if as_size:
             ins.readSize("&" + self.name, *opargs)
         else:
-            ins.read(self.typeid, "&" + self.name, self.kind)
+            name = ('&' if not is_pointer else '') + self.name
+            ins.read(self.typeid, name, self.kind)
         return ins
 
     def ref(self):
@@ -1008,12 +1005,19 @@ class OperationDecl(BaseDecl):
         this = Param(Pointer(self.iface_name, True), "self")
 
         func = (Function(True)
-                .retval(self.retval)
                 .name(name)
                 .param(this)
                 .weak())
 
-        for p in self.params:
+        params = self.params[:]
+
+        if not self.retval.is_interface:
+            func.retval(self.retval)
+        else:
+            retval = Param(Pointer(str(self.retval), True), 'retval')
+            params.append(retval)
+
+        for p in params:
             func.param(p)
 
         c += func
@@ -1072,13 +1076,18 @@ class OperationDecl(BaseDecl):
                 arg = "&" + arg
             call_args.append(arg)
 
+        # if retval is Prx, add as output param
+        retval = self.get_retval_param()
+        if self.retval.is_interface:
+            call_args.append('&' + retval.name)
+
         # call to servant method
         method = FunctionCall(method_name, *call_args)
-        retval = self.get_retval_param()
 
         if self.retval.typeid != "void":
             func.declare_var(retval)
-            method.result(retval.name)
+            if not self.retval.is_interface:
+                method.result(retval.name)
 
         func += method
 
@@ -1103,11 +1112,18 @@ class OperationDecl(BaseDecl):
 
         func = (Function()
                 .static()
-                .retval(self.retval)
                 .name(name)
                 .param(this))
 
-        for p in self.params:
+        params = self.params[:]
+
+        if not self.retval.is_interface:
+            func.retval(self.retval)
+        else:
+            retval_ptr = Param(Pointer(str(self.retval), True), 'retval')
+            params.append(retval_ptr)
+
+        for p in params:
             func.param(p)
 
         func += Ptr_check(this)
@@ -1171,22 +1187,13 @@ class OperationDecl(BaseDecl):
 
             with func.condition('!' + ready.name):
                 func.comment(" FIXME: do something ")
-                # FIXME return correct type!
-                if self.retval.typeid != "void":
-                    func.ret(retval)
-                else:
-                    func.ret()
+                self.render_return(func)
 
             func.nl().comment(" reply header ")
             ins.init("self->connection.fd", "self->connection.epinfo->type")
             with func.condition("memcmp(expected, is.next, 10) != 0"):
                 func += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
-
-                # FIXME return correct type!
-                if self.retval.typeid != "void":
-                    func.ret(retval)
-                else:
-                    func.ret()
+                self.render_return(func)
 
             func.nl().comment(" skip header from input stream ")
             func += "is.next += 10;\n"
@@ -1194,12 +1201,7 @@ class OperationDecl(BaseDecl):
 
             with func.condition("size > MAX_MESSAGE_SIZE"):
                 func += ThrowException("Ice_MemoryLimitException", "__FILE__", "__LINE__")
-
-                # FIXME return correct type!
-                if self.retval.typeid != "void":
-                    func.ret(retval)
-                else:
-                    func.ret()
+                self.render_return(func)
 
             func.nl().comment(" reply body ")
             func += requestId.readFromStream(ins)
@@ -1216,14 +1218,15 @@ class OperationDecl(BaseDecl):
             # FIXME: convert type properly
             # FIXME: initialize it to a default value
             if self.retval.typeid != "void":
-                func.declare_var(retval)
-                func += retval.readFromStream(ins)
+                if self.retval.is_interface:
+                    func += retval.readFromStream(ins, is_pointer=True)
+                else:
+                    func.declare_var(retval)
+                    func += retval.readFromStream(ins)
 
         func.nl()
         func += FunctionCall("Ice_ObjectPrx_closeConnection", "self")
-
-        if self.retval.typeid != "void":
-            func.ret(retval)
+        self.render_return(func, False)
 
         c += func
         c.nl()
@@ -1235,6 +1238,14 @@ class OperationDecl(BaseDecl):
             retval_type = self.cpp2c_name(self.retval.typeid, self.retval.kind)
         kind = 'proxy' if self.retval.is_interface else self.retval.kind
         return Param(retval_type, "retval", kind=kind)
+
+
+    def render_return(self, func, force_return=True):
+        if self.retval.typeid != "void" and not self.retval.is_interface:
+            retval = self.get_retval_param()
+            func.ret(retval)
+        elif force_return:
+            func.ret()
 
 
 class TypeDecl(BaseDecl):

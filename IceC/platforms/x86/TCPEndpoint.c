@@ -148,6 +148,8 @@ TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self, Ice_InputStreamPt
     Ptr_check(opts);
     Ptr_check(is);
 
+    self->datagram = false;
+
     /* read and check encapsulation header (note that this encap is
        nested, may be more data after it) */
     Ice_InputStream_readInt(is, &encapSize);
@@ -298,6 +300,7 @@ TCP_Connection_close(Ice_ConnectionPtr self) {
 bool
 TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
     fd_set read_set;
+    uint16_t i = 0;
     struct timeval tv;
 
     trace();
@@ -308,16 +311,19 @@ TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
     FD_ZERO(&read_set);
     FD_SET(self->fd + 1, &read_set);
 
-    /* Wait up to one second. */
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
-    if (select(1, &read_set, NULL, NULL, &tv) < 0) {
-	error("Error while reading from descriptors: %s\n", strerror(errno));
-	return false;
+    /* Wait up to two seconds. */
+    for (i=0; i<2000; i++) {
+	tv.tv_sec = 0;
+	tv.tv_usec = 1000;
+	if (select(1, &read_set, NULL, NULL, &tv) < 0)
+	    continue;
+
+	*result = true;
+	return true;
     }
 
-    *result = true;
-    return true;
+    error("Error while reading from descriptors: %s\n", strerror(errno));
+    return false;
 }
 
 void

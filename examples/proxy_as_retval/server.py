@@ -42,4 +42,10 @@ class Server(Ice.Application):
 
 
 if __name__ == '__main__':
-    Server().main(sys.argv)
+    idata = Ice.InitializationData()
+    idata.properties = Ice.createProperties(sys.argv)
+    # idata.properties.setProperty("Ice.ThreadPool.Server.SizeMax", "10")
+    # idata.properties.setProperty("Ice.Trace.ThreadPool", "1")
+    # idata.properties.setProperty("Ice.Trace.Protocol", "1")
+
+    Server().main(sys.argv, initData=idata)
