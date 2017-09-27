@@ -210,7 +210,7 @@ dissect_message(byte* data, int limit) {
     data = dissect_byte(data, "encodingMajor");
     data = dissect_byte(data, "encodingMinor");
 
-    data = dissect_byte_eq(data, "messageType", 0);
+    data = dissect_byte(data, "messageType");
     data = dissect_byte_eq(data, "compressionStatus", 0);
     data = dissect_int_eq(data, "messageSize", limit);
     data = dissect_int(data, "requestId");

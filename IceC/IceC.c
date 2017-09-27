@@ -77,6 +77,10 @@ Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
 
     IcePlugin_InputStream_init(self, fd, type);
 
+#ifdef ICE_TRACE_PROTOCOL
+    dissect_message(self->data, self->size);
+#endif
+
     self->next = self->data;
     Object_init((ObjectPtr)self);
 }
@@ -437,15 +441,21 @@ Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str) {
 
 void ICEC_FUNC_ATTR
 Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id) {
+    Ice_String name;
+    Ice_String category;
+    byte idx;
+
     trace();
     Ptr_check(self);
 
-    if (strcspn(id, "/") != strlen(id)) {
-        fixme("category not supported");
-    }
+    idx = strcspn(id, "/");
+    category.value = id;
+    category.size = idx;
+    name.value = id + idx + 1;
+    name.size = strlen(id) - idx - 1;
 
-    Ice_OutputStream_writeString(self, id); /* name */
-    Ice_OutputStream_writeByte(self, 0);    /* category */
+    Ice_OutputStream_writeIceString(self, name);
+    Ice_OutputStream_writeIceString(self, category);
 }
 
 void ICEC_FUNC_ATTR
@@ -534,9 +544,10 @@ Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size) {
 
     assert(self->fd > -1);
 
-#ifdef ICE_TRACE_PROTOCOL
-    dissect_message(data, size);
-#endif
+/* #ifdef ICE_TRACE_PROTOCOL */
+/*     printf("Incomming "); */
+/*     dissect_message(data, size); */
+/* #endif */
 
     res = IcePlugin_Connection_send(self, fd, data, size);
     if (res == size) {
@@ -925,6 +936,8 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     trace();
     Ptr_check(is);
 
+    /* common init ops */
+    self->exception[0] = 0;
     Object_init((ObjectPtr)self);
     Ice_InputStream_readIdentity(is, self->identity);
 
@@ -977,6 +990,50 @@ Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os)
 
     /* Endpoint related fields */
     IcePlugin_EndpointInfo_writeToOutputStream(&self->epinfo, os);
+}
+
+void ICEC_FUNC_ATTR
+Ice_ObjectPrx_parseUserException(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) {
+#if MAX_EXCEPTION_SIZE
+
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+    byte skipByte;
+
+    trace();
+    Ptr_check(self);
+
+    /* encap = size:int, major:byte, minor:byte */
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 <= (is->size - (is->next - is->data)));
+
+    /* use classes flag, ignored */
+    Ice_InputStream_readByte(is, &skipByte);
+
+    /* typeID of exception */
+    Ice_InputStream_readString(is, self->exception);
+
+#endif
+}
+
+bool ICEC_FUNC_ATTR
+Ice_ObjectPrx_raisedException(Ice_ObjectPrxPtr self, const char* typeID) {
+    bool retval = false;
+
+    trace();
+    Ptr_check(self);
+
+#if MAX_EXCEPTION_SIZE
+    /* check and reset exception, avoid raising again */
+    retval = streq(self->exception, typeID);
+    self->exception[0] = 0;
+#endif
+
+    return retval;
 }
 
 void ICEC_FUNC_ATTR
@@ -1313,6 +1370,9 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
     trace();
+
+    /* common init ops */
+    self->exception[0] = 0;
 
     while(item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;

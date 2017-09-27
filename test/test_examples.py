@@ -264,12 +264,12 @@ class TestProxyAsReturnValue(prego.TestCase, TestMixin):
         self.run_client("./client", "Speaker called properly")
 
 
-# class TestIceStormPublish(prego.TestCase, TestMixin):
-#     def test_works(self):
-#         self.cwd = "examples/icestorm_lite_publish"
-#         self.build_example()
+class TestIceStormPublish(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/icestorm_lite_publish"
+        self.build_example()
 
-#         self.proxy = "IceStorm/TopicManager -e 1.0 -t:tcp -h 127.0.0.1 -p 7910"
-#         self.run_server('make run-is')
-#         self.run_server('./subscriber.py')
-#         self.run_client("./publisher", "Hello from IceStorm!")
+        self.proxy = "IceStorm/TopicManager -e 1.0 -t:tcp -h 127.0.0.1 -p 7910"
+        self.run_server('make run-is')
+        self.run_server('./subscriber.py')
+        self.run_client("./publisher", "Hello from IceStorm!")

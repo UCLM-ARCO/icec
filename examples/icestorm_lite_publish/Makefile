@@ -8,7 +8,7 @@ TARGET     = publisher
 SLICES     = example.ice IceStorm-lite.ice
 IS_DB_HOME = /tmp/test-db
 
-# CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
+CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 	   -Wno-unused-function

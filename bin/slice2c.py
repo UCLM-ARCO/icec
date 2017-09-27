@@ -101,6 +101,21 @@ class CCode(list):
 
         return Context()
 
+    def switch(self, arg):
+        c = getattr(self, 'nested') or self
+
+        class Context:
+            def __enter__(self):
+                c.nested = Switch(arg)
+                return c.nested
+
+            def __exit__(self, type, value, traceback):
+                nested = c.nested
+                c.nested = None
+                c.append(nested)
+
+        return Context()
+
     def append(self, item):
         if not hasattr(self, "nested") or self.nested is None:
             return list.append(self, item)
@@ -645,6 +660,58 @@ class IfCondition(CCode):
         return retval
 
 
+class Switch(CCode):
+    def __init__(self, arg):
+        self.arg = arg
+
+    def __str__(self):
+        retval = "switch (" + self.arg + ") {\n"
+
+        self.tab = 1
+        for i in self:
+            retval += str(i)
+
+        retval = retval[:-1] + "}\n"
+        return retval
+
+    def end(self):
+        self.append("break;\n")
+
+    def case(self, *args):
+        c = getattr(self, 'nested', None) or self
+
+        class Context:
+            def __enter__(self):
+                c.nested = SwitchCase(args)
+
+            def __exit__(self, type, value, traceback):
+                nested = c.nested
+                c.nested = None
+                c.append(nested)
+
+        return Context()
+
+
+class SwitchCase(CCode):
+    def __init__(self, args):
+        self.args = args
+
+    def __str__(self):
+        retval = ""
+
+        self.tab = 1
+        for v in self.args:
+            retval += "case " + str(v) + ":\n"
+        retval = retval[:-1] + " {\n"
+
+        self.tab = 1
+        for i in self:
+            retval += self.tabify(str(i))
+
+        retval += "}\n"
+        return retval
+
+
 class IceCBuilder(object):
     def __init__(self, args):
         self.args = args
@@ -1051,7 +1118,7 @@ class OperationDecl(BaseDecl):
 
             # if sequence, reserve space to hold it
             if kind in ["sequence", "dictionary"]:
-                func.comment(" allocate space for {} ".format(kind))
+                func.nl().comment(" allocate space for {} ".format(kind))
                 size_var = i.name + ".size"
                 items_var = i.name + ".items"
 
@@ -1207,8 +1274,29 @@ class OperationDecl(BaseDecl):
             func += requestId.readFromStream(ins)
             func += replyStatus.readFromStream(ins)
 
-            func.nl().comment(" FIXME: check replyStatus ").nl()
+            func.nl().comment(" check replyStatus ")
+            with func.switch("replyStatus") as sw:
+                with sw.case(0):
+                    sw.comment(" success ")
+                    sw.end()
 
+                with sw.case(1):
+                    sw.comment(" user exception ")
+                    sw += FunctionCall("Ice_ObjectPrx_parseUserException", "self", "&is")
+                    self.render_return(sw)
+
+                for i, v in enumerate(["Object", "Facet", "Operation"], 2):
+                    with sw.case(i):
+                        sw += ThrowException("Ice_" + v + "DoesNotExist",
+                                             "__FILE__", "__LINE__")
+                        self.render_return(sw)
+
+                with sw.case(5, 6, 7):
+                    sw.comment(" unkown exception (reason as string) ")
+                    sw.comment(" FIXME: unmarshall and print reason ")
+                    self.render_return(sw)
+
+            func.nl()
             func += encapsSize.readFromStream(ins)
 
             # FIXME: what are these??

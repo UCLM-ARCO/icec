@@ -6,7 +6,7 @@ SLICE2C  = $(BASEDIR)/bin/slice2c
 
 TARGETS ?= writer_client
 SLICE    = hello.ice
-CFLAGS  += -ggdb -DDEBUG
+# CFLAGS  += -ggdb -DDEBUG
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 	   -Wno-unused-function

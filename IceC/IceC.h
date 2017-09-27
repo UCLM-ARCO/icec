@@ -56,6 +56,10 @@ typedef Ice_String* Ice_StringPtr;
 
 #define Ice_String_eq(A, B) (strncmp(A.value, B, A.size) == 0)
 
+#define new_Ice_String(NAME, VALUE)		\
+    Ice_String NAME;				\
+    Ice_String_init(NAME, VALUE);
+
 #define Ice_Dict_init(DICT, DICT_ITEMS, SIZE)   \
     do {                                        \
         DICT.size = SIZE;                       \
@@ -303,6 +307,11 @@ typedef struct {
     char identity[MAX_IDENTITY_SIZE];
     Ice_ReferenceMode mode;
     Ice_EndpointInfo epinfo;
+
+#if MAX_EXCEPTION_SIZE
+    char exception[MAX_EXCEPTION_SIZE];
+#endif
+
 } Ice_ObjectPrx;
 
 typedef Ice_ObjectPrx* Ice_ObjectPrxPtr;
@@ -313,6 +322,8 @@ void Ice_ObjectPrx_send(Ice_ObjectPrxPtr self);
 void Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is);
 void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPtr os);
 
+void Ice_ObjectPrx_parseUserException(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is);
+bool Ice_ObjectPrx_raisedException(Ice_ObjectPrxPtr self, const char* typeID);
 void Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid);
 
 typedef struct Ice_Communicator {
