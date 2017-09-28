@@ -15,14 +15,23 @@ class TestMixin(object):
         self.server = prego.Task("server", detach=True)
         self.server.command(cmd, cwd=self.cwd, **kwargs)
 
-    def run_client(self, cmd, expected):
+    def run_client(self, cmd, expected, on_client=False, delayed=0):
         client = prego.Task("client")
         client.wait_that(self.server, prego.running(), delta=0.1)
+
+        if delayed:
+            client.delay(delayed)
+
         client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd)
+        stdout = self.server.lastcmd.stdout
+        if on_client:
+            stdout = client.lastcmd.stdout
+
         client.wait_that(
-            self.server.lastcmd.stdout.content,
+            stdout.content,
             hamcrest.contains_string(expected),
             delta=0.1)
+        return client
 
 
 class TestExampleHelloUDPDatagramClient(prego.TestCase, TestMixin):
@@ -251,7 +260,7 @@ class TestReceiveProxy(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_server("./server", expected=-15)
-        self.run_client("./client.py", "Speaker called properly")
+        self.run_client("./client.py", "Speaker called properly", on_client=True)
 
 
 class TestProxyAsReturnValue(prego.TestCase, TestMixin):
@@ -270,6 +279,6 @@ class TestIceStormPublish(prego.TestCase, TestMixin):
         self.build_example()
 
         self.proxy = "IceStorm/TopicManager -e 1.0 -t:tcp -h 127.0.0.1 -p 7910"
-        self.run_server('make run-is')
+        self.run_server('make run-is', expected=-15)
         self.run_server('./subscriber.py')
-        self.run_client("./publisher", "Hello from IceStorm!")
+        self.run_client("./publisher", "Hello from IceStorm!", delayed=0.5)

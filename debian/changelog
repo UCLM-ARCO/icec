@@ -1,3 +1,9 @@
+icec (20170928-1) unstable; urgency=low
+
+  * New release, IceStorm-lite iface compatible
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 28 Sep 2017 15:29:03 +0200
+
 icec (20170922-1) unstable; urgency=low
 
   * New release, TCPEndpoint supports proxy marshalling

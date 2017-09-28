@@ -21,17 +21,15 @@ main(int argc, char** argv) {
     char* strprx = "IceStorm/TopicManager -t:tcp -h 127.0.0.1 -p 7910";
     Ice_Communicator_stringToProxy(&ic, strprx, &manager);
 
-    /* retrieve proxy */
+    /* retrieve topic */
     new_Ice_String(topic_name, "HelloTopic");
-
     IceStorm_TopicManager_retrieve(&manager, topic_name, &topic);
     if (Ice_ObjectPrx_raisedException(&manager, "::IceStorm::NoSuchTopic")) {
 	IceStorm_TopicManager_create(&manager, topic_name, &topic);
     }
 
-    /* IMPORTANT! close each proxy connection */
-    Ice_ObjectPrx_closeConnection(&manager);
-    // Ice_ObjectPrx_closeConnection(&topic);
-    // Ice_ObjectPrx_closeConnection(&publisher);
+    /* retrieve topic's publisher */
+    IceStorm_Topic_getPublisher(&topic, &publisher);
+    Example_Hello_sayHello(&publisher);
     return 0;
 }

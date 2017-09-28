@@ -78,6 +78,7 @@ Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
     IcePlugin_InputStream_init(self, fd, type);
 
 #ifdef ICE_TRACE_PROTOCOL
+    printf("Incomming");
     dissect_message(self->data, self->size);
 #endif
 
@@ -215,6 +216,7 @@ Ice_InputStream_readSize(Ice_InputStreamPtr self, Ice_Int* size, bool increment)
     assert(*size >= 0);
 }
 
+/* FIXME: check for overflow! */
 void ICEC_FUNC_ATTR
 Ice_InputStream_readString(Ice_InputStreamPtr self, char* v) {
     Ice_Int size = 0;
@@ -257,12 +259,20 @@ Ice_InputStream_readBlob(Ice_InputStreamPtr self, byte* v, int size) {
 }
 
 void ICEC_FUNC_ATTR
-Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* name) {
+Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* id) {
+    char buff[MAX_IDENTITY_SIZE];
+
     trace();
     Ptr_check(self);
 
-    Ice_InputStream_readString(self, name); /* name */
-    Ice_InputStream_readString(self, NULL); /* category (not supported) */
+    /* id: category + '/' + name */
+    Ice_InputStream_readString(self, buff); /* name */
+    Ice_InputStream_readString(self, id); /* category */
+    if (id[0] != 0) {
+	id += strlen(id);
+	*id++ = '/';
+    }
+    strcpy(id, buff);
 }
 
 void ICEC_FUNC_ATTR
@@ -435,6 +445,11 @@ Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str) {
     trace();
     Ptr_check(self);
 
+    if (str.size == 0) {
+	Ice_OutputStream_writeByte(self, 0);
+	return;
+    }
+
     Ice_OutputStream_writeSize(self, str.size);
     Ice_OutputStream_writeBlob(self, (byte*)str.value, str.size);
 }
@@ -449,6 +464,12 @@ Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id) {
     Ptr_check(self);
 
     idx = strcspn(id, "/");
+    if (idx == strlen(id)) {
+	Ice_OutputStream_writeString(self, id);
+	Ice_OutputStream_writeByte(self, 0);
+	return;
+    }
+
     category.value = id;
     category.size = idx;
     name.value = id + idx + 1;
@@ -544,10 +565,10 @@ Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size) {
 
     assert(self->fd > -1);
 
-/* #ifdef ICE_TRACE_PROTOCOL */
-/*     printf("Incomming "); */
-/*     dissect_message(data, size); */
-/* #endif */
+#ifdef ICE_TRACE_PROTOCOL
+    printf("Outgoing ");
+    dissect_message(data, size);
+#endif
 
     res = IcePlugin_Connection_send(self, fd, data, size);
     if (res == size) {
@@ -604,10 +625,6 @@ Ice_Connection_receiveValidate(Ice_ConnectionPtr self) {
     Ptr_check(self);
 
     Ice_InputStream_init(&is, self->fd, self->epinfo->type);
-
-#ifdef ICE_TRACE_PROTOCOL
-    dissect_message(is.data, is.size);
-#endif
 
     if (memcmp(expected, is.next, 14) != 0) {
         c_throw("Ice_ProtocolException", __FILE__, __LINE__);
@@ -748,6 +765,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     int fd, i;
     Ice_Int size, requestId;
     Ice_InputStream is;
+    Ice_OutputStream os;
     char identity[MAX_IDENTITY_SIZE];
     byte facetSeqSize;
     Ice_ObjectPtr servant;
@@ -778,10 +796,6 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
         print_dbg(" - contents: \n");
         hexdump(is.data, is.size);
     } */
-
-#ifdef ICE_TRACE_PROTOCOL
-    dissect_message(is.data, is.size);
-#endif
 
     if (memcmp(header, is.next, 10) != 0) {
         c_throw("Ice_ProtocolException", __FILE__, __LINE__);
@@ -836,7 +850,6 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     assert(servant->handler != NULL);
 
     /* prepare reply message */
-    Ice_OutputStream os;
     Ice_OutputStream_init(&os);
 
     /* reply header (if twoway) */
@@ -921,10 +934,6 @@ Ice_ObjectPrx_send(Ice_ObjectPrxPtr self) {
     trace();
     Ptr_check(self);
 
-#ifdef ICE_TRACE_CONNECTION
-    dissect_message(self->stream.data, self->stream.size);
-#endif
-
     Ice_Connection_send(&(self->connection), self->stream.data, self->stream.size);
 }
 
@@ -950,6 +959,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     assert(facetSeqSize == 0);
 
     Ice_InputStream_readByte(is, &b); /* mode */
+    self->mode = b;
     Ice_InputStream_readByte(is, &b); /* secure */
     Ice_InputStream_readByte(is, &numOfEndpoints);
     assert(numOfEndpoints == 1);

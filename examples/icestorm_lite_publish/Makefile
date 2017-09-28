@@ -8,7 +8,7 @@ TARGET     = publisher
 SLICES     = example.ice IceStorm-lite.ice
 IS_DB_HOME = /tmp/test-db
 
-CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
+# CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
 CFLAGS  += -I $(BASEDIR)
 CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
 	   -Wno-unused-function
@@ -20,7 +20,7 @@ vpath %.c $(ICEC_SRC)/platforms/x86/
 
 all: $(SLICES:%.ice=%.h) $(TARGET)
 
-$(TARGET): IceC.o IceUtil.o TCPEndpoint.o port.o $@
+$(TARGET): $(SLICES:%.ice=%.h) IceC.o IceUtil.o TCPEndpoint.o port.o $@
 
 %.h: %.ice
 	$(RM) -rf $@

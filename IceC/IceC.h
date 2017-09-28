@@ -92,11 +92,11 @@ typedef enum {
 } Ice_OperationMode;
 
 typedef enum {
-    Ice_ReferenceModeTwoway,
-    Ice_ReferenceModeOneway,
-    Ice_ReferenceModeBatchOneway,
-    Ice_ReferenceModeDatagram,
-    Ice_ReferenceModeBatchDatagram
+    Ice_ReferenceModeTwoway = 0,
+    Ice_ReferenceModeOneway = 1,
+    Ice_ReferenceModeBatchOneway = 2,
+    Ice_ReferenceModeDatagram = 3,
+    Ice_ReferenceModeBatchDatagram = 4
 } Ice_ReferenceMode;
 
 typedef byte Ice_EndpointType;
