@@ -946,7 +946,9 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     Ptr_check(is);
 
     /* common init ops */
+#if MAX_EXCEPTION_SIZE
     self->exception[0] = 0;
+#endif
     Object_init((ObjectPtr)self);
     Ice_InputStream_readIdentity(is, self->identity);
 
@@ -1382,7 +1384,9 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
     trace();
 
     /* common init ops */
+#if MAX_EXCEPTION_SIZE
     self->exception[0] = 0;
+#endif
 
     while(item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
