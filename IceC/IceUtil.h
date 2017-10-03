@@ -18,6 +18,8 @@ void IceUtil_getPort(const char* endpoint, uint16_t* result);
 void IceUtil_getStringParam(const char* input, char* result, char flag);
 void IceUtil_getByteParam(const char* input, byte* result, char flag);
 
+void IceUtil_delay(uint16_t ms);
+
 #ifdef __cplusplus
 }
 #endif

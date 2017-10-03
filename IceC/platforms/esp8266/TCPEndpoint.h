@@ -10,13 +10,15 @@ extern "C" {
 #include <IceC/IceC.h>
 
 #define Ice_EndpointTypeTCP   1
-#define MAX_HOST_SIZE         32
+#define MAX_HOST_SIZE         16
+#define TCP_DEFAULT_TIMEOUT   60000
 
 typedef struct TCP_EndpointOptions {
     Object _base;
 
     char host[MAX_HOST_SIZE];
     uint16_t port;
+    uint32_t timeout;
     bool used;
     byte fd;
     WiFiServer* server;

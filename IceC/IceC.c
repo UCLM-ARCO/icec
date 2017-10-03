@@ -713,6 +713,11 @@ Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
 }
 
 void ICEC_FUNC_ATTR
+Ice_ObjectAdapter_addWithUUID(Ice_ObjectAdapterPtr self, Ice_ObjectPtr servant) {
+    assert(false && "FIXME: Not implemented!");
+}
+
+void ICEC_FUNC_ATTR
 Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
                                     Ice_ObjectPtr servant) {
     trace();
@@ -964,7 +969,12 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     self->mode = b;
     Ice_InputStream_readByte(is, &b); /* secure */
     Ice_InputStream_readByte(is, &numOfEndpoints);
-    assert(numOfEndpoints == 1);
+
+    if (numOfEndpoints == 0)
+	return;
+
+    if (numOfEndpoints > 1)
+	prints("Warning: multiple endpoints received, using only the first\n");
 
     /* endpoint type (short) */
     Ice_InputStream_readShort(is, &type);
@@ -1040,8 +1050,24 @@ Ice_ObjectPrx_raisedException(Ice_ObjectPrxPtr self, const char* typeID) {
     Ptr_check(self);
 
 #if MAX_EXCEPTION_SIZE
-    /* check and reset exception, avoid raising again */
+    /* check and, if positive, reset exception, avoid raising again */
     retval = streq(self->exception, typeID);
+    if (retval)
+	self->exception[0] = 0;
+#endif
+
+    return retval;
+}
+
+bool ICEC_FUNC_ATTR
+Ice_ObjectPrx_raisedAnyException(Ice_ObjectPrxPtr self) {
+    bool retval = false;
+
+    trace();
+    Ptr_check(self);
+
+#if MAX_EXCEPTION_SIZE
+    retval = self->exception[0] != 0;
     self->exception[0] = 0;
 #endif
 

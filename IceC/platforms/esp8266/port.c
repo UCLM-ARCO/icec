@@ -3,8 +3,9 @@
 #ifdef ARDUINO_ARCH_ESP8266
 
 #include <IceC/IceC.h>
+#include <IceC/IceUtil.h>
 
-void
+void ICEC_FUNC_ATTR
 IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 			     Ice_ObjectAdapterPtr result[],
 			     bool block) {
@@ -32,6 +33,11 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     		result[count++] = adapter;
     	}
     } while (! count && block);
+}
+
+void ICEC_FUNC_ATTR
+IceUtil_delay(uint16_t ms) {
+    delay(ms);
 }
 
 #endif /* ARDUINO_ARCH_ESP8266 */

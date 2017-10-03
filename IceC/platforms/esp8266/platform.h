@@ -21,11 +21,11 @@
 #include <IceC/platforms/esp8266/storage.h>
 
 #define MAX_MESSAGE_SIZE        128
-#define MAX_IDENTITY_SIZE       16
+#define MAX_IDENTITY_SIZE       32
 #define MAX_NESTED_ENCAPS       3
 #define MAX_NUM_OF_ADAPTERS     1
 #define MAX_NUM_OF_SERVANTS     10
-#define MAX_PROTO_SIZE          16
+#define MAX_PROTO_SIZE          8
 #define MAX_OPERATION_NAME_SIZE 16
 #define MAX_EXCEPTION_SIZE      32
 

@@ -280,6 +280,8 @@ void Ice_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_add(Ice_ObjectAdapterPtr self,
                            Ice_ObjectPtr servant,
                            const char* identity);
+void Ice_ObjectAdapter_addWithUUID(Ice_ObjectAdapterPtr self,
+				   Ice_ObjectPtr servant);
 void Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
                                          Ice_ObjectPtr servant);
 int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self);
@@ -324,6 +326,7 @@ void Ice_ObjectPrx_writeToOutputStream(Ice_ObjectPrxPtr self, Ice_OutputStreamPt
 
 void Ice_ObjectPrx_parseUserException(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is);
 bool Ice_ObjectPrx_raisedException(Ice_ObjectPrxPtr self, const char* typeID);
+bool Ice_ObjectPrx_raisedAnyException(Ice_ObjectPrxPtr self);
 void Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid);
 
 typedef struct Ice_Communicator {

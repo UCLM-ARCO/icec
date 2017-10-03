@@ -1,9 +1,12 @@
 /* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
 #include <IceC/IceC.h>
+#include <IceC/IceUtil.h>
+
 #include <sys/select.h>
 
-void
+
+void ICEC_FUNC_ATTR
 IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 			     Ice_ObjectAdapterPtr result[],
 			     bool block) {
@@ -46,4 +49,9 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 
 	result[i] = map[i];
     }
+}
+
+void ICEC_FUNC_ATTR
+IceUtil_delay(uint16_t ms) {
+    usleep(ms * 1000);
 }

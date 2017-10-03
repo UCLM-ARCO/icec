@@ -7,7 +7,7 @@
 #include <IceC/platforms/esp8266/TCPEndpoint.h>
 
 #ifndef MAX_TCP_ENDPOINT_INSTANCES
-#define MAX_TCP_ENDPOINT_INSTANCES 3
+#define MAX_TCP_ENDPOINT_INSTANCES 5
 #endif
 
 static IcePlugin_PluginListItem item;
@@ -113,6 +113,73 @@ TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
     return true;
 }
 
+bool
+TCP_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
+                                     Ice_OutputStreamPtr os) {
+    TCP_EndpointOptionsPtr opts;
+    trace();
+
+    Ptr_check(self);
+    if (self->type != Ice_EndpointTypeTCP)
+	return false;
+
+    opts = (TCP_EndpointOptionsPtr)(self->options);
+    Ptr_check(opts);
+    Ptr_check(os);
+
+    Ice_OutputStream_startWriteEncaps(os);
+    Ice_OutputStream_writeString(os, opts->host);
+    Ice_OutputStream_writeInt(os, opts->port);
+    Ice_OutputStream_writeInt(os, opts->timeout);
+    Ice_OutputStream_writeBool(os, false);
+    Ice_OutputStream_endWriteEncaps(os);
+
+    return true;
+}
+
+bool
+TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
+                                     Ice_InputStreamPtr is) {
+    TCP_EndpointOptionsPtr opts;
+    Ice_Int encapSize = 0;
+    byte major = 0;
+    byte minor = 0;
+    trace();
+
+    /* Note: type is set previously by IceC engine */
+    if (self->type != Ice_EndpointTypeTCP)
+	return false;
+
+    _get_options_slot(&opts);
+    self->options = opts;
+    Ptr_check(opts);
+    Ptr_check(is);
+
+    self->datagram = false;
+
+    /* read and check encapsulation header (note that this encap is
+       nested, may be more data after it) */
+    Ice_InputStream_readInt(is, &encapSize);
+    Ice_InputStream_readByte(is, &major);
+    Ice_InputStream_readByte(is, &minor);
+    assert(major == 1 && minor == 0);
+    assert(encapSize - 6 <= (is->size - (is->next - is->data)));
+
+    /* read other endpoint params */
+    Ice_InputStream_readString(is, opts->host);
+    Ice_InputStream_readInt(is, (Ice_Int*)&(opts->port));
+    Ice_InputStream_readInt(is, (Ice_Int*)&(opts->timeout));
+
+    /* Note: compression not supported */
+    {
+	bool comp;
+	Ice_InputStream_readBool(is, &comp);
+    }
+
+    Object_init((ObjectPtr)self);
+    return true;
+}
+
 bool ICEC_FUNC_ATTR
 TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     TCP_EndpointOptionsPtr opts;
@@ -132,7 +199,8 @@ TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 }
 
 bool ICEC_FUNC_ATTR
-TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx) {
+TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type,
+                   const char* strprx) {
     trace();
 
     if (type != Ice_EndpointTypeTCP)
@@ -155,7 +223,8 @@ TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port) 
     opts = (TCP_EndpointOptionsPtr)self->epinfo->options;
     Ptr_check(opts);
 
-    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) && "WiFi not connected");
+    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) &&
+           "WiFi not connected");
     assert(opts->client == NULL && "Already used endpoint");
 
     opts->client = new WiFiClient;
@@ -173,7 +242,8 @@ TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     opts = (TCP_EndpointOptionsPtr)self->epinfo->options;
     Ptr_check(opts);
 
-    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) && "WiFi not connected");
+    assert((WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) &&
+           "WiFi not connected");
     assert(opts->server == NULL && "Already used endpoint");
 
     opts->server = new WiFiServer(port);
@@ -237,7 +307,14 @@ TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
 	return false;
 
     TCP_EndpointOptions* opts = (TCP_EndpointOptions*)self->epinfo->options;
-    *result = opts->server->hasClient();
+
+    *result = false;
+    if (opts->server != NULL) {
+	*result = opts->server->hasClient();
+    }
+    else if (opts->client != NULL) {
+	*result = opts->client->available();
+    }
     return true;
 }
 
@@ -269,14 +346,11 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.getProtocolType = &TCP_getProtocolType;
     endpoint.InputStream_init = &TCP_InputStream_init;
     endpoint.ObjectAdapter_activate = &TCP_ObjectAdapter_activate;
-
     endpoint.EndpointInfo_init = &TCP_EndpointInfo_init;
-    endpoint.EndpointInfo_writeToOutputStream = NULL;
-    endpoint.EndpointInfo_readFromInputStream = NULL;
-
+    endpoint.EndpointInfo_writeToOutputStream = &TCP_EndpointInfo_writeToOutputStream;
+    endpoint.EndpointInfo_readFromInputStream = &TCP_EndpointInfo_readFromInputStream;
     endpoint.ObjectPrx_init = &TCP_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
-
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;

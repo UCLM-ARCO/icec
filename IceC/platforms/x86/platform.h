@@ -29,8 +29,8 @@
 #define MAX_NESTED_ENCAPS       5
 #define MAX_NUM_OF_ADAPTERS     5
 #define MAX_NUM_OF_SERVANTS     5
-#define MAX_PROTO_SIZE          16
-#define MAX_OPERATION_NAME_SIZE 16
+#define MAX_PROTO_SIZE          8
+#define MAX_OPERATION_NAME_SIZE 32
 #define MAX_EXCEPTION_SIZE      32
 
 #endif /* _ICE_PLATFORM_X86_H_ */

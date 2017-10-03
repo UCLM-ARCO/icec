@@ -88,7 +88,7 @@ class CCode(list):
         return retval
 
     def condition(self, condition):
-        c = getattr(self, 'nested') or self
+        c = getattr(self, 'nested', None) or self
 
         class Context:
             def __enter__(self):
@@ -102,7 +102,7 @@ class CCode(list):
         return Context()
 
     def switch(self, arg):
-        c = getattr(self, 'nested') or self
+        c = getattr(self, 'nested', None) or self
 
         class Context:
             def __enter__(self):
@@ -245,10 +245,11 @@ class Struct(CCode):
 
 # FIXME: mix this with ParamDecl
 class Param(object):
-    def __init__(self, typeid, name, kind=None, scope=None, local=False):
+    def __init__(self, typeid, name, kind=None, scope=None, local=False, value=None):
         self.typeid = typeid
         self.name = name
         self.kind = kind
+        self.value = value
 
         if scope is not None:
             if local:
@@ -265,7 +266,9 @@ class Param(object):
         if tid.startswith("Ice_"):
             tid = tid[len("Ice_"):].lower()
 
-        if self.kind == "enum" or tid in basic_types:
+        if self.value is not None:
+            retval += " = {}".format(self.value)
+        elif self.kind == "enum" or tid in basic_types:
             retval += " = 0"
 
         retval += ";\n"
@@ -645,6 +648,21 @@ class ForLoop(CCode):
         return retval
 
 
+class WhileLoop(CCode):
+    def __init__(self, cond):
+        self.cond = cond
+
+    def __str__(self):
+        retval = "while ({}) {{\n".format(self.cond)
+
+        self.tab = 1
+        for i in self:
+            retval += self.tabify(str(i))
+
+        retval += "}\n"
+        return retval
+
+
 class IfCondition(CCode):
     def __init__(self, condition):
         self.condition = condition
@@ -722,6 +740,7 @@ class IceCBuilder(object):
     def add_common_includes(self, c):
         includes = Include()
         includes.add_system("IceC/IceC.h")
+        includes.add_system("IceC/IceUtil.h")
 
         if args.use_alloca:
             includes.add_system("alloca.h")
@@ -1248,13 +1267,17 @@ class OperationDecl(BaseDecl):
             skipByte = Param("Ice_Byte", "skipByte", scope=func, local=True)
             func.nl()
 
-            ready = Param("bool", "ready", scope=func)
-            func += FunctionCall(
-                "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
+            timeout = Param("uint16_t", "timeout", scope=func, local=True, value=5000)
+            ready = Param("bool", "ready", scope=func, local=True, value="false")
 
-            with func.condition('!' + ready.name):
-                func.comment(" FIXME: do something ")
-                self.render_return(func)
+            loop = WhileLoop("not ready")
+            loop += FunctionCall(
+                "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
+            loop += FunctionCall("IceUtil_delay", 1)
+            with loop.condition("! --timeout"):
+                loop += ThrowException("Ice_TimeoutException", "__FILE__", "__LINE__")
+                self.render_return(loop)
+            func += loop
 
             func.nl().comment(" reply header ")
             ins.init("self->connection.fd", "self->connection.epinfo->type")
@@ -1294,6 +1317,7 @@ class OperationDecl(BaseDecl):
                 with sw.case(5, 6, 7):
                     sw.comment(" unkown exception (reason as string) ")
                     sw.comment(" FIXME: unmarshall and print reason ")
+                    sw += ThrowException("Ice_UnknownException", "__FILE__", "__LINE__")
                     self.render_return(sw)
 
             func.nl()
