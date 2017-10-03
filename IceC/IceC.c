@@ -974,7 +974,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
 	return;
 
     if (numOfEndpoints > 1)
-	prints("Warning: multiple endpoints received, using only the first\n");
+	printf("Warning: multiple endpoints received, using only the first\n");
 
     /* endpoint type (short) */
     Ice_InputStream_readShort(is, &type);

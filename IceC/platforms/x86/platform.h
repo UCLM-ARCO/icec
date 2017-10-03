@@ -22,7 +22,7 @@
 #define ICEC_FUNC_ATTR
 
 #ifndef MAX_MESSAGE_SIZE
-#define MAX_MESSAGE_SIZE        256
+#define MAX_MESSAGE_SIZE        512
 #endif
 
 #define MAX_IDENTITY_SIZE       64

@@ -1,3 +1,9 @@
+icec (20171003-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 03 Oct 2017 18:39:48 +0200
+
 icec (20170928-1) unstable; urgency=low
 
   * New release, IceStorm-lite iface compatible

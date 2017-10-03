@@ -1270,7 +1270,7 @@ class OperationDecl(BaseDecl):
             timeout = Param("uint16_t", "timeout", scope=func, local=True, value=5000)
             ready = Param("bool", "ready", scope=func, local=True, value="false")
 
-            loop = WhileLoop("not ready")
+            loop = WhileLoop("!ready")
             loop += FunctionCall(
                 "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
             loop += FunctionCall("IceUtil_delay", 1)
