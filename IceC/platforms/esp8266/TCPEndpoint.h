@@ -34,6 +34,8 @@ bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 			   Ice_EndpointType type,
 			   const char* endpoint);
+bool TCP_EndpointInfo_toString(Ice_EndpointInfoPtr self,
+			       Ice_String* result);
 
 bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self);
 bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx);

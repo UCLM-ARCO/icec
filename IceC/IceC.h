@@ -20,7 +20,7 @@ extern "C" {
     } while(0)
 
 #define c_throw(EXC, FILE, LINE)                                        \
-    do {                                                                \
+    do {								\
         error_at_line(0, 0, FILE, LINE, EXC);                           \
         assert(false && "Exception c_thrown");                          \
     } while(0)
@@ -43,14 +43,14 @@ typedef int64_t Ice_Long;
 
 typedef struct Ice_String {
     Ice_Int size;
-    const char* value;
+    char* value;
 } Ice_String;
 
 typedef Ice_String* Ice_StringPtr;
 
 #define Ice_String_init(NAME, VALUE)            \
     do {                                        \
-        NAME.value = VALUE;                     \
+	NAME.value = (char*)VALUE;		\
         NAME.size = strlen(VALUE);              \
     } while(0);
 
@@ -343,6 +343,9 @@ void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
                                       Ice_ObjectAdapterPtr adapter);
 void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
                                     Ice_ObjectPrx* result);
+void Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
+				    Ice_ObjectPrxPtr proxy,
+                                    Ice_String* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self);
 void Ice_Communicator_loopIteration(Ice_CommunicatorPtr self);
 void Ice_initialize(Ice_CommunicatorPtr ic);
@@ -368,6 +371,7 @@ typedef struct IcePlugin_EndpointObject {
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
     bool (*EndpointInfo_writeToOutputStream)(Ice_EndpointInfoPtr, Ice_OutputStreamPtr);
     bool (*EndpointInfo_readFromInputStream)(Ice_EndpointInfoPtr, Ice_InputStreamPtr);
+    bool (*EndpointInfo_toString)(Ice_EndpointInfoPtr, Ice_String*);
 
     bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
@@ -397,6 +401,7 @@ void IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
                                                 Ice_OutputStreamPtr os);
 void IcePlugin_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
                                                 Ice_InputStreamPtr is);
+void IcePlugin_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result);
 
 bool IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 void IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,

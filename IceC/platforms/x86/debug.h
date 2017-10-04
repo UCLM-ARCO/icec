@@ -6,6 +6,8 @@
 #define RED "\033[01;31m"
 #define CLR "\033[00m"
 
+#define prints printf
+
 #ifndef DEBUG
 
 #define fixme(...)

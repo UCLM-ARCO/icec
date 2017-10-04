@@ -470,9 +470,9 @@ Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id) {
 	return;
     }
 
-    category.value = id;
+    category.value = (char*) id;
     category.size = idx;
-    name.value = id + idx + 1;
+    name.value = (char*)(id + idx + 1);
     name.size = strlen(id) - idx - 1;
 
     Ice_OutputStream_writeIceString(self, name);
@@ -974,7 +974,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
 	return;
 
     if (numOfEndpoints > 1)
-	printf("Warning: multiple endpoints received, using only the first\n");
+	prints("Warning: multiple endpoints received, using only the first\n");
 
     /* endpoint type (short) */
     Ice_InputStream_readShort(is, &type);
@@ -1122,7 +1122,7 @@ Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
     self->adapters.begin[(self->adapters.count)++] = adapter;
 }
 
-void
+void ICEC_FUNC_ATTR
 Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
                                Ice_ObjectPrx* result) {
     Ice_EndpointType type;
@@ -1135,6 +1135,44 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
     IceUtil_getMode(str, &(result->mode));
 
     IcePlugin_ObjectPrx_init(result, type, str);
+}
+
+void ICEC_FUNC_ATTR
+Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
+			       Ice_ObjectPrxPtr proxy,
+			       Ice_String* result) {
+    uint16_t i = 0;
+    uint16_t size = 0;
+
+    trace();
+    Ptr_check(self);
+    Ptr_check(proxy);
+
+    // identity
+    size = strlen(proxy->identity);
+    if (size >= (result->size - i))
+	size = result->size - i - 1;
+    strncpy(result->value + i, proxy->identity, size);
+    i += size;
+
+    // proxy mode: o,t,d
+    char* mode = " -d:";
+    switch (proxy->mode) {
+    case Ice_ReferenceModeTwoway: mode[2] = 't'; break;
+    case Ice_ReferenceModeOneway: mode[2] = 'o'; break;
+    }
+
+    size = strlen(mode);
+    if (size >= (result->size - i))
+	size = result->size - i - 1;
+    strncpy(result->value + i, mode, size);
+    i += size;
+
+    // endpoint
+    Ice_String epstr;
+    epstr.value = result->value + i;
+    epstr.size = result->size - i;
+    IcePlugin_EndpointInfo_toString(&(proxy->epinfo), &epstr);
 }
 
 void ICEC_FUNC_ATTR
@@ -1188,8 +1226,9 @@ Ice_initialize(Ice_CommunicatorPtr ic) {
 }
 
 /*
-  FIXME: IcePlugin, refactor using something like a 'foreach'
-  function to iter over plugins
+  FIXME: IcePlugin, refactor using something like a 'foreach' function
+  to iter over plugins, or even better, check the possibility of using
+  a pointer on each structure to its IcePlugin_EndpointObjectPtr
 */
 
 void ICEC_FUNC_ATTR
@@ -1214,7 +1253,7 @@ IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item) {
     trace();
     Ptr_check(item);
 
-    while(last->next != NULL)
+    while (last->next != NULL)
         last = last->next;
 
     last->next = item;
@@ -1226,7 +1265,7 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1243,7 +1282,7 @@ IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType typ
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1260,7 +1299,7 @@ IcePlugin_Connection_accept(Ice_ConnectionPtr self) {
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1278,7 +1317,7 @@ IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t s
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         sent = size;
 
@@ -1299,7 +1338,7 @@ IcePlugin_Connection_close(Ice_ConnectionPtr self) {
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1316,7 +1355,7 @@ IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
 
     /* trace(); */
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1334,7 +1373,7 @@ IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self, Ice_EndpointType type,
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1353,7 +1392,7 @@ IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1372,11 +1411,28 @@ IcePlugin_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
         if (endp->EndpointInfo_readFromInputStream(self, is))
+            break;
+
+        item = item->next;
+    }
+}
+
+void ICEC_FUNC_ATTR
+IcePlugin_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    while (item != NULL) {
+        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+        Ptr_check(endp);
+
+        if (endp->EndpointInfo_toString(self, result))
             break;
 
         item = item->next;
@@ -1389,7 +1445,7 @@ IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1414,7 +1470,7 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
     self->exception[0] = 0;
 #endif
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
@@ -1431,7 +1487,7 @@ IcePlugin_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
     trace();
 
-    while(item != NULL) {
+    while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 

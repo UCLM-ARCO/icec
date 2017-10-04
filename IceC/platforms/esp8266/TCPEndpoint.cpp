@@ -10,6 +10,8 @@
 #define MAX_TCP_ENDPOINT_INSTANCES 5
 #endif
 
+#define TCP_PROTO_STRING "tcp"
+
 static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
 static TCP_EndpointOptions ep_options[MAX_TCP_ENDPOINT_INSTANCES];
@@ -19,7 +21,7 @@ bool ICEC_FUNC_ATTR
 TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
     trace();
 
-    if (! streq(proto, "tcp"))
+    if (! streq(proto, TCP_PROTO_STRING))
     	return false;
 
     *result = Ice_EndpointTypeTCP;
@@ -169,6 +171,7 @@ TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
     Ice_InputStream_readString(is, opts->host);
     Ice_InputStream_readInt(is, (Ice_Int*)&(opts->port));
     Ice_InputStream_readInt(is, (Ice_Int*)&(opts->timeout));
+    opts->used = true;
 
     /* Note: compression not supported */
     {
@@ -177,6 +180,44 @@ TCP_EndpointInfo_readFromInputStream(Ice_EndpointInfoPtr self,
     }
 
     Object_init((ObjectPtr)self);
+    return true;
+}
+
+bool ICEC_FUNC_ATTR
+TCP_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result) {
+    byte i = 0;
+    byte size;
+
+    trace();
+
+    // endpoint name
+    const char* s = TCP_PROTO_STRING " -h ";
+
+    size = strlen(s);
+    if (size >= (result->size - i))
+     	size = result->size - i - 1;
+    strncpy(result->value + i, s, size);
+    i += size;
+
+    // host
+    TCP_EndpointOptionsPtr opts = (TCP_EndpointOptionsPtr)self->options;
+    size = strlen(opts->host);
+    if (size >= (result->size - i))
+     	size = result->size - i - 1;
+    strncpy(result->value + i, opts->host, size);
+    i += size;
+
+    // port
+    char* port = (char*)" -p      ";
+    sprintf(port + 4, "%d", opts->port);
+    size = strlen(port);
+    if (size >= (result->size - i))
+     	size = result->size - i - 1;
+    strncpy(result->value + i, port, size);
+    i += size;
+
+    // zero ending string
+    *(result->value + i) = 0;
     return true;
 }
 
@@ -349,6 +390,7 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.EndpointInfo_init = &TCP_EndpointInfo_init;
     endpoint.EndpointInfo_writeToOutputStream = &TCP_EndpointInfo_writeToOutputStream;
     endpoint.EndpointInfo_readFromInputStream = &TCP_EndpointInfo_readFromInputStream;
+    endpoint.EndpointInfo_toString = &TCP_EndpointInfo_toString;
     endpoint.ObjectPrx_init = &TCP_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
     endpoint.Connection_accept = &TCP_Connection_accept;

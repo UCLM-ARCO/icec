@@ -3,6 +3,7 @@
 #ifndef _ICEC_DEBUG_H_
 #define _ICEC_DEBUG_H_
 
+#include <stdio.h>
 #include "flags.h"
 
 // See flags.h
