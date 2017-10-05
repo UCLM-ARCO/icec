@@ -55,6 +55,7 @@ arduino-package: clean
 
 	cd $(ARDUINO_DIST); zip -r arduino-icec-$(VER).zip *
 	mv $(ARDUINO_DIST)/*.zip .
+	cp arduino-icec-$(VER).zip arduino-icec-latest.zip
 
 update-versions:
 	sed -i -E "s/(^version=)(.+)/\1$(VER)/g" arduino/library.properties; \
@@ -64,5 +65,6 @@ update-versions:
 .PHONY: clean
 clean:
 	-make -C examples $@
-	find -name "*.pyc" -delete
+	find -name "*.pyc" -print -delete
+	find -name "*~" -print -delete
 	$(RM) *.zip
