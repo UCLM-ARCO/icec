@@ -1,8 +1,12 @@
 /* -*- mode: c++; coding: utf-8 -*- */
 
-#ifdef ARDUINO_ARCH_ESP8266
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 
+#ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
+#endif
 #include <IceC/IceUtil.h>
 #include <IceC/platforms/esp8266/TCPEndpoint.h>
 
@@ -380,10 +384,11 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     IcePlugin_PluginListItem_init(&item, (ObjectPtr)&endpoint);
     IcePlugin_registerEndpoint(&item);
 
+#ifdef ARDUINO_ARCH_ESP8266
     // get an (almost) ramdom number for source port
     int sport = ESP.getCycleCount() % 32000 + 32000;
     WiFiClient::setLocalPortStart(sport);
-
+#endif
     endpoint.getProtocolType = &TCP_getProtocolType;
     endpoint.InputStream_init = &TCP_InputStream_init;
     endpoint.ObjectAdapter_activate = &TCP_ObjectAdapter_activate;
@@ -399,4 +404,4 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_dataReady = &TCP_Connection_dataReady;
 }
 
-#endif /* ARDUINO_ARCH_ESP8266 */
+#endif /* ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_32 */

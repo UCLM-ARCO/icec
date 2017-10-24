@@ -7,7 +7,7 @@
     defined(_M_X64) || defined(_M_IA64)
 #   include <IceC/platforms/x86/platform.h>
 
-#elif defined(ESP8266)
+#elif defined(ESP8266) || defined(ESP32)
 #   include <IceC/platforms/esp8266/platform.h>
 
 #elif defined(ARDUINO)

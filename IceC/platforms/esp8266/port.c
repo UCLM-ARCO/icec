@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
-#ifdef ARDUINO_ARCH_ESP8266
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 
 #include <IceC/IceC.h>
 #include <IceC/IceUtil.h>
@@ -35,9 +35,4 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     } while (! count && block);
 }
 
-void ICEC_FUNC_ATTR
-IceUtil_delay(uint16_t ms) {
-    delay(ms);
-}
-
-#endif /* ARDUINO_ARCH_ESP8266 */
+#endif /* ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32*/
