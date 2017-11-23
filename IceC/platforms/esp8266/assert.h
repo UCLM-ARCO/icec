@@ -6,6 +6,9 @@
 extern void prints(const char*);
 extern void printi(const int);
 
+#if defined(ARDUINO_ARCH_ESP32)
+#include <assert.h>
+#else
 #define assert(token) __assert(token, #token)
 
 static void
@@ -19,5 +22,6 @@ __assert(bool status, const char* message) {
 
     abort();
 }
+#endif
 
 #endif /* _ICE_ASSERT_H_ */
