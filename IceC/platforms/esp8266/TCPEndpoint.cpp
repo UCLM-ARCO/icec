@@ -404,4 +404,4 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.Connection_dataReady = &TCP_Connection_dataReady;
 }
 
-#endif /* ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_32 */
+#endif /* ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32 */

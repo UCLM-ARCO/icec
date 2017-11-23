@@ -1,3 +1,9 @@
+icec (20171123-1) unstable; urgency=low
+
+  * New release, support for ESP32
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 23 Nov 2017 13:26:30 +0100
+
 icec (20171003-1) unstable; urgency=low
 
   * New release

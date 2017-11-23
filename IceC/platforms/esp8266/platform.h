@@ -4,19 +4,22 @@
 #define _ICE_PLATFORM_ESP8266_H_
 
 #define ICE_LITTLE_ENDIAN 1
+
 #if !defined(ESP32)
-#define ICEC_FUNC_ATTR __attribute__((section(".irom0.text")))
+  #define ICEC_FUNC_ATTR __attribute__((section(".irom0.text")))
 #else
-#define ICEC_FUNC_ATTR __attribute__((section(".iram1")))
+  #define ICEC_FUNC_ATTR __attribute__((section(".iram1")))
 #endif
+
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
+
 #if !defined(ARDUINO_ARCH_ESP32)
-#include <osapi.h>
+  #include <osapi.h>
 #endif
 
 #include <IceC/platforms/esp8266/flags.h>
@@ -25,7 +28,10 @@
 #include <IceC/platforms/esp8266/assert.h>
 #include <IceC/platforms/esp8266/storage.h>
 
-#define MAX_MESSAGE_SIZE        128
+#ifndef MAX_MESSAGE_SIZE
+  #define MAX_MESSAGE_SIZE        128
+#endif
+
 #define MAX_IDENTITY_SIZE       32
 #define MAX_NESTED_ENCAPS       3
 #define MAX_NUM_OF_ADAPTERS     1

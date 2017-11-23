@@ -35,4 +35,9 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     } while (! count && block);
 }
 
+void ICEC_FUNC_ATTR
+IceUtil_delay(uint16_t ms) {
+    delay(ms);
+}
+
 #endif /* ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP32*/
