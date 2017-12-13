@@ -1,3 +1,9 @@
+icec (20171123.20171213-1) unstable; urgency=low
+
+  * New release, fix IceUtil_delay for Arduino
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 13 Dec 2017 18:14:47 +0100
+
 icec (20171123-1) unstable; urgency=low
 
   * New release, support for ESP32
