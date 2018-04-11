@@ -3,6 +3,8 @@
 #include <IceC/IceC.h>
 #include <IceC/IceUtil.h>
 
+static Ice_Connection connections[MAX_NUM_OF_CONNECTIONS];
+
 void ICEC_FUNC_ATTR
 Object_init(ObjectPtr self) {
     self->tag = TAG_OK;
@@ -70,12 +72,12 @@ Ice_Blobject_init(Ice_BlobjectPtr self, Ice_Blobject_HandlerPtr handler) {
 }
 
 void ICEC_FUNC_ATTR
-Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
+Ice_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection) {
     trace();
 
     /* print_dbg("is init\n"); */
 
-    IcePlugin_InputStream_init(self, fd, type);
+    IcePlugin_InputStream_init(self, connection, connection->epinfo->type);
 
 #ifdef ICE_TRACE_PROTOCOL
     printf("Incomming");
@@ -544,37 +546,40 @@ Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self) {
 }
 
 void ICEC_FUNC_ATTR
-Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo) {
+Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo,
+		    IcePlugin_EndpointObjectPtr ep) {
     trace();
 
-    self->fd = -1;
-    self->current_client = -1;
+    self->instance = NULL;
     self->epinfo = epinfo;
+    self->ep = ep;
+    self->used = true;
     Object_init((ObjectPtr)self);
 }
 
 void ICEC_FUNC_ATTR
 Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size) {
-    int fd, res;
+    int res;
 
     trace();
     Ptr_check(self);
 
-    fd = self->current_client;
-    if (fd == -1) fd = self->fd;
+    //fd = self->current_client;
+    //if (fd == -1) fd = self->fd;
 
-    assert(self->fd > -1);
+    //assert(self->fd > -1);
 
 #ifdef ICE_TRACE_PROTOCOL
     printf("Outgoing ");
     dissect_message(data, size);
 #endif
 
-    res = IcePlugin_Connection_send(self, fd, data, size);
+    res = IcePlugin_Connection_send(self, data, size, self->ep);
     if (res == size) {
         return;
     }
 
+    // FIXME: none should be called. An prior exception should be thrown
     /* FIXME: reconnect! */
     if (res == 0) {
         error_at_line(0, 0, __FILE__, __LINE__, "Connection lost!\n");
@@ -624,7 +629,7 @@ Ice_Connection_receiveValidate(Ice_ConnectionPtr self) {
     trace();
     Ptr_check(self);
 
-    Ice_InputStream_init(&is, self->fd, self->epinfo->type);
+    Ice_InputStream_init(&is, self);
 
     if (memcmp(expected, is.next, 14) != 0) {
         c_throw("Ice_ProtocolException", __FILE__, __LINE__);
@@ -664,9 +669,10 @@ Ice_ObjectAdapter_init(Ice_ObjectAdapterPtr self,
     Ptr_check(communicator);
 
     self->communicator = communicator;
+    self->connection = NULL;    
     self->activated = false;
 
-    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    //Ice_Connection_init(&(self->connection), &(self->epinfo));
     Ice_ServantMap_init(&(self->servantMap));
     Object_init((ObjectPtr)self);
 }
@@ -728,27 +734,27 @@ Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
 
 }
 
-int ICEC_FUNC_ATTR
-Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self) {
+void ICEC_FUNC_ATTR
+Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self, Ice_ConnectionPtr connection) {
     trace();
     Ptr_check(self);
 
     /* print_dbg("getClient\n"); */
 
     if (! self->epinfo.datagram) {
-        IcePlugin_Connection_accept(&(self->connection));
-        Ice_Connection_sendValidate(&(self->connection));
-        assert(self->connection.current_client != -1 && "Invalid client");
-        return self->connection.current_client;
+        IcePlugin_Connection_accept(self->connection, self->ep);
+        Ice_Connection_sendValidate(self->connection);
+        //assert(self->connection.current_client != -1 && "Invalid client");
+        //return self->connection.current_client;
     }
 
     /* print_dbg(" - try\n"); */
     /* if (self->connection.fd == -1) */
     /*  print_dbg(" - bad client\n"); */
 
-    assert(self->connection.fd != -1 && "Invalid client");
+    //assert(self->connection.fd != -1 && "Invalid client");
     /* print_dbg(" - ok\n"); */
-    return self->connection.fd;
+    return;
 }
 
 int ICEC_FUNC_ATTR
@@ -757,17 +763,32 @@ Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr self) {
     Ptr_check(self);
 
     if (! self->epinfo.datagram) {
-        Ice_Connection_sendClose(&(self->connection));
-        IcePlugin_Connection_close(&(self->connection));
-        self->connection.current_client = -1;
+        Ice_Connection_sendClose(self->connection);
+        IcePlugin_Connection_close(self->connection, self->ep);
+	self->connection = NULL;
     }
 
     return 0;
 }
 
+byte
+_get_free_connection() {
+    byte i;
+
+    for (i=0; i<MAX_NUM_OF_CONNECTIONS; i++) {
+	if (connections[i].used)
+	    continue;
+	return i;
+    }
+
+    //FIXME: reemplazar por un throw
+    assert("Max number of endpoints reached!");
+    return -1;
+}
+
 void ICEC_FUNC_ATTR
 Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
-    int fd, i;
+    int i;
     Ice_Int size, requestId;
     Ice_InputStream is;
     Ice_OutputStream os;
@@ -794,8 +815,12 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     /*     print_dbg("\n"); */
     /* } */
 
-    fd = Ice_ObjectAdapter_getClient(self);
-    Ice_InputStream_init(&is, fd, self->connection.epinfo->type);
+    Ice_ConnectionPtr connection = &connections[_get_free_connection()];
+    self->connection = connection;
+    Ice_Connection_init(self->connection, &(self->epinfo), self->ep);
+    // no haría falta pasar el puntero al OA si la conexión estuviera inicializada
+    Ice_ObjectAdapter_getClient(self, self->connection);
+    Ice_InputStream_init(&is, connection);
 
     /* if (is.size) {
         print_dbg(" - contents: \n");
@@ -878,7 +903,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     if (requestId > 0) {
         Ice_OutputStream_endWriteEncaps(&os);
         Ice_OutputStream_setMessageSize(&os);
-        Ice_Connection_send(&(self->connection), os.data, os.size);
+        Ice_Connection_send(self->connection, os.data, os.size);
     }
 
     /* FIXME: check if client has sent more messages. If so, */
@@ -901,6 +926,7 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     trace();
     Ptr_check(self);
 
+    /*
     if (self->connection.fd != -1) {
         return;
     }
@@ -913,6 +939,7 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
     if (self->mode == Ice_ReferenceModeOneway || self->mode == Ice_ReferenceModeTwoway)
         Ice_Connection_receiveValidate(&(self->connection));
+    */
 }
 
 void ICEC_FUNC_ATTR
@@ -920,6 +947,7 @@ Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr self) {
     trace();
     Ptr_check(self);
 
+    /*
     if (self->epinfo.datagram)
         return;
 
@@ -932,6 +960,7 @@ Ice_ObjectPrx_closeConnection(Ice_ObjectPrxPtr self) {
 
     IcePlugin_Connection_close(&(self->connection));
     self->connection.fd = -1;
+    */
 }
 
 void ICEC_FUNC_ATTR
@@ -984,7 +1013,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     IcePlugin_EndpointInfo_readFromInputStream(&self->epinfo, is);
 
     /* init internal state */
-    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    //Ice_Connection_init(&(self->connection), &(self->epinfo));
     Ice_OutputStream_init(&(self->stream));
 }
 
@@ -1088,6 +1117,10 @@ void ICEC_FUNC_ATTR
 Ice_Communicator_init(Ice_CommunicatorPtr self) {
     trace();
     Ice_ObjectAdapter_List_init(&(self->adapters));
+    for (int i = 0; i<MAX_NUM_OF_CONNECTIONS; i++) {
+      connections[i].used = false;
+      connections[i].id = i;
+    }
     Object_init((ObjectPtr)self);
 }
 
@@ -1106,8 +1139,12 @@ Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
     trace();
     Ptr_check(self);
 
+    /*
     IceUtil_getProtocolType(endpoints, &type);
     IcePlugin_EndpointInfo_init(&(result->epinfo), type, endpoints);
+    */
+    IceUtil_getProtocol(endpoints, &(result->ep), &type);
+    IcePlugin_EndpointInfo_init(&(result->epinfo), result->ep, type, endpoints);    
     Ice_ObjectAdapter_init(result, self);
 }
 
@@ -1260,6 +1297,26 @@ IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item) {
 }
 
 void ICEC_FUNC_ATTR
+IcePlugin_getEndpoint(const char* proto, IcePlugin_EndpointObjectPtr* ep, Ice_EndpointType* result) {
+    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+
+    trace();
+
+    *ep = NULL;
+    while (item != NULL) {
+        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+        Ptr_check(endp);
+
+        if (endp->getProtocolType(proto, result)){
+	    *ep = endp;
+            break;
+	}
+
+        item = item->next;
+    }
+}
+
+void ICEC_FUNC_ATTR
 IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
@@ -1277,7 +1334,8 @@ IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result) {
 }
 
 void ICEC_FUNC_ATTR
-IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
+IcePlugin_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection,
+			   Ice_EndpointType type) {
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
     trace();
@@ -1286,7 +1344,7 @@ IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType typ
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
-        if (endp->InputStream_init(self, fd, type))
+        if (endp->InputStream_init(self, connection, type))
             break;
 
         item = item->next;
@@ -1294,94 +1352,47 @@ IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType typ
 }
 
 void ICEC_FUNC_ATTR
-IcePlugin_Connection_accept(Ice_ConnectionPtr self) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+  IcePlugin_Connection_accept(Ice_ConnectionPtr self, IcePlugin_EndpointObjectPtr endp) {
 
     trace();
 
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-        Ptr_check(endp);
-
-        if (endp->Connection_accept(self))
-            break;
-
-        item = item->next;
+    endp->Connection_accept(self);
     }
-}
 
 int ICEC_FUNC_ATTR
-IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t size) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
-    uint16_t sent = 0;
+IcePlugin_Connection_send(Ice_ConnectionPtr self,
+			  byte* data, uint16_t size,
+			  IcePlugin_EndpointObjectPtr endp) {
+    uint16_t sent = size;
 
     trace();
-
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-        sent = size;
-
-        Ptr_check(endp);
-        if (endp->Connection_send(self, fd, data, &sent))
-            break;
-
-        sent = 0;
-        item = item->next;
-    }
-
+    endp->Connection_send(self, data, &sent);
     return sent;
 }
 
 void ICEC_FUNC_ATTR
-IcePlugin_Connection_close(Ice_ConnectionPtr self) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+IcePlugin_Connection_close(Ice_ConnectionPtr self, IcePlugin_EndpointObjectPtr endp) {
 
     trace();
 
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-        Ptr_check(endp);
-
-        if (endp->Connection_close(self))
-            break;
-
-        item = item->next;
-    }
+    endp->Connection_close(self);
+    self->used = false;    
 }
 
 void ICEC_FUNC_ATTR
 IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
     /* trace(); */
 
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-        Ptr_check(endp);
-
-        if (endp->Connection_dataReady(self, result))
-            break;
-
-        item = item->next;
-    }
+    //endp->Connection_dataReady(self, result))
 }
 
 void ICEC_FUNC_ATTR
-IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self, Ice_EndpointType type,
-                            const char* endpoint) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
+IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self, IcePlugin_EndpointObjectPtr endp,
+			    Ice_EndpointType type, const char* endpoint) {
 
     trace();
-
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
-        Ptr_check(endp);
-
-        if (endp->EndpointInfo_init(self, type, endpoint))
-            break;
-
-        item = item->next;
-    }
+    endp->EndpointInfo_init(self, type, endpoint);  
 }
 
 void ICEC_FUNC_ATTR
@@ -1441,19 +1452,14 @@ IcePlugin_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result) {
 
 bool ICEC_FUNC_ATTR
 IcePlugin_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
-    IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
     trace();
 
-    while (item != NULL) {
-        IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
+    IcePlugin_EndpointObjectPtr endp = self->ep;
         Ptr_check(endp);
 
-        if (endp->ObjectAdapter_activate(self))
-            return true;
-
-        item = item->next;
-    }
+    if (endp->ObjectAdapter_activate(self))
+        return true;
     return false;
 }
 

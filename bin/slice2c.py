@@ -556,9 +556,9 @@ class InputStream(CCode):
         retval += ";\n"
         return retval
 
-    def init(self, source, type):
+    def init(self, source):
         name = "Ice_InputStream_init"
-        self.holder += FunctionCall(name, self.ref(), source, type)
+        self.holder += FunctionCall(name, self.ref(), source)
 
     def readSize(self, *params):
         name = "Ice_InputStream_readSize"
@@ -1280,7 +1280,7 @@ class OperationDecl(BaseDecl):
             func += loop
 
             func.nl().comment(" reply header ")
-            ins.init("self->connection.fd", "self->connection.epinfo->type")
+            ins.init("&(self->connection)")
             with func.condition("memcmp(expected, is.next, 10) != 0"):
                 func += ThrowException("Ice_ProtocolException", "__FILE__", "__LINE__")
                 self.render_return(func)

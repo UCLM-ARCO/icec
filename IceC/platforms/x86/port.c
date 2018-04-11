@@ -2,6 +2,7 @@
 
 #include <IceC/IceC.h>
 #include <IceC/IceUtil.h>
+#include "TCPEndpoint.h"
 
 #include <sys/select.h>
 
@@ -28,8 +29,9 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	    continue;
 	}
 
-	FD_SET(adapter->connection.fd, &read_set);
-	fds[count] = adapter->connection.fd;
+	TCP_EndpointOptionsPtr opts = adapter->epinfo.options;	
+	FD_SET(opts->fd, &read_set);
+	fds[count] = opts->fd;
 	map[count] = adapter;
 	count++;
     }

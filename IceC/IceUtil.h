@@ -11,6 +11,8 @@ extern "C" {
 
 void IceUtil_getIdentity(const char* s, char* result);
 void IceUtil_getProtocolType(const char* s, Ice_EndpointType* result);
+void IceUtil_getProtocol(const char* s, IcePlugin_EndpointObjectPtr* ep,
+			 Ice_EndpointType* result);
 void IceUtil_getMode(const char* s, Ice_ReferenceMode* mode);
 
 void IceUtil_getHost(const char* endpoint, char* result);

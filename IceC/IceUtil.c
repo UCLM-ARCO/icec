@@ -41,6 +41,35 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
     	assert(false && "Invalid endpoint type!");
 }
 
+
+void ICEC_FUNC_ATTR
+IceUtil_getProtocol(const char* s, IcePlugin_EndpointObjectPtr* ep,
+		    Ice_EndpointType* result) {
+    char proto[MAX_PROTO_SIZE];
+    const char* i;
+    int end;
+
+    trace();
+    proto[0] = 0;
+
+    s += strspn(s, "\n\r\t ");
+
+    i = index(s, ':');
+    if (i != NULL) {
+    	i++;
+    	s = i + strspn(i, "\n\r\t ");
+    }
+
+    end = strcspn(s, "\n\r\t ");
+    strncpy(proto, s, end);
+    proto[end] = 0;
+
+    IcePlugin_getEndpoint(proto, ep, result);
+
+    if (ep == NULL)
+    	assert(false && "Invalid endpoint type!");
+}
+
 void ICEC_FUNC_ATTR
 IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
     ssize_t i, j;
