@@ -16,6 +16,12 @@ static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
 static TCP_EndpointOptions ep_options[MAX_TCP_ENDPOINT_INSTANCES];
 
+int
+getFD(Ice_EndpointInfoPtr self) {
+  TCP_EndpointOptionsPtr opts = self->options;
+  return opts->fd;
+}
+
 bool
 TCP_getProtocolType(const char* proto, Ice_EndpointType* result) {
     trace();

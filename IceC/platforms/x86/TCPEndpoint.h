@@ -22,6 +22,8 @@ typedef struct TCP_EndpointOptions {
 
 typedef TCP_EndpointOptions* TCP_EndpointOptionsPtr;
 
+int getFD(Ice_EndpointInfoPtr self);
+
 bool TCP_getProtocolType(const char* proto, Ice_EndpointType* result);
 bool TCP_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection, Ice_EndpointType type);
 bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);

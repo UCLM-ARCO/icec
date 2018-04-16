@@ -2,10 +2,10 @@
 
 #include <IceC/IceC.h>
 #include <IceC/IceUtil.h>
-#include "TCPEndpoint.h"
 
 #include <sys/select.h>
 
+extern int getFD(Ice_EndpointInfoPtr self);
 
 void ICEC_FUNC_ATTR
 IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
@@ -29,9 +29,9 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	    continue;
 	}
 
-	TCP_EndpointOptionsPtr opts = adapter->epinfo.options;	
-	FD_SET(opts->fd, &read_set);
-	fds[count] = opts->fd;
+	int fd = getFD(&(adapter->epinfo));
+	FD_SET(fd, &read_set);
+	fds[count] = fd;
 	map[count] = adapter;
 	count++;
     }
