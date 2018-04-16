@@ -243,8 +243,8 @@ struct Ice_Connection {
 
     Ice_EndpointInfoPtr epinfo;
     IcePlugin_EndpointObjectPtr ep;
-    int fd;
-    int current_client;
+  //    int fd;
+  //    int current_client;
 };
 
 typedef struct Ice_Connection Ice_Connection;

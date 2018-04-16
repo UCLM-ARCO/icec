@@ -548,8 +548,8 @@ Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo,
 		    IcePlugin_EndpointObjectPtr ep) {
     trace();
 
-    self->fd = -1;
-    self->current_client = -1;
+    //self->fd = -1;
+    //self->current_client = -1;
     self->epinfo = epinfo;
     self->ep = ep;
     Object_init((ObjectPtr)self);

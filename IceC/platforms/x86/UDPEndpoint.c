@@ -12,6 +12,12 @@ static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
 static UDP_EndpointOptions ep_options;
 
+int
+getFD(Ice_EndpointInfoPtr self) {
+  UDP_EndpointOptionsPtr opts = self->options;
+  return opts->fd;
+}
+
 bool
 UDP_getProtocolType(const char* proto, Ice_EndpointType* result) {
     trace();
@@ -24,12 +30,13 @@ UDP_getProtocolType(const char* proto, Ice_EndpointType* result) {
 }
 
 bool
-UDP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
+UDP_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection, Ice_EndpointType type) {
     trace();
     if (type != Ice_EndpointTypeUDP)
 	return false;
 
-    self->size = read(fd, (byte*)self->data, MAX_MESSAGE_SIZE);
+    UDP_EndpointOptionsPtr opts = connection->epinfo->options;    
+    self->size = read(opts->fd, (byte*)self->data, MAX_MESSAGE_SIZE);
     return true;
 }
 
@@ -77,7 +84,8 @@ UDP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 }
 
 bool
-UDP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx) {
+UDP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx,
+		   IcePlugin_EndpointObjectPtr endp) {
     ObjectPtr _ep_options_ptr;
 
     trace();
@@ -90,7 +98,7 @@ UDP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* str
 
     assert(! ep_options.used && "Only one instance of this endpoint allowed!");
 
-    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    Ice_Connection_init(&(self->connection), &(self->epinfo), endp);
     Ice_OutputStream_init(&(self->stream));
     UDP_EndpointInfo_init(&(self->epinfo), type, strprx);
 
@@ -117,8 +125,8 @@ UDP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
-    conn->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (conn->fd == -1) {
+    opts->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (opts->fd == -1) {
     	error("Could not create socket: %s\n", strerror(errno));
     	return false;
     }
@@ -131,7 +139,7 @@ UDP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
         return false;
     }
 
-    res = connect(conn->fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
+    res = connect(opts->fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
     if (res == -1) {
     	error("Could not connect: %s\n", strerror(errno));
     	return false;
@@ -149,8 +157,9 @@ UDP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
 
     memset(&addr, 0, sizeof(struct sockaddr_in));
 
-    self->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (self->fd == -1) {
+    UDP_EndpointOptionsPtr opts = self->epinfo->options;        
+    opts->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (opts->fd == -1) {
 	error("Could not create socket: %s\n", strerror(errno));
 	return false;
     }
@@ -164,23 +173,24 @@ UDP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port) {
     }
 
     optval = 1;
-    setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    if (bind(self->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+    setsockopt(opts->fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    if (bind(opts->fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 	error("Could not bind socket: %s\n", strerror(errno));
 	return false;
     }
 
-    listen(self->fd, 1);
+    listen(opts->fd, 1);
     return true;
 }
 
 bool
-UDP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
+UDP_Connection_send(Ice_ConnectionPtr self, byte* data, uint16_t* size) {
     trace();
     if (self->epinfo->type != Ice_EndpointTypeUDP)
 	return false;
 
-    *size = send(fd, data, *size, 0);
+    UDP_EndpointOptionsPtr opts = self->epinfo->options;    
+    *size = send(opts->fd, data, *size, 0);
     return true;
 }
 
