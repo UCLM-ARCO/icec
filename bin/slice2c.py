@@ -1272,7 +1272,8 @@ class OperationDecl(BaseDecl):
 
             loop = WhileLoop("!ready")
             loop += FunctionCall(
-                "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref())
+                "IcePlugin_Connection_dataReady", "&(self->connection)", ready.ref(),
+                "self->connection.ep")
             loop += FunctionCall("IceUtil_delay", 1)
             with loop.condition("! --timeout"):
                 loop += ThrowException("Ice_TimeoutException", "__FILE__", "__LINE__")
