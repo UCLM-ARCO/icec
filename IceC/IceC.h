@@ -133,6 +133,15 @@ typedef struct Ice_OutputStream* Ice_OutputStreamPtr;
 struct Ice_Object;
 typedef struct Ice_Object* Ice_ObjectPtr;
 
+struct Ice_EndpointInfo;
+typedef struct Ice_EndpointInfo* Ice_EndpointInfoPtr;
+  
+struct IcePlugin_EndpointObject;
+typedef struct IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
+
+struct Ice_Connection;
+typedef struct Ice_Connection* Ice_ConnectionPtr;
+
 typedef struct Ice_Current {
     char* id;
     char* operation;
@@ -176,7 +185,7 @@ typedef struct Ice_InputStream {
     int size;
 } Ice_InputStream;
 
-void Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
+void Ice_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection);
 void Ice_InputStream_readBool(Ice_InputStreamPtr self, Ice_Bool* v);
 void Ice_InputStream_readByte(Ice_InputStreamPtr self, Ice_Byte* v);
 void Ice_InputStream_readShort(Ice_InputStreamPtr self, Ice_Short* v);
@@ -219,27 +228,29 @@ void Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self);
 void Ice_OutputStream_writeFloat(Ice_OutputStreamPtr self, Ice_Float v);
 #endif
 
-typedef struct {
+struct Ice_EndpointInfo {
     Object _base;
 
     Ice_EndpointType type;
     bool datagram;
     void* options;
-} Ice_EndpointInfo;
+};
 
-typedef Ice_EndpointInfo* Ice_EndpointInfoPtr;
+typedef struct Ice_EndpointInfo Ice_EndpointInfo;
 
-typedef struct {
+struct Ice_Connection {
     Object _base;
 
     Ice_EndpointInfoPtr epinfo;
+    IcePlugin_EndpointObjectPtr ep;
     int fd;
     int current_client;
-} Ice_Connection;
+};
 
-typedef Ice_Connection* Ice_ConnectionPtr;
+typedef struct Ice_Connection Ice_Connection;
 
-void Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo);
+void Ice_Connection_init(Ice_ConnectionPtr self, Ice_EndpointInfoPtr epinfo,
+			   IcePlugin_EndpointObjectPtr ep);
 void Ice_Connection_send(Ice_ConnectionPtr self, byte* data, int size);
 void Ice_Connection_sendValidate(Ice_ConnectionPtr self);
 void Ice_Connection_receiveValidate(Ice_ConnectionPtr self);
@@ -270,6 +281,7 @@ typedef struct {
     bool activated;
     Ice_ServantMap servantMap;
     Ice_EndpointInfo epinfo;
+    IcePlugin_EndpointObjectPtr ep;
 } Ice_ObjectAdapter;
 
 typedef Ice_ObjectAdapter* Ice_ObjectAdapterPtr;
@@ -284,7 +296,8 @@ void Ice_ObjectAdapter_addWithUUID(Ice_ObjectAdapterPtr self,
 				   Ice_ObjectPtr servant);
 void Ice_ObjectAdapter_addDefaultServant(Ice_ObjectAdapterPtr self,
                                          Ice_ObjectPtr servant);
-int Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self);
+  void Ice_ObjectAdapter_getClient(Ice_ObjectAdapterPtr self,
+				   Ice_ConnectionPtr connection);
 int Ice_ObjectAdapter_closeClient(Ice_ObjectAdapterPtr self);
 void Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self);
 
@@ -361,11 +374,11 @@ typedef struct IcePlugin_PluginListItem {
 
 void IcePlugin_PluginListItem_init(IcePlugin_PluginListItemPtr self, ObjectPtr object);
 
-typedef struct IcePlugin_EndpointObject {
+struct IcePlugin_EndpointObject {
     Object _base;
 
     bool (*getProtocolType)(const char*, Ice_EndpointType*);
-    bool (*InputStream_init)(Ice_InputStreamPtr, int, Ice_EndpointType);
+    bool (*InputStream_init)(Ice_InputStreamPtr, Ice_ConnectionPtr, Ice_EndpointType);
     bool (*ObjectAdapter_activate)(Ice_ObjectAdapterPtr);
 
     bool (*EndpointInfo_init)(Ice_EndpointInfoPtr, Ice_EndpointType, const char*);
@@ -373,28 +386,31 @@ typedef struct IcePlugin_EndpointObject {
     bool (*EndpointInfo_readFromInputStream)(Ice_EndpointInfoPtr, Ice_InputStreamPtr);
     bool (*EndpointInfo_toString)(Ice_EndpointInfoPtr, Ice_String*);
 
-    bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*);
+    bool (*ObjectPrx_init)(Ice_ObjectPrxPtr, Ice_EndpointType, const char*,
+			   IcePlugin_EndpointObjectPtr);
     bool (*ObjectPrx_connect)(Ice_ObjectPrxPtr);
 
     bool (*Connection_accept)(Ice_ConnectionPtr);
-    bool (*Connection_send)(Ice_ConnectionPtr, int, byte*, uint16_t*);
+    bool (*Connection_send)(Ice_ConnectionPtr, byte*, uint16_t*);
     bool (*Connection_close)(Ice_ConnectionPtr);
     bool (*Connection_dataReady)(Ice_ConnectionPtr, bool*);
 
-} IcePlugin_EndpointObject;
+};
 
-typedef IcePlugin_EndpointObject* IcePlugin_EndpointObjectPtr;
+typedef struct IcePlugin_EndpointObject IcePlugin_EndpointObject;
 
 void IcePlugin_registerEndpoint(IcePlugin_PluginListItemPtr item);
 void IcePlugin_EndpointObject_init(IcePlugin_EndpointObjectPtr self);
 
 void IcePlugin_getProtocolType(const char* proto, Ice_EndpointType* result);
-void IcePlugin_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
-void IcePlugin_Connection_accept(Ice_ConnectionPtr self);
-int IcePlugin_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t size);
-void IcePlugin_Connection_close(Ice_ConnectionPtr self);
-void IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
+void IcePlugin_getEndpoint(const char* proto, IcePlugin_EndpointObjectPtr *ep, Ice_EndpointType* result);
+void IcePlugin_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection, Ice_EndpointType type);
+void IcePlugin_Connection_accept(Ice_ConnectionPtr self, IcePlugin_EndpointObjectPtr endp);
+int IcePlugin_Connection_send(Ice_ConnectionPtr self, byte* data, uint16_t size, IcePlugin_EndpointObjectPtr endp);
+void IcePlugin_Connection_close(Ice_ConnectionPtr self, IcePlugin_EndpointObjectPtr endp);
+void IcePlugin_Connection_dataReady(Ice_ConnectionPtr self, bool* result, IcePlugin_EndpointObjectPtr endp);
 void IcePlugin_EndpointInfo_init(Ice_EndpointInfoPtr self,
+				 IcePlugin_EndpointObjectPtr endp,				 
                                  Ice_EndpointType type,
                                  const char* endpoint);
 void IcePlugin_EndpointInfo_writeToOutputStream(Ice_EndpointInfoPtr self,
