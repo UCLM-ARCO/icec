@@ -28,7 +28,8 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     	    }
 
     	    ready = false;
-    	    IcePlugin_Connection_dataReady(&(adapter->connection), &ready);
+    	    IcePlugin_Connection_dataReady(&(adapter->connection), &ready,
+					   adapter->ep);
     	    if (ready)
     		result[count++] = adapter;
     	}
