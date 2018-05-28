@@ -17,8 +17,10 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     Ice_ObjectAdapterPtr adapter_map[MAX_NUM_OF_ADAPTERS];
 
     trace();
-
-    xFD_Set = FreeRTOS_CreateSocketSet();
+#ifdef DEBUG
+	FreeRTOS_printf( ( "[DBG-PORT] Network buffers: %lu (current free) lowest %lu (history free)\n",
+			uxGetNumberOfFreeNetworkBuffers(), uxGetMinimumFreeNetworkBuffers() ) );
+#endif
 
     count = 0;
 	for (i=0; i<adapters->count; i++) {
@@ -26,10 +28,18 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	    if (! adapter->activated) {
 	    	continue;
 	    }
+	    Socket_t socket;
+	    TCP_UDPEndpointOptions *options;
 
 	    /* Add the created socket to the set. */
-	    TCP_EndpointOptionsPtr options = ((TCP_EndpointOptionsPtr)(adapter->connection.epinfo->options));
-	    Socket_t socket = (adapter->connection.fd == 1)?options->connected_socket:options->socket;
+	    options = ((TCP_UDPEndpointOptions*)(adapter->connection.epinfo->options));
+	    if (adapter->connection.epinfo->type == Ice_EndpointTypeTCP) {
+	      socket = (options->connected_socket != NULL)?options->connected_socket:options->socket;
+	    }
+	    else {
+	      socket = options->socket;
+	    }
+	    xFD_Set = options->socket_set;
 	    FreeRTOS_FD_SET( socket, xFD_Set, eSELECT_READ);
 	    socket_map[count] = socket;
 	    adapter_map[count] = adapter;
@@ -37,7 +47,6 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 	}
 
     if ( (FreeRTOS_select( xFD_Set, portMAX_DELAY ))!= 0) {
-
 
     	for (i=0; i<MAX_NUM_OF_ADAPTERS; i++)
     		result[i] = NULL;
@@ -53,3 +62,7 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
 
 }
 
+void
+IceUtil_delay(uint16_t ms) {
+	vTaskDelay (ms / portTICK_RATE_MS);
+}

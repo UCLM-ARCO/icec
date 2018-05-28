@@ -4,38 +4,28 @@
 #define _ICE_TCPENDPOINT_H_
 
 #include <IceC/IceC.h>
+#include "TCP_UDPEndpoint.h"
 
 #define Ice_EndpointTypeTCP   1
-#define MAX_HOST_SIZE         32
 
-typedef struct TCP_EndpointOptions {
-    Object _base;
-
-    char host[MAX_HOST_SIZE];
-    uint16_t port;
-    bool used;
-    int fd;
-    Socket_t socket;
-    Socket_t connected_socket;
-
-} TCP_EndpointOptions;
-
-typedef TCP_EndpointOptions* TCP_EndpointOptionsPtr;
+typedef TCP_UDPEndpointOptions* TCP_EndpointOptionsPtr;
+typedef TCP_UDPEndpointOptions TCP_EndpointOptions;
 
 bool TCP_getProtocolType(const char* proto, Ice_EndpointType* result);
-bool TCP_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
+bool TCP_InputStream_init(Ice_InputStreamPtr self, Ice_ConnectionPtr connection, Ice_EndpointType type);
 bool TCP_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);
 bool TCP_EndpointInfo_init(Ice_EndpointInfoPtr self,
 			   Ice_EndpointType type,
 			   const char* endpoint);
 
 bool TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self);
-bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx);
+bool TCP_ObjectPrx_init(Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx,
+			IcePlugin_EndpointObjectPtr endp);
 
 void TCP_Connection_connect(Ice_ConnectionPtr self, const char* host, uint16_t port);
-bool TCP_Connection_listen(Ice_ConnectionPtr self, const char* host, uint16_t port);
+bool TCP_Connection_listen(Ice_EndpointInfoPtr self, const char* host, uint16_t port);
 bool TCP_Connection_accept(Ice_ConnectionPtr self);
-bool TCP_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size);
+bool TCP_Connection_send(Ice_ConnectionPtr self, byte* data, uint16_t* size);
 bool TCP_Connection_close(Ice_ConnectionPtr self);
 bool TCP_Connection_dataReady(Ice_ConnectionPtr self, bool* result);
 

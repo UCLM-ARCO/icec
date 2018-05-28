@@ -801,10 +801,10 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
     Ice_ObjectAdapter_getClient(self, &(self->connection));
     Ice_InputStream_init(&is, &(self->connection));
 
-    /* if (is.size) {
-        print_dbg(" - contents: \n");
+     if (is.size) {
+        prints(" - contents: \n");
         hexdump(is.data, is.size);
-    } */
+    } 
 
     if (memcmp(header, is.next, 10) != 0) {
         c_throw("Ice_ProtocolException", __FILE__, __LINE__);
