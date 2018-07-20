@@ -5,6 +5,8 @@
 
 #include <string.h>
 
+#ifndef ARDUINO_ARCH_SAMD
+
 static const char*
 index(const char* s, int c) {
     while(*s != 0) {
@@ -14,5 +16,7 @@ index(const char* s, int c) {
     }
     return NULL;
 }
+
+#endif /* ARDUINO_ARCH_SAMD */
 
 #endif /* _ICEC_STRINGS_H_ */

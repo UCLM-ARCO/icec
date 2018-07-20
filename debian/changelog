@@ -1,4 +1,10 @@
-icec (20171123.20171213-1) unstable; urgency=low
+icec (20180720-1) unstable; urgency=low
+
+  * New release, working on SAMD platform
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 20 Jul 2018 15:12:03 +0200
+
+icec (20171213-1) unstable; urgency=low
 
   * New release, fix IceUtil_delay for Arduino
 

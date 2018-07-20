@@ -10,9 +10,16 @@
 #include <errno.h>
 
 #include <IceC/platforms/arduino/flags.h>
+
+#ifndef ARDUINO_ARCH_SAMD
 #include <IceC/platforms/arduino/types.h>
-#include <IceC/platforms/arduino/debug.h>
 #include <IceC/platforms/arduino/assert.h>
+#else
+#include <sys/types.h>
+#include <assert.h>
+#endif
+
+#include <IceC/platforms/arduino/debug.h>
 #include <IceC/platforms/arduino/strings.h>
 #include <IceC/platforms/arduino/storage.h>
 
