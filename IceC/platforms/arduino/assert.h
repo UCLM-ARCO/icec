@@ -5,10 +5,15 @@
 
 #include "debug.h"
 
+#ifdef ARDUINO_ARCH_SAMD
+#include <assert.h>
+#endif
+
 #ifndef DEBUG
-  // NOTE: not implemented to avoid consuming too much space
+  /* NOTE: not implemented to avoid consuming too much space */
   #define error_at_line(...)
 
+  #ifndef ARDUINO_ARCH_SAMD
   static void assert(bool status) {
       if (status)
 	  return;
@@ -22,33 +27,35 @@
 	      c--;
 	  }
 
-	  // soft reset
+	  /* soft reset */
 	  asm volatile ("jmp 0");
       }
 
       #else
       {
-	  // soft reset
+	  /* soft reset */
 	  asm volatile ("jmp 0");
       }
       #endif
   }
+  #endif /* ARDUINO_ARCH_SAMD */
 
 #else
   #define error_at_line(s, e, f, l, m) __DBG_error_at_line(s, e, f, l, m)
-  #define assert(token) __DBG_assert(token, #token)
-
   #define __DBG_error_at_line(STATUS, ERRNUM, FILE, LINE, MESSAGE)	\
       prints("Error, " FILE ":" #LINE ": " MESSAGE);
+
+  #ifndef ARDUINO_ARCH_SAMD
+  #define assert(token) __DBG_assert(token, #token)
 
   static void
   __DBG_assert(bool status, const char* message) {
       if (status)
 	  return;
 
-      // prints("E: ");
-      // prints(message);
-      // prints("\n");
+      /* prints("E: "); */
+      /* prints(message); */
+      /* prints("\n"); */
 
       /* assertion failed, stop here */
       #ifdef DEBUG_LED
@@ -65,6 +72,7 @@
       }
       #endif
   }
+  #endif /* ARDUINO_ARCH_SAMD */
 
 #endif
 
