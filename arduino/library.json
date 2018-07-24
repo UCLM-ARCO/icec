@@ -14,7 +14,7 @@
             "url": "https://arcogroup.bitbucket.io/icec/"
 	}
     ],
-    "version": "0.20180720-1",
+    "version": "0.20180720",
     "downloadUrl": "https://bitbucket.org/arco_group/icec/downloads/arduino-icec-latest.zip",
     "frameworks": "*",
     "platforms": "atmelavr,espressif8266"

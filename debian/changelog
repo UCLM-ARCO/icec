@@ -1,3 +1,9 @@
+icec (20180720.20180724-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 24 Jul 2018 11:16:37 +0200
+
 icec (20180720-1) unstable; urgency=low
 
   * New release, working on SAMD platform

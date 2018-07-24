@@ -1,6 +1,6 @@
 /* -*- mode: c; coding: utf-8; truncate-lines: true -*- */
 
-#ifdef ARDUINO_ARCH_AVR
+#if defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_SAMD)
 
 #include <IceC/IceC.h>
 
