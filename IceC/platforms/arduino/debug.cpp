@@ -3,22 +3,28 @@
 #include "debug.h"
 #include <Arduino.h>
 
+#ifdef ARDUINO_ARCH_SAMD
+#define SERIAL SerialUSB
+#else
+#define SERIAL Serial
+#endif
+
 // used regardless of the state of DEBUG flag
 void print_dbg(const char* msg) {
-    Serial.print(msg);
-    Serial.flush();
+    SERIAL.print(msg);
+    SERIAL.flush();
 }
 
 void printi_dbg(const int i) {
-    Serial.print(i, DEC);
-    Serial.flush();
+    SERIAL.print(i, DEC);
+    SERIAL.flush();
 }
 
 void printh_dbg(const int i) {
     if (i<16)
-        Serial.print("0");
-    Serial.print(i, HEX);
-    Serial.flush();
+        SERIAL.print("0");
+    SERIAL.print(i, HEX);
+    SERIAL.flush();
 }
 
 void hexdump(const void* addr, int len) {
@@ -81,9 +87,6 @@ printi_log(const int i) {
 #endif
 
 #ifdef DEBUG  // -------------------------------------------------------
-void trace() {
-    // NOTE: not implemented to avoid consuming too much space
-}
 
 void fixme(const char* msg) {
     // NOTE: not implemented to avoid consuming too much space
@@ -91,8 +94,14 @@ void fixme(const char* msg) {
 
 void
 prints(const char* msg) {
-    Serial.print(msg);
-    Serial.flush();
+    SERIAL.print(msg);
+    SERIAL.flush();
+}
+
+void
+printi(const int v) {
+    SERIAL.print(v);
+    SERIAL.flush();
 }
 #endif
 

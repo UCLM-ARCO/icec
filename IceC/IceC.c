@@ -499,9 +499,8 @@ Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
     trace();
     Ptr_check(self);
 
-#ifdef ESP8266
-    /* Writting a whole int (4 bytes) here could cause an Aligment exception (9).
-       Reduce it to 4 writes of one byte each */
+    /* Writting a whole int (4 bytes) here could cause an Aligment exception (9). */
+    /* Reduce it to 4 writes of one byte each */
     Ice_Int value;
     byte* dst;
     byte* src;
@@ -514,12 +513,6 @@ Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
     *dst++ = *src++;
     *dst++ = *src++;
     *dst = *src;
-
-#else
-
-    size = (Ice_Int*)self->encaps[self->current_encaps];
-    *size = (Ice_Int)(self->next - self->encaps[self->current_encaps]);
-#endif
 
     self->encaps[(self->current_encaps)--] = NULL;
 }

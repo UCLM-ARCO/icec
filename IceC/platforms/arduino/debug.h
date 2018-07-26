@@ -28,11 +28,19 @@ void hexdump(const void* addr, int len);
     #define trace()
     #define fixme(...)
     #define prints(...)
+    #define printi(...)
 #else
 
-    void trace();
+#define trace()					\
+    prints(__FILE__ ":");			\
+    printi(__LINE__);				\
+    prints(" ");				\
+    prints(__func__);				\
+    prints("\n");
+
     void fixme(const char*);
     void prints(const char*);
+    void printi(const int);
 #endif
 
 #ifndef DEBUG_LED
