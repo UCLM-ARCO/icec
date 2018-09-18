@@ -265,7 +265,8 @@ class TestReceiveProxy(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_server("./server")
-        self.run_client("./client.py", "Speaker called properly", on_client=True)
+        self.run_client("./client.py", "Speaker called properly",
+                        on_client=True)
 
 
 class TestProxyAsReturnValue(prego.TestCase, TestMixin):
