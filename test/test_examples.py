@@ -12,8 +12,10 @@ class TestMixin(object):
         return build
 
     def run_server(self, cmd, **kwargs):
+        params = {'expected': None}
+        params.update(kwargs)
         self.server = prego.Task("server", detach=True)
-        self.server.command(cmd, cwd=self.cwd, **kwargs)
+        self.server.command(cmd, cwd=self.cwd, **params)
 
     def run_client(self, cmd, expected, on_client=False, delayed=0):
         client = prego.Task("client")
@@ -22,7 +24,8 @@ class TestMixin(object):
         if delayed:
             client.delay(delayed)
 
-        client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd)
+        client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd,
+                       expected=None)
         stdout = self.server.lastcmd.stdout
         if on_client:
             stdout = client.lastcmd.stdout
@@ -173,7 +176,8 @@ class TestExampleDictionaryServer(prego.TestCase, TestMixin):
 
         client = prego.Task("client")
         client.wait_that(self.server, prego.running(), delta=0.1)
-        client.command("{0} '{1}'".format("./client.py", self.proxy), cwd=self.cwd)
+        client.command("{0} '{1}'".format("./client.py", self.proxy), cwd=self.cwd,
+                       expected=None)
 
         client.wait_that(
             self.server.lastcmd.stdout.content,
@@ -203,7 +207,7 @@ class TestExampleDefaultServant(prego.TestCase, TestMixin):
         self.proxy = "{} -e 1.0 -d:udp -h 127.0.0.1 -p 7900".format(oid)
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client.py", "'ping' request")
 
 

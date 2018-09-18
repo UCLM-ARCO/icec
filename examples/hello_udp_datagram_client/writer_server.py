@@ -1,16 +1,16 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
 import Ice
 
 Ice.loadSlice("hello.ice")
-import Example
+import Example  # noqa
 
 
 class WriterI(Example.Writer):
     def write(self, code, current):
-        print " - 'write' request, got: {0}".format(code)
+        print(" - 'write' request, got: {0}".format(code))
 
 
 class Server(Ice.Application):
@@ -26,7 +26,7 @@ class Server(Ice.Application):
         proxy = proxy.ice_datagram()
         proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
 
-        print "Proxy ready: '{0}'".format(proxy)
+        print("Proxy ready: '{0}'".format(proxy))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 

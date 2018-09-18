@@ -36,7 +36,7 @@ class Server(Ice.Application):
         proxy = adapter.add(ManagerI(speaker), oid)
         proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
 
-        print("Manager ready: '{0}'".format(proxy))
+        print(("Manager ready: '{0}'".format(proxy)))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 

@@ -16,7 +16,7 @@ class SpeakerI(Example.Speaker):
 class Client(Ice.Application):
     def run(self, args):
         if len(args) != 2:
-            print("Usage: {} <proxy>".format(args[0]))
+            print(("Usage: {} <proxy>".format(args[0])))
             return 1
 
         ic = self.communicator()

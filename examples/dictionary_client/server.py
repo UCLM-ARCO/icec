@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
@@ -10,13 +10,13 @@ import Example
 
 class PropertyServiceI(Example.PropertyService):
     def update(self, props, current):
-        items = props.items()
+        items = list(props.items())
         items.sort()
         props = "{"
         for k, v in items:
             props += "'{}': '{}', ".format(k, v)
         props = props[:-2] + "}"
-        print " - 'update' request, {}".format(props)
+        print((" - 'update' request, {}".format(props)))
 
 
 class Server(Ice.Application):
@@ -30,7 +30,7 @@ class Server(Ice.Application):
         proxy = adapter.add(PropertyServiceI(), ic.stringToIdentity("PropertyServer"))
         proxy = proxy.ice_datagram()
 
-        print "Proxy ready: '{}'".format(proxy)
+        print(("Proxy ready: '{}'".format(proxy)))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 

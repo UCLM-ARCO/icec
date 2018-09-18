@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
@@ -10,7 +10,7 @@ import Example
 
 class HelloI(Example.Hello):
     def sayHelloFrom(self, name, times, current):
-        print " - 'sayHelloFrom' request, from: '{}', times: {}".format(name, times)
+        print((" - 'sayHelloFrom' request, from: '{}', times: {}".format(name, times)))
 
 
 class Server(Ice.Application):
@@ -23,7 +23,7 @@ class Server(Ice.Application):
 
         proxy = adapter.add(HelloI(), ic.stringToIdentity("HelloServer"))
 
-        print "Proxy ready: '{}'".format(proxy)
+        print(("Proxy ready: '{}'".format(proxy)))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 

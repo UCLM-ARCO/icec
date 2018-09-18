@@ -10,7 +10,7 @@ import Example
 
 class ThermostatI(Example.Thermostat):
     def setTemperature(self, value, current):
-        print("setTemperature to {} C".format(value))
+        print(("setTemperature to {} C".format(value)))
 
 
 class Server(Ice.Application):
@@ -23,7 +23,7 @@ class Server(Ice.Application):
 
         proxy = adapter.add(ThermostatI(), ic.stringToIdentity("Thermostat"))
         proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
-        print("Proxy ready: '{}'".format(proxy))
+        print(("Proxy ready: '{}'".format(proxy)))
 
         self.shutdownOnInterrupt()
         ic.waitForShutdown()

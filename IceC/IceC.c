@@ -494,16 +494,15 @@ Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self) {
 
 void ICEC_FUNC_ATTR
 Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self) {
-    Ice_Int* size;
-
-    trace();
-    Ptr_check(self);
 
     /* Writting a whole int (4 bytes) here could cause an Aligment exception (9). */
     /* Reduce it to 4 writes of one byte each */
     Ice_Int value;
     byte* dst;
     byte* src;
+
+    trace();
+    Ptr_check(self);
 
     value = (Ice_Int)(self->next - self->encaps[self->current_encaps]);
     dst = (byte*)self->encaps[self->current_encaps];
@@ -1136,33 +1135,35 @@ Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
 			       Ice_String* result) {
     uint16_t i = 0;
     uint16_t size = 0;
+    char* mode = " -d:";
+    Ice_String epstr;
 
     trace();
     Ptr_check(self);
     Ptr_check(proxy);
 
-    // identity
+    /* identity */
     size = strlen(proxy->identity);
     if (size >= (result->size - i))
 	size = result->size - i - 1;
     strncpy(result->value + i, proxy->identity, size);
     i += size;
 
-    // proxy mode: o,t,d
-    char* mode = " -d:";
+    /* proxy mode: o,t,d */
     switch (proxy->mode) {
     case Ice_ReferenceModeTwoway: mode[2] = 't'; break;
     case Ice_ReferenceModeOneway: mode[2] = 'o'; break;
+    default: mode[2] = 'o';
     }
 
     size = strlen(mode);
     if (size >= (result->size - i))
 	size = result->size - i - 1;
+
     strncpy(result->value + i, mode, size);
     i += size;
 
-    // endpoint
-    Ice_String epstr;
+    /* endpoint */
     epstr.value = result->value + i;
     epstr.size = result->size - i;
     IcePlugin_EndpointInfo_toString(&(proxy->epinfo), &epstr);

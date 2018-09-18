@@ -11,7 +11,7 @@ import Example
 class Client(Ice.Application):
     def run(self, args):
         if len(args) < 2:
-            print("Usage: {} <proxy> <temp>".format(args[0]))
+            print(("Usage: {} <proxy> <temp>".format(args[0])))
             return 1
 
         temp = 25.6
@@ -23,9 +23,9 @@ class Client(Ice.Application):
         server = server.ice_encodingVersion(Ice.Encoding_1_0)
         server = Example.ThermostatPrx.uncheckedCast(server)
 
-        print("Using thermostat: '{}'".format(server))
+        print(("Using thermostat: '{}'".format(server)))
         server.setTemperature(temp)
-        print("Temperature set to {}".format(temp))
+        print(("Temperature set to {}".format(temp)))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
@@ -18,10 +18,10 @@ class Client(Ice.Application):
         server = Example.ReaderPrx.uncheckedCast(server)
 
         code = server.read()
-        print "Read from server: '{0}'".format(code)
+        print(("Read from server: '{0}'".format(code)))
 
     def usage(self):
-        print "USAGE: {0} <proxy>".format(sys.argv[0])
+        print(("USAGE: {0} <proxy>".format(sys.argv[0])))
 
 
 if __name__ == '__main__':

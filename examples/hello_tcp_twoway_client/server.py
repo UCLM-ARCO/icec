@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
@@ -10,7 +10,7 @@ import Example
 
 class ReaderI(Example.Reader):
     def read(self, current):
-        print " - 'read' request, returns 1999"
+        print(" - 'read' request, returns 1999")
         return 1999
 
 
@@ -26,7 +26,7 @@ class Server(Ice.Application):
         proxy = adapter.add(ReaderI(), oid)
         proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
 
-        print "Proxy ready: '{0}'".format(proxy)
+        print(("Proxy ready: '{0}'".format(proxy)))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 

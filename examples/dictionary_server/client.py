@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 # -*- mode: python; coding: utf-8 -*-
 
 import sys
@@ -13,7 +13,7 @@ class Server(Ice.Application):
         ic = self.communicator()
 
         if len(args) < 2:
-            print "USAGE: {} <proxy>".format(args[0])
+            print(("USAGE: {} <proxy>".format(args[0])))
             return 1
 
         ic = self.communicator()

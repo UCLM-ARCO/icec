@@ -29,7 +29,7 @@ class Server(Ice.Application):
         proxy = adapter.add(SpeakerI(), oid)
         proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
 
-        print("Proxy ready: '{0}'".format(proxy))
+        print(("Proxy ready: '{0}'".format(proxy)))
         self.shutdownOnInterrupt()
         ic.waitForShutdown()
 
