@@ -12,4 +12,4 @@ pipelines:
   default:
     - step:
         script:
-          - make tests
+          - TEST_OPTS=-p make tests
