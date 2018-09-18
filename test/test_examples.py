@@ -12,7 +12,7 @@ class TestMixin(object):
         return build
 
     def run_server(self, cmd, **kwargs):
-        params = {'expected': None}
+        params = {'expected': None, 'timeout': 10}
         params.update(kwargs)
         self.server = prego.Task("server", detach=True)
         self.server.command(cmd, cwd=self.cwd, **params)
@@ -24,8 +24,9 @@ class TestMixin(object):
         if delayed:
             client.delay(delayed)
 
+        params = {'expected': None, 'timeout': 10}
         client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd,
-                       expected=None)
+                       **params)
         stdout = self.server.lastcmd.stdout
         if on_client:
             stdout = client.lastcmd.stdout
@@ -53,7 +54,7 @@ class TestExampleHelloUDPDatagramServer(prego.TestCase, TestMixin):
         self.proxy = "WriterServer -d -e 1.0:udp -h 127.0.0.1 -p 7890"
 
         self.build_example()
-        self.run_server("./writer_server", expected=-15)
+        self.run_server("./writer_server")
         self.run_client("./writer_client.py", "'write' request, got: 1551")
 
 
@@ -63,7 +64,7 @@ class TestExampleHelloTCPTwowayServer(prego.TestCase, TestMixin):
         self.proxy = "ReaderServer -t -e 1.0:tcp -h 127.0.0.1 -p 7891"
 
         self.build_example()
-        self.run_server("./reader_server", expected=-15)
+        self.run_server("./reader_server")
         self.run_client("./reader_client.py", "'read' request, return: 1441")
 
 
@@ -93,7 +94,7 @@ class TestExampleHelloTCPOnewayServer(prego.TestCase, TestMixin):
         self.proxy = "WriterServer -o -e 1.0:tcp -h 127.0.0.1 -p 7894"
 
         self.build_example()
-        self.run_server("./writer_server", expected=-15)
+        self.run_server("./writer_server")
         self.run_client("./writer_client.py", "'write' request, got: 1551")
 
 
@@ -103,7 +104,7 @@ class TestExampleSequences(prego.TestCase, TestMixin):
         self.proxy = 'VideoFrame -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client", "VideoFrame: showImage, size: 256")
 
 
@@ -113,7 +114,7 @@ class TestExampleSequencesMixedArgs(prego.TestCase, TestMixin):
         self.proxy = 'VideoFrame -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client", "VideoFrame: showImage, size: 16x16, size: 256")
 
 
@@ -123,7 +124,7 @@ class TestExampleSequencesNested(prego.TestCase, TestMixin):
         self.proxy = 'Vehicle -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client",
                         "Vehicle: sendCommand:\n"
                         " - id: 123\n"
@@ -150,7 +151,7 @@ class TestExampleStringsServer(prego.TestCase, TestMixin):
         self.proxy = "HelloServer -d -e 1.0:udp -h 127.0.0.1 -p 7896"
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client.py",
                         "'sayHelloFrom' request, from: 'Jonh Doe', times: 5")
 
@@ -172,7 +173,7 @@ class TestExampleDictionaryServer(prego.TestCase, TestMixin):
         self.proxy = "PropertyServer -d -e 1.0:udp -h 127.0.0.1 -p 7897"
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
 
         client = prego.Task("client")
         client.wait_that(self.server, prego.running(), delta=0.1)
@@ -196,7 +197,7 @@ class TestExampleExtendedInterfaces(prego.TestCase, TestMixin):
         self.proxy = 'Server -e 1.0 -d:udp -h 127.0.0.1 -p 7892'
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client", "hello\nbye")
 
 
@@ -217,7 +218,7 @@ class TestExampleDynamicIceServer(prego.TestCase, TestMixin):
         self.proxy = "DynServer -e 1.0 -o:tcp -h 127.0.0.1 -p 7901"
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client.py", "'ice_invoke' called")
 
 
@@ -227,7 +228,7 @@ class TestExampleFloat(prego.TestCase, TestMixin):
         self.proxy = 'Thermostat -e 1.0 -o:tcp -h 127.0.0.1 -p 7892'
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client.py", "setTemperature to 25.6")
 
     def test_client_works(self):
@@ -263,7 +264,7 @@ class TestReceiveProxy(prego.TestCase, TestMixin):
         self.proxy = "Speaker -e 1.0 -t:tcp -h 127.0.0.1 -p 7903"
 
         self.build_example()
-        self.run_server("./server", expected=-15)
+        self.run_server("./server")
         self.run_client("./client.py", "Speaker called properly", on_client=True)
 
 
@@ -283,6 +284,6 @@ class TestIceStormPublish(prego.TestCase, TestMixin):
         self.build_example()
 
         self.proxy = "IceStorm/TopicManager -e 1.0 -t:tcp -h 127.0.0.1 -p 7910"
-        self.run_server('make run-is', expected=-15)
+        self.run_server('make run-is')
         self.run_server('./subscriber.py')
         self.run_client("./publisher", "Hello from IceStorm!", delayed=0.5)

@@ -12,5 +12,4 @@ pipelines:
   default:
     - step:
         script:
-          - apt update && apt install -y sliceparser
           - TEST_OPTS=-p make tests
