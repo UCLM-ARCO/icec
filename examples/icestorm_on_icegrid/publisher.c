@@ -17,6 +17,10 @@ main(int argc, char** argv) {
     Ice_initialize(&ic);
     TCPEndpoint_init(&ic);
 
+    /* set default locator */
+    Ice_Communicator_setDefaultLocator
+	(&ic, "TestIceGrid/Locator -t:tcp -h 127.0.0.1 -p 4061");
+
     /* get IceStorm manager proxy */
     char* strprx = "TestApp.IceStorm/TopicManager -t:tcp -h 127.0.0.1 -p 7910";
     Ice_Communicator_stringToProxy(&ic, strprx, &manager);

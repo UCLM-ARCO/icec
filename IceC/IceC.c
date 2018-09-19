@@ -894,7 +894,20 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     Ptr_check(self);
 
     if (self->connection.fd != -1) {
+	printf("Connected proxy!\n");
         return;
+    }
+
+    /* for indirect proxies: lazy endpoint resolution */
+    if (!Ptr_initialized(&(self->epinfo))) {
+	if (self->adapter_id[0] == 0) {
+	    assert(false && "Well-Known objects not supported");
+	}
+
+	/* FIXME: retrieve endpoints using locator */
+	/* Ice_ObjectPrx result; */
+	/* Ice_Locator_findAdapterById(self->adapter_id, &result); */
+	printf("Resolve indirect proxy!\n");
     }
 
     IcePlugin_ObjectPrx_connect(self);
@@ -962,6 +975,10 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     Ice_InputStream_readByte(is, &b); /* secure */
     Ice_InputStream_readByte(is, &numOfEndpoints);
 
+    /* init internal state */
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    Ice_OutputStream_init(&(self->stream));
+
     /* if no endpoints, then maybe an adapter-id */
     self->adapter_id[0] = 0;
     if (numOfEndpoints == 0) {
@@ -979,10 +996,6 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
 
     /* Endpoint related fields */
     IcePlugin_EndpointInfo_readFromInputStream(&self->epinfo, is);
-
-    /* init internal state */
-    Ice_Connection_init(&(self->connection), &(self->epinfo));
-    Ice_OutputStream_init(&(self->stream));
 }
 
 void ICEC_FUNC_ATTR
@@ -1232,6 +1245,16 @@ Ice_Communicator_loopIteration(Ice_CommunicatorPtr self) {
 
         Ice_ObjectAdapter_incomingMessage(result[i]);
     }
+}
+
+void ICEC_FUNC_ATTR
+Ice_Communicator_setDefaultLocator(Ice_CommunicatorPtr self,
+				   const char* strprx) {
+
+    trace();
+    Ptr_check(self);
+
+    /* FIXME: ensure that this proxy is a direct proxy */
 }
 
 static IcePlugin_PluginListItem _registered_endpoints;
@@ -1488,6 +1511,7 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
     trace();
 
     /* common init ops */
+    self->adapter_id[0] = 0;
 #if MAX_EXCEPTION_SIZE
     self->exception[0] = 0;
 #endif

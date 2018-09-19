@@ -344,13 +344,14 @@ void Ice_Communicator_createObjectAdapterWithEndpoints(Ice_CommunicatorPtr self,
                                                        Ice_ObjectAdapterPtr result);
 void Ice_Communicator_registerAdapter(Ice_CommunicatorPtr self,
                                       Ice_ObjectAdapterPtr adapter);
-void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
+void Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* strprx,
                                     Ice_ObjectPrx* result);
 void Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
 				    Ice_ObjectPrxPtr proxy,
                                     Ice_String* result);
 void Ice_Communicator_waitForShutdown(Ice_CommunicatorPtr self);
 void Ice_Communicator_loopIteration(Ice_CommunicatorPtr self);
+void Ice_Communicator_setDefaultLocator(Ice_CommunicatorPtr self, const char* strprx);
 void Ice_initialize(Ice_CommunicatorPtr ic);
 
 typedef struct IcePlugin_PluginListItem* IcePlugin_PluginListItemPtr;

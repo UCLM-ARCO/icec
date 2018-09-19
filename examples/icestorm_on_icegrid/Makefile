@@ -49,4 +49,4 @@ load-application:
 .PHONY: clean
 clean:
 	$(RM) $(TARGET) $(SLICES:%.ice=%.h) *.o *~
-	$(RM) -r $(IS_DB_HOME)
+	$(RM) -r $(REG_HOME) $(NOD_HOME)
