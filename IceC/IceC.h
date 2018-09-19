@@ -19,6 +19,8 @@ extern "C" {
         assert(((ObjectPtr)ptr)->tag == TAG_OK && "Uninitialized");     \
     } while(0)
 
+#define Ptr_initialized(ptr) (((ObjectPtr)ptr)->tag == TAG_OK)
+
 #define c_throw(EXC, FILE, LINE)                                        \
     do {								\
         error_at_line(0, 0, FILE, LINE, EXC);                           \
@@ -309,6 +311,7 @@ typedef struct {
     char identity[MAX_IDENTITY_SIZE];
     Ice_ReferenceMode mode;
     Ice_EndpointInfo epinfo;
+    char adapter_id[MAX_ADAPTER_ID_SIZE];
 
 #if MAX_EXCEPTION_SIZE
     char exception[MAX_EXCEPTION_SIZE];

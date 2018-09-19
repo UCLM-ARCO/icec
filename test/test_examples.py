@@ -37,6 +37,21 @@ class TestMixin(object):
             delta=0.1)
         return client
 
+    def run_client_alone(self, cmd, expected, delayed=0):
+        client = prego.Task("client")
+        if delayed:
+            client.delay(delayed)
+
+        params = {'expected': None, 'timeout': 10}
+        client.command(
+            "{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd, **params)
+        stdout = client.lastcmd.stdout
+        client.wait_that(
+            stdout.content,
+            hamcrest.contains_string(expected),
+            delta=0.1)
+        return client
+
 
 class TestExampleHelloUDPDatagramClient(prego.TestCase, TestMixin):
     def test_works(self):
@@ -277,6 +292,16 @@ class TestProxyAsReturnValue(prego.TestCase, TestMixin):
         self.build_example()
         self.run_server("./server.py")
         self.run_client("./client", "Speaker called properly")
+
+
+class TestStringToProxy(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/communicator_stringToProxy"
+        self.proxy = "Manager -e 1.0 -t:tcp -h 127.0.0.1 -p 7904"
+
+        self.build_example()
+        self.run_client_alone(
+            "./test", "Proxy: 'Object1 -t:tcp -h 127.0.0.1 -p 1234'")
 
 
 class TestIceStormPublish(prego.TestCase, TestMixin):

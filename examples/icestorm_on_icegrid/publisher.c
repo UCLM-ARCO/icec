@@ -33,10 +33,14 @@ main(int argc, char** argv) {
     char buff[result.size];
     result.value = buff;
 
+    /* print the retrieved proxies */
+    Ice_Communicator_proxyToString(&ic, &manager, &result);
+    printf("manager: '%s'\n", buff);
     Ice_Communicator_proxyToString(&ic, &topic, &result);
+    printf("topic: '%s'\n", buff);
 
     /* retrieve topic's publisher */
-    /* IceStorm_Topic_getPublisher(&topic, &publisher); */
-    /* Example_Hello_sayHello(&publisher); */
+    IceStorm_Topic_getPublisher(&topic, &publisher);
+    Example_Hello_sayHello(&publisher);
     return 0;
 }

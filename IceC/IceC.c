@@ -962,8 +962,13 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     Ice_InputStream_readByte(is, &b); /* secure */
     Ice_InputStream_readByte(is, &numOfEndpoints);
 
-    if (numOfEndpoints == 0)
+    /* if no endpoints, then maybe an adapter-id */
+    self->adapter_id[0] = 0;
+    if (numOfEndpoints == 0) {
+	/* note that if adapter-id is empty, then is a well-known object */
+	Ice_InputStream_readString(is, self->adapter_id);
 	return;
+    }
 
     if (numOfEndpoints > 1)
 	prints("Warning: multiple endpoints received, using only the first\n");
@@ -1135,7 +1140,7 @@ Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
 			       Ice_String* result) {
     uint16_t i = 0;
     uint16_t size = 0;
-    char* mode = " -d:";
+    char mode[] = " -d -e 1.0   ";
     Ice_String epstr;
 
     trace();
@@ -1150,18 +1155,40 @@ Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
     i += size;
 
     /* proxy mode: o,t,d */
+    mode[2] = 't';
     switch (proxy->mode) {
     case Ice_ReferenceModeTwoway: mode[2] = 't'; break;
     case Ice_ReferenceModeOneway: mode[2] = 'o'; break;
-    default: mode[2] = 'o';
+    default: break;
     }
 
     size = strlen(mode);
     if (size >= (result->size - i))
 	size = result->size - i - 1;
-
     strncpy(result->value + i, mode, size);
     i += size;
+
+    /* if is indirect object, include adapter-id (if any) */
+    if (!Ptr_initialized(&(proxy->epinfo))) {
+	if (proxy->adapter_id[0] != 0) {
+	    /* write separator for indirect proxies */
+	    *(result->value + i - 2) = '@';
+
+	    /* write adapter-id */
+	    size = strlen(proxy->adapter_id);
+	    if (size >= result->size - i)
+		size = result->size - i - 1;
+	    strncpy(result->value + i, proxy->adapter_id, size);
+	    i += size;
+
+	    /* zero ending string */
+	    *(result->value + i) = 0;
+	}
+	return;
+    }
+
+    /* add a semicolon to begin endpoint info */
+    *(result->value + i - 2) = ':';
 
     /* endpoint */
     epstr.value = result->value + i;
@@ -1426,7 +1453,8 @@ IcePlugin_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;
         Ptr_check(endp);
 
-        if (endp->EndpointInfo_toString(self, result))
+        if (endp->EndpointInfo_toString != NULL &&
+	    endp->EndpointInfo_toString(self, result))
             break;
 
         item = item->next;
