@@ -260,6 +260,7 @@ void Ice_Connection_sendClose(Ice_ConnectionPtr self);
 /* Forward declaration */
 struct Ice_Communicator;
 typedef struct Ice_Communicator* Ice_CommunicatorPtr;
+extern Ice_CommunicatorPtr _instance;
 
 typedef struct {
     Object _base;
@@ -322,6 +323,7 @@ typedef struct {
     Ice_ReferenceMode mode;
     Ice_EndpointInfo epinfo;
     char adapter_id[MAX_ADAPTER_ID_SIZE];
+    Ice_CommunicatorPtr communicator;
 
 #if MAX_EXCEPTION_SIZE
     char exception[MAX_EXCEPTION_SIZE];
@@ -345,6 +347,7 @@ void Ice_ObjectPrx_ice_identity(Ice_ObjectPrxPtr self, const char* newid);
 typedef struct Ice_Communicator {
     Object _base;
     Ice_ObjectAdapter_List adapters;
+    Ice_ObjectPrx locator;
 } Ice_Communicator;
 
 void Ice_Communicator_init(Ice_CommunicatorPtr self);

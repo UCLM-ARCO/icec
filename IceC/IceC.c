@@ -2,6 +2,7 @@
 
 #include <IceC/IceC.h>
 #include <IceC/IceUtil.h>
+#include <IceC/Locator.h>
 
 void ICEC_FUNC_ATTR
 Object_init(ObjectPtr self) {
@@ -406,7 +407,6 @@ Ice_OutputStream_writeBlob(Ice_OutputStreamPtr self, const byte* data, int size)
     trace();
     Ptr_check(self);
 
-    printf("size: %d\n", self->size + size);
     assert((self->size + size <= MAX_MESSAGE_SIZE) && "Too long message!");
 
     memcpy(self->next, data, size);
@@ -901,7 +901,6 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     Ptr_check(self);
 
     if (self->connection.fd != -1) {
-	printf("Connected proxy!\n");
         return;
     }
 
@@ -911,10 +910,28 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 	    assert(false && "Well-Known objects not supported");
 	}
 
-	/* FIXME: retrieve endpoints using locator */
-	/* Ice_ObjectPrx result; */
-	/* Ice_Locator_findAdapterById(self->adapter_id, &result); */
-	printf("Resolve indirect proxy!\n");
+	/* FIXME: move this to a function */
+
+	/* retrieve endpoints using locator */
+	Ice_ObjectPrx result;
+	Ice_CommunicatorPtr ic = self->communicator;
+	new_Ice_String(adapter_id, self->adapter_id);
+	Ice_Locator_findAdapterById
+	    ((Ice_ObjectPrxPtr)&(ic->locator), adapter_id, &result);
+
+	/* FIXME: don't use this method, just copy relevant fields
+	   between both enpinfos */
+	char buff[512];
+	Ice_String strprx;
+	strprx.size = 512;
+	strprx.value = buff;
+
+	Ice_Communicator_proxyToString(ic, &result, &strprx);
+
+	/* finish initialization */
+	Ice_EndpointType type;
+	IceUtil_getProtocolType(buff, &type);
+	IcePlugin_ObjectPrx_init(self, type, buff);
     }
 
     IcePlugin_ObjectPrx_connect(self);
@@ -963,10 +980,13 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     Ptr_check(is);
 
     /* common init ops */
+    self->adapter_id[0] = 0;
 #if MAX_EXCEPTION_SIZE
     self->exception[0] = 0;
 #endif
     Object_init((ObjectPtr)self);
+
+    /* retrieve identiy */
     Ice_InputStream_readIdentity(is, self->identity);
 
     /* empty proxy, no more fields encoded */
@@ -1143,14 +1163,45 @@ void ICEC_FUNC_ATTR
 Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
                                Ice_ObjectPrx* result) {
     Ice_EndpointType type;
+    char* atSymbol = NULL;
 
     trace();
     Ptr_check(self);
 
-    IceUtil_getProtocolType(str, &type);
+    /* common init ops */
+    result->adapter_id[0] = 0;
+    result->communicator = _instance;
+#if MAX_EXCEPTION_SIZE
+    result->exception[0] = 0;
+#endif
+    Object_init((ObjectPtr)result);
+
+    /* retrieve identity */
     IceUtil_getIdentity(str, result->identity);
+
+    /* empty proxy, no more fields encoded */
+    if (result->identity[0] == 0)
+        return;
+
+    /* get proxy mode (Note: facet not supported) */
     IceUtil_getMode(str, &(result->mode));
 
+    /* init internal state */
+    Ice_Connection_init(&(result->connection), &(result->epinfo));
+    Ice_OutputStream_init(&(result->stream));
+
+    /* if indirect proxy... */
+    atSymbol = index(str, '@');
+    if (atSymbol != NULL) {
+	/* ...read the adapter id and initialize reset connection info */
+	IceUtil_getAdapterId(str, result->adapter_id);
+	return;
+    }
+
+    /* endpoint type (short) */
+    IceUtil_getProtocolType(str, &type);
+
+    /* Endpoint related fields */
     IcePlugin_ObjectPrx_init(result, type, str);
 }
 
@@ -1261,10 +1312,14 @@ Ice_Communicator_setDefaultLocator(Ice_CommunicatorPtr self,
     trace();
     Ptr_check(self);
 
-    /* FIXME: ensure that this proxy is a direct proxy */
+    /* FIXME: well-known objects are not supported either! */
+    Ice_Communicator_stringToProxy(self, strprx, &(self->locator));
+    assert(self->locator.adapter_id[0] == 0 &&
+	   "Could not use an indirect proxy as locator");
 }
 
 static IcePlugin_PluginListItem _registered_endpoints;
+Ice_CommunicatorPtr _instance;
 
 void ICEC_FUNC_ATTR
 Ice_initialize(Ice_CommunicatorPtr ic) {
@@ -1274,6 +1329,7 @@ Ice_initialize(Ice_CommunicatorPtr ic) {
 
     Ice_Communicator_init(ic);
     IcePlugin_PluginListItem_init(&_registered_endpoints, NULL);
+    _instance = ic;
 }
 
 /*
@@ -1516,12 +1572,6 @@ IcePlugin_ObjectPrx_init(Ice_ObjectPrxPtr self,
     IcePlugin_PluginListItemPtr item = _registered_endpoints.next;
 
     trace();
-
-    /* common init ops */
-    self->adapter_id[0] = 0;
-#if MAX_EXCEPTION_SIZE
-    self->exception[0] = 0;
-#endif
 
     while (item != NULL) {
         IcePlugin_EndpointObjectPtr endp = (IcePlugin_EndpointObjectPtr)item->object;

@@ -42,11 +42,35 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
 }
 
 void ICEC_FUNC_ATTR
+IceUtil_getAdapterId(const char* s, char* result) {
+    const char* i;
+    int end;
+
+    s += strspn(s, "\n\r\t ");
+
+    i = index(s, '@');
+    if (i != NULL) {
+    	i++;
+    	s = i + strspn(i, "\n\r\t ");
+
+	end = strcspn(s, "\n\r\t ");
+	strncpy(result, s, end);
+	result[end] = 0;
+    }
+}
+
+void ICEC_FUNC_ATTR
 IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
     ssize_t i, j;
     const char* t = " -";
+    const char* sep;
     ssize_t token_size = 2;
-    int limit = strchr(s, ':') - s;
+
+    sep = strchr(s, ':');
+    if (sep == NULL)
+	sep = strchr(s, '@');
+
+    int limit = sep - s;
 
     for (i=0; i<limit; i++) {
 	for (j=0; j<token_size; j++) {
