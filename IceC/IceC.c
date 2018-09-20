@@ -406,6 +406,7 @@ Ice_OutputStream_writeBlob(Ice_OutputStreamPtr self, const byte* data, int size)
     trace();
     Ptr_check(self);
 
+    printf("size: %d\n", self->size + size);
     assert((self->size + size <= MAX_MESSAGE_SIZE) && "Too long message!");
 
     memcpy(self->next, data, size);
@@ -477,6 +478,12 @@ Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id) {
 
     Ice_OutputStream_writeIceString(self, name);
     Ice_OutputStream_writeIceString(self, category);
+}
+
+void ICEC_FUNC_ATTR
+Ice_OutputStream_writeIceIdentity(Ice_OutputStreamPtr self, IceStd_IdentityPtr oid) {
+    Ice_OutputStream_writeIceString(self, oid->name);
+    Ice_OutputStream_writeIceString(self, oid->category);
 }
 
 void ICEC_FUNC_ATTR

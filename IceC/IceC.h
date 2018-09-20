@@ -74,6 +74,15 @@ typedef Ice_String* Ice_StringPtr;
         DICT.items[INDEX].value = VALUE;        \
     } while(0);
 
+/* Note: use IceStd here because structs generated from slices,
+   although binary compatible, use that same name */
+typedef struct {
+    Ice_String name;
+    Ice_String category;
+} IceStd_Identity;
+
+typedef IceStd_Identity* IceStd_IdentityPtr;
+
 #define protocolMajor 1
 #define protocolMinor 0
 #define encodingMajor 1
@@ -213,6 +222,7 @@ void Ice_OutputStream_writeSize(Ice_OutputStreamPtr self, int size);
 void Ice_OutputStream_writeString(Ice_OutputStreamPtr self, const char* str);
 void Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str);
 void Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id);
+void Ice_OutputStream_writeIceIdentity(Ice_OutputStreamPtr self, IceStd_IdentityPtr oid);
 void Ice_OutputStream_startWriteEncaps(Ice_OutputStreamPtr self);
 void Ice_OutputStream_endWriteEncaps(Ice_OutputStreamPtr self);
 void Ice_OutputStream_setMessageSize(Ice_OutputStreamPtr self);

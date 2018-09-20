@@ -105,3 +105,15 @@ IceUtil_getStringParam(const char* s, char* result, char flag) {
     	s++;
     }
 }
+
+void ICEC_FUNC_ATTR
+IceUtil_IdentityToString(IceStd_IdentityPtr oid, char* dst) {
+    int i = 0;
+    strncpy(dst, oid->category.value, oid->category.size);
+    i += oid->category.size;
+    dst[i] = '/';
+    i++;
+    strncpy(dst + i, oid->name.value, oid->name.size);
+    i += oid->name.size;
+    dst[i] = 0;
+}

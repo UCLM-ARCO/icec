@@ -301,7 +301,7 @@ class TestStringToProxy(prego.TestCase, TestMixin):
 
         self.build_example()
         self.run_client_alone(
-            "./test", "Proxy: 'Object1 -t:tcp -h 127.0.0.1 -p 1234'")
+            "./test", "Proxy: 'Object1 -t -e 1.0 : tcp -h 127.0.0.1 -p 1234'")
 
 
 class TestIceStormPublish(prego.TestCase, TestMixin):
@@ -313,3 +313,13 @@ class TestIceStormPublish(prego.TestCase, TestMixin):
         self.run_server('make run-is')
         self.run_server('./subscriber.py')
         self.run_client("./publisher", "Hello from IceStorm!", delayed=0.5)
+
+
+class TestIceIdentityOnSliceInterface(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/identity_on_slice"
+        self.build_example()
+
+        self.proxy = "Server -t -e 1.0:tcp -h 127.0.0.1 -p 1234"
+        self.run_server('./server.py')
+        self.run_client("./client", "oid: myCategory/myObject", delayed=0.5)

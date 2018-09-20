@@ -9,6 +9,7 @@ from commodity.pattern import Bunch
 basic_types = ['bool', 'byte', 'short', 'int', 'long', 'float', 'double']
 extended_types = basic_types + ['string']
 
+
 def get_basic_type(src):
     return {
         'Ice_Bool': 'bool',
@@ -499,7 +500,11 @@ class OutputStream(CCode):
             name = "Ice_OutputStream_writeIceString"
 
         if typeid in ["Ice_Identity"]:
-            name = "Ice_OutputStream_writeIdentity"
+            if kind == "struct":
+                param = "(IceStd_IdentityPtr)&({0})".format(param)
+                name = "Ice_OutputStream_writeIceIdentity"
+            else:
+                name = "Ice_OutputStream_writeIdentity"
 
         if kind in ["enum"]:
             name = "Ice_OutputStream_writeByte"

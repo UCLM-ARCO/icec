@@ -19,6 +19,7 @@ void IceUtil_getStringParam(const char* input, char* result, char flag);
 void IceUtil_getByteParam(const char* input, byte* result, char flag);
 
 void IceUtil_delay(uint16_t ms);
+void IceUtil_IdentityToString(IceStd_IdentityPtr oid, char* dst);
 
 #ifdef __cplusplus
 }
