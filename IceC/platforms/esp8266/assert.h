@@ -6,7 +6,7 @@
 extern void prints(const char*);
 extern void printi(const int);
 
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
 #include <assert.h>
 #else
 #define assert(token) __assert(token, #token)

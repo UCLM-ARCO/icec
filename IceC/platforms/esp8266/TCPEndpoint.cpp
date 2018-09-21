@@ -392,12 +392,15 @@ TCPEndpoint_init(Ice_CommunicatorPtr ic) {
     endpoint.getProtocolType = &TCP_getProtocolType;
     endpoint.InputStream_init = &TCP_InputStream_init;
     endpoint.ObjectAdapter_activate = &TCP_ObjectAdapter_activate;
+
     endpoint.EndpointInfo_init = &TCP_EndpointInfo_init;
     endpoint.EndpointInfo_writeToOutputStream = &TCP_EndpointInfo_writeToOutputStream;
     endpoint.EndpointInfo_readFromInputStream = &TCP_EndpointInfo_readFromInputStream;
     endpoint.EndpointInfo_toString = &TCP_EndpointInfo_toString;
+
     endpoint.ObjectPrx_init = &TCP_ObjectPrx_init;
     endpoint.ObjectPrx_connect = &TCP_ObjectPrx_connect;
+
     endpoint.Connection_accept = &TCP_Connection_accept;
     endpoint.Connection_send = &TCP_Connection_send;
     endpoint.Connection_close = &TCP_Connection_close;

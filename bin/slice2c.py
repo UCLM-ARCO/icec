@@ -235,8 +235,12 @@ class Typedef(object):
 
 
 class Struct(CCode):
+    def __init__(self, name=""):
+        self.name = name
+
     def __str__(self):
-        retval = "struct {\n"
+        name = "{0} ".format(self.name)
+        retval = "struct {0}{{\n".format(name)
         tab = " " * 4
         for i in self:
             retval += "{0}{1};\n".format(tab, i)
@@ -905,7 +909,7 @@ class ClassDefDecl(BaseDecl, list):
         self.render_proxy_methods(c)
 
     def render_struct(self, c):
-        st = Struct()
+        st = Struct(self.full_name)
 
         base = Param("Ice_Object", "__base")
         st.append(base)
@@ -1396,7 +1400,7 @@ class SequenceDecl(BaseDecl):
         self.render_unmarshaller(c)
 
     def render_sequence(self, c):
-        seq = Struct()
+        seq = Struct(self.full_name)
 
         size = Param("Ice_Int", "size")
         seq.append(size)
@@ -1478,7 +1482,7 @@ class DictionaryDecl(BaseDecl):
         self.render_unmarshaller(c)
 
     def render_dictionary_pair(self, c):
-        pair = Struct()
+        pair = Struct(self.full_name)
 
         key = Param(self.key_type, "key")
         pair.append(key)
@@ -1492,7 +1496,7 @@ class DictionaryDecl(BaseDecl):
         self.render_ptr(c, name, name + "Ptr")
 
     def render_dictionary(self, c):
-        dic = Struct()
+        dic = Struct(self.full_name)
 
         size = Param("byte", "size")
         dic.append(size)
@@ -1624,7 +1628,7 @@ class StructDecl(BaseDecl):
         self.render_unmarshaller(c)
 
     def render_struct(self, c):
-        struct = Struct()
+        struct = Struct(self.full_name)
         for m in self.members:
 
             typeid = m.typeid

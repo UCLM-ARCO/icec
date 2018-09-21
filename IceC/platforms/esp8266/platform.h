@@ -32,12 +32,37 @@
   #define MAX_MESSAGE_SIZE        128
 #endif
 
-#define MAX_IDENTITY_SIZE       32
-#define MAX_NESTED_ENCAPS       3
-#define MAX_NUM_OF_ADAPTERS     1
-#define MAX_NUM_OF_SERVANTS     10
-#define MAX_PROTO_SIZE          8
-#define MAX_OPERATION_NAME_SIZE 16
-#define MAX_EXCEPTION_SIZE      32
+#ifndef MAX_IDENTITY_SIZE
+  #define MAX_IDENTITY_SIZE       32
+#endif
+
+#ifndef MAX_ADAPTER_ID_SIZE
+#define MAX_ADAPTER_ID_SIZE     64
+#endif
+
+#ifndef MAX_NESTED_ENCAPS
+  #define MAX_NESTED_ENCAPS       3
+#endif
+
+#ifndef MAX_NUM_OF_ADAPTERS
+  #define MAX_NUM_OF_ADAPTERS     1
+#endif
+
+#ifndef MAX_NUM_OF_SERVANTS
+  #define MAX_NUM_OF_SERVANTS     10
+#endif
+
+#ifndef MAX_PROTO_SIZE
+  #define MAX_PROTO_SIZE          8
+#endif
+
+#ifndef MAX_OPERATION_NAME_SIZE
+#define MAX_OPERATION_NAME_SIZE   16
+#endif
+
+#ifndef MAX_EXCEPTION_SIZE
+  #define MAX_EXCEPTION_SIZE      32
+#endif
+
 
 #endif /* _ICE_PLATFORM_ESP8266_H_ */
