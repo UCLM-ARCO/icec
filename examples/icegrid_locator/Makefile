@@ -29,7 +29,7 @@ $(TARGET): $(SLICES:%.ice=%.h) IceC.o IceUtil.o TCPEndpoint.o port.o $@
 	$(SLICE2C) --ice -I/usr/share/slice $^
 
 run-icegrid: DETACH ?= gnome-terminal --
-run-icegrid: run-registry run-node load-application
+run-icegrid: run-registry run-node delay load-application
 
 run-registry:
 	$(RM) -r $(REG_HOME)
@@ -41,8 +41,10 @@ run-node:
 	mkdir -p $(NOD_HOME)/node1
 	$(DETACH) icegridnode --Ice.Config=node.config
 
+delay:
+	sleep 2;
+
 load-application:
-	sleep 2; \
 	icegridadmin -u user -p pass -H 127.0.0.1 -e "application add application.xml"
 
 

@@ -896,6 +896,27 @@ Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self) {
 }
 
 void ICEC_FUNC_ATTR
+_resolveIndirectProxy(Ice_ObjectPrxPtr self) {
+    Ice_ObjectPrx result;
+    Ice_CommunicatorPtr ic = self->communicator;
+
+    /* retrieve endpoints using locator */
+    new_Ice_String(adapter_id, self->adapter_id);
+    Ice_Locator_findAdapterById
+	((Ice_ObjectPrxPtr)&(ic->locator), adapter_id, &result);
+
+    /* FIXME: don't use this method, just copy relevant fields
+       between both enpinfos */
+    char buff[512];
+    new_Ice_String(strprx, buff);
+    strprx.size = 512;
+    Ice_Communicator_proxyToString(ic, &result, &strprx);
+
+    /* finish initialization */
+    IcePlugin_ObjectPrx_init(self, result.epinfo.type, buff);
+}
+
+void ICEC_FUNC_ATTR
 Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     trace();
     Ptr_check(self);
@@ -909,29 +930,7 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 	if (self->adapter_id[0] == 0) {
 	    assert(false && "Well-Known objects not supported");
 	}
-
-	/* FIXME: move this to a function */
-
-	/* retrieve endpoints using locator */
-	Ice_ObjectPrx result;
-	Ice_CommunicatorPtr ic = self->communicator;
-	new_Ice_String(adapter_id, self->adapter_id);
-	Ice_Locator_findAdapterById
-	    ((Ice_ObjectPrxPtr)&(ic->locator), adapter_id, &result);
-
-	/* FIXME: don't use this method, just copy relevant fields
-	   between both enpinfos */
-	char buff[512];
-	Ice_String strprx;
-	strprx.size = 512;
-	strprx.value = buff;
-
-	Ice_Communicator_proxyToString(ic, &result, &strprx);
-
-	/* finish initialization */
-	Ice_EndpointType type;
-	IceUtil_getProtocolType(buff, &type);
-	IcePlugin_ObjectPrx_init(self, type, buff);
+	_resolveIndirectProxy(self);
     }
 
     IcePlugin_ObjectPrx_connect(self);

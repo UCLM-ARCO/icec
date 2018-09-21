@@ -1,7 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
 #include <IceC/IceC.h>
-#include <IceC/Locator.h>
 #include <IceC/platforms/x86/TCPEndpoint.h>
 
 #include "IceStorm-lite.h"

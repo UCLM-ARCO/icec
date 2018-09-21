@@ -11,10 +11,14 @@ class TestMixin(object):
         build.command("make", cwd=self.cwd)
         return build
 
-    def run_server(self, cmd, **kwargs):
+    def run_server(self, cmd, delayed=0, **kwargs):
         params = {'expected': None, 'timeout': 10}
         params.update(kwargs)
         self.server = prego.Task("server", detach=True)
+
+        if delayed:
+            self.server.delay(delayed)
+
         self.server.command(cmd, cwd=self.cwd, **params)
 
     def run_client(self, cmd, expected, on_client=False, delayed=0):
@@ -25,7 +29,9 @@ class TestMixin(object):
             client.delay(delayed)
 
         params = {'expected': None, 'timeout': 10}
-        client.command("{0} '{1}'".format(cmd, self.proxy), cwd=self.cwd,
+        if hasattr(self, "proxy"):
+            cmd = "{0} '{1}'".format(cmd, self.proxy)
+        client.command(cmd, cwd=self.cwd,
                        **params)
         stdout = self.server.lastcmd.stdout
         if on_client:
@@ -323,3 +329,18 @@ class TestIceIdentityOnSliceInterface(prego.TestCase, TestMixin):
         self.proxy = "Server -t -e 1.0:tcp -h 127.0.0.1 -p 1234"
         self.run_server('./server.py')
         self.run_client("./client", "oid: myCategory/myObject", delayed=0.5)
+
+
+class TestIceGridLocator(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/icegrid_locator"
+        self.build_example()
+
+        self.run_server('make run-registry', timeout=15)
+        self.run_server('make run-node', delayed=2)
+        self.run_server('make load-application', delayed=3)
+        self.run_client(
+            "./resolver",
+            "resolved proxy: 'TestApp.IceStorm/TopicManager -t -e 1.0 "
+            ": tcp -h 127.0.0.1 -p 7910'",
+            on_client=True, delayed=4)
