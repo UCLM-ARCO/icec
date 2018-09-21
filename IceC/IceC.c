@@ -980,6 +980,7 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
 
     /* common init ops */
     self->adapter_id[0] = 0;
+    self->communicator = _instance;
 #if MAX_EXCEPTION_SIZE
     self->exception[0] = 0;
 #endif

@@ -9,10 +9,10 @@ SLICES   = example.ice IceStorm-lite.ice
 REG_HOME = /tmp/test-registry
 NOD_HOME = /tmp/test-node
 
-CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
 CFLAGS  += -I $(BASEDIR)
-CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
-	   -Wno-unused-function
+# CFLAGS  += -ggdb -DDEBUG -DICE_TRACE_PROTOCOL=1
+# CFLAGS  += -Wall -Wextra -pedantic -Wno-variadic-macros -Wno-unused-parameter \
+# 	   -Wno-unused-function
 
 
 vpath %.ice /usr/share/slice/IceStorm/

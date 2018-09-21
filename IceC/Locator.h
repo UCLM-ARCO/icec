@@ -15,9 +15,9 @@ Ice_Identity_writeToOutputStream(Ice_IdentityPtr self,
                                  Ice_OutputStreamPtr os) {
 
     trace();
-    
+
     Ptr_check(os);
-    
+
     Ice_OutputStream_writeIceString(os, self->name);
     Ice_OutputStream_writeIceString(os, self->category);
 }
@@ -27,9 +27,9 @@ Ice_Identity_readFromInputStream(Ice_IdentityPtr self,
                                  Ice_InputStreamPtr is) {
 
     trace();
-    
+
     Ptr_check(is);
-    
+
     Ice_InputStream_readIceString(is, &(self->name));
     Ice_InputStream_readIceString(is, &(self->category));
 }
@@ -54,7 +54,7 @@ typedef Ice_ObjectDict* Ice_ObjectDictPtr;
 do {                                                   \
     Ice_Dict_set(DICT.items[INDEX].key, KEY);          \
     Ice_Dict_set(DICT.items[INDEX].value, VALUE);      \
-} while(0)                                             
+} while(0)
 
 static void
 Ice_ObjectDict_writeToOutputStream(Ice_ObjectDictPtr self,
@@ -62,11 +62,11 @@ Ice_ObjectDict_writeToOutputStream(Ice_ObjectDictPtr self,
     byte i = 0;
 
     trace();
-    
+
     Ptr_check(os);
-    
+
     Ice_OutputStream_writeSize(os, self->size);
-    
+
     for (i=0; i<self->size; i++) {
         Ice_OutputStream_writeIceIdentity(os,
                 (IceStd_IdentityPtr)&(self->items[i].key));
@@ -81,13 +81,13 @@ Ice_ObjectDict_readFromInputStream(Ice_ObjectDictPtr self,
     byte i = 0;
 
     trace();
-    
+
     Ptr_check(is);
-    
+
     Ice_InputStream_readSize(is, &size, true);
     assert(size < 256);
     self->size = size;
-    
+
     for (i=0; i<self->size; i++) {
         Ice_Identity_readFromInputStream(&(self->items[i].key), is);
         Ice_ObjectPrx_readFromInputStream(&(self->items[i].value), is);
@@ -107,11 +107,11 @@ Ice_IdentitySeq_writeToOutputStream(Ice_IdentitySeqPtr self,
     int i = 0;
 
     trace();
-    
+
     Ptr_check(os);
-    
+
     Ice_OutputStream_writeSize(os, self->size);
-    
+
     for (i=0; i<self->size; i++) {
         Ice_OutputStream_writeIceIdentity(os,
                 (IceStd_IdentityPtr)&(*(self->items + i)));
@@ -124,11 +124,11 @@ Ice_IdentitySeq_readFromInputStream(Ice_IdentitySeqPtr self,
     int i = 0;
 
     trace();
-    
+
     Ptr_check(is);
-    
+
     Ice_InputStream_readSize(is, &(self->size), true);
-    
+
     for (i=0; i<self->size; i++) {
         Ice_Identity_readFromInputStream(self->items + i, is);
     }
@@ -165,7 +165,7 @@ static void
 Ice_Locator_init(Ice_LocatorPtr self) {
 
     trace();
-    
+
     Ice_Object_init((Ice_ObjectPtr)self,
             (Ice_MethodHandlerPtr)Ice_Locator_methodHandler);
 }
@@ -192,12 +192,12 @@ Ice_Locator_findObjectById__dispatch(Ice_LocatorPtr self,
     Ice_ObjectPrx retval;
 
     trace();
-    
+
     if (&Ice_LocatorI_findObjectById == 0) {
         return;
     }
     Ice_Identity_readFromInputStream(&id, is);
-    
+
     Ice_LocatorI_findObjectById(self, id, &retval);
     Ice_ObjectPrx_writeToOutputStream(&(retval), os);
 }
@@ -210,12 +210,12 @@ Ice_Locator_findAdapterById__dispatch(Ice_LocatorPtr self,
     Ice_ObjectPrx retval;
 
     trace();
-    
+
     if (&Ice_LocatorI_findAdapterById == 0) {
         return;
     }
     Ice_InputStream_readIceString(is, &id);
-    
+
     Ice_LocatorI_findAdapterById(self, id, &retval);
     Ice_ObjectPrx_writeToOutputStream(&(retval), os);
 }
@@ -227,7 +227,7 @@ Ice_Locator_getRegistry__dispatch(Ice_LocatorPtr self,
     Ice_LocatorRegistryPrx retval;
 
     trace();
-    
+
     if (&Ice_LocatorI_getRegistry == 0) {
         return;
     }
@@ -248,44 +248,44 @@ Ice_Locator_methodHandler(Ice_LocatorPtr self,
     byte minor = 0;
 
     trace();
-    
+
     Ptr_check(self);
     Ptr_check(is);
     Ptr_check(os);
-    
+
     Ice_InputStream_readSize(is, &operationSize, false);
     assert(operationSize <= MAX_OPERATION_NAME_SIZE);
-    
+
     Ice_InputStream_readString(is, operation);
-    
+
     /* FIXME: operationMode ignored */
     Ice_InputStream_readByte(is, &mode);
-    
+
     /* FIXME: Context not supported */
     Ice_InputStream_readByte(is, &contextSize);
     assert(contextSize == 0);
-    
+
     Ice_InputStream_readInt(is, &encapSize);
     Ice_InputStream_readByte(is, &major);
     Ice_InputStream_readByte(is, &minor);
     assert(major == 1 && minor == 0);
     assert(encapSize - 6 == (is->size - (is->next - is->data)));
-    
+
     if (strcmp(operation, "findObjectById") == 0) {
         Ice_Locator_findObjectById__dispatch(self, is, os);
         return;
     }
-    
+
     if (strcmp(operation, "findAdapterById") == 0) {
         Ice_Locator_findAdapterById__dispatch(self, is, os);
         return;
     }
-    
+
     if (strcmp(operation, "getRegistry") == 0) {
         Ice_Locator_getRegistry__dispatch(self, is, os);
         return;
     }
-    
+
     c_throw("Ice_OperationNotExistException", __FILE__, __LINE__);
 }
 
@@ -296,15 +296,15 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
     Ice_OutputStreamPtr os = &(self->stream);
 
     trace();
-    
+
     Ptr_check(self);
-    
+
     Ice_ObjectPrx_connect(self);
     Ice_OutputStream_init(os);
-    
+
     /* request header */
     Ice_OutputStream_writeBlob(os, Ice_header, sizeof(Ice_header));
-    
+
     /* request body */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 1);
@@ -312,21 +312,21 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
     if (self->mode != Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 0);
     }
-    
+
     Ice_OutputStream_writeIdentity(os, self->identity);
     Ice_OutputStream_writeString(os, "");
     Ice_OutputStream_writeString(os, "findObjectById");
     Ice_OutputStream_writeByte(os, Ice_Idempotent);
     Ice_OutputStream_writeByte(os, 0);
-    
+
     /* encapsulated params */
     Ice_OutputStream_startWriteEncaps(os);
     Ice_OutputStream_writeIceIdentity(os, (IceStd_IdentityPtr)&(id));
     Ice_OutputStream_endWriteEncaps(os);
     Ice_OutputStream_setMessageSize(os);
-    
+
     Ice_ObjectPrx_send(self);
-    
+
     /* parse reply message (only on twoway invocations) */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_InputStream is;
@@ -336,7 +336,7 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
         Ice_Byte replyStatus = 0;
         Ice_Int encapsSize = 0;
         Ice_Byte skipByte = 0;
-        
+
         uint16_t timeout = 5000;
         bool ready = false;
         while (!ready) {
@@ -347,14 +347,14 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
                 return;
             }
         }
-        
+
         /* reply header */
         Ice_InputStream_init(&is, self->connection.fd, self->connection.epinfo->type);
         if (memcmp(expected, is.next, 10) != 0) {
             c_throw("Ice_ProtocolException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* skip header from input stream */
         is.next += 10;
         Ice_InputStream_readInt(&is, &size);
@@ -362,11 +362,11 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
             c_throw("Ice_MemoryLimitException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* reply body */
         Ice_InputStream_readInt(&is, &requestId);
             Ice_InputStream_readByte(&is, &replyStatus);
-            
+
         /* check replyStatus */
         switch (replyStatus) {
         case 0: {
@@ -398,13 +398,13 @@ Ice_Locator_findObjectById(Ice_LocatorPrxPtr self,
             c_throw("Ice_UnknownException", __FILE__, __LINE__);
             return;
         }}
-        
+
         Ice_InputStream_readInt(&is, &encapsSize);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_ObjectPrx_readFromInputStream(retval, &is);
         }
-    
+
     Ice_ObjectPrx_closeConnection(self);
 }
 
@@ -415,15 +415,15 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
     Ice_OutputStreamPtr os = &(self->stream);
 
     trace();
-    
+
     Ptr_check(self);
-    
+
     Ice_ObjectPrx_connect(self);
     Ice_OutputStream_init(os);
-    
+
     /* request header */
     Ice_OutputStream_writeBlob(os, Ice_header, sizeof(Ice_header));
-    
+
     /* request body */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 1);
@@ -431,21 +431,21 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
     if (self->mode != Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 0);
     }
-    
+
     Ice_OutputStream_writeIdentity(os, self->identity);
     Ice_OutputStream_writeString(os, "");
     Ice_OutputStream_writeString(os, "findAdapterById");
     Ice_OutputStream_writeByte(os, Ice_Idempotent);
     Ice_OutputStream_writeByte(os, 0);
-    
+
     /* encapsulated params */
     Ice_OutputStream_startWriteEncaps(os);
     Ice_OutputStream_writeIceString(os, id);
     Ice_OutputStream_endWriteEncaps(os);
     Ice_OutputStream_setMessageSize(os);
-    
+
     Ice_ObjectPrx_send(self);
-    
+
     /* parse reply message (only on twoway invocations) */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_InputStream is;
@@ -455,7 +455,7 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
         Ice_Byte replyStatus = 0;
         Ice_Int encapsSize = 0;
         Ice_Byte skipByte = 0;
-        
+
         uint16_t timeout = 5000;
         bool ready = false;
         while (!ready) {
@@ -466,14 +466,14 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
                 return;
             }
         }
-        
+
         /* reply header */
         Ice_InputStream_init(&is, self->connection.fd, self->connection.epinfo->type);
         if (memcmp(expected, is.next, 10) != 0) {
             c_throw("Ice_ProtocolException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* skip header from input stream */
         is.next += 10;
         Ice_InputStream_readInt(&is, &size);
@@ -481,11 +481,11 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
             c_throw("Ice_MemoryLimitException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* reply body */
         Ice_InputStream_readInt(&is, &requestId);
             Ice_InputStream_readByte(&is, &replyStatus);
-            
+
         /* check replyStatus */
         switch (replyStatus) {
         case 0: {
@@ -517,13 +517,13 @@ Ice_Locator_findAdapterById(Ice_LocatorPrxPtr self,
             c_throw("Ice_UnknownException", __FILE__, __LINE__);
             return;
         }}
-        
+
         Ice_InputStream_readInt(&is, &encapsSize);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_ObjectPrx_readFromInputStream(retval, &is);
         }
-    
+
     Ice_ObjectPrx_closeConnection(self);
 }
 
@@ -533,15 +533,15 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
     Ice_OutputStreamPtr os = &(self->stream);
 
     trace();
-    
+
     Ptr_check(self);
-    
+
     Ice_ObjectPrx_connect(self);
     Ice_OutputStream_init(os);
-    
+
     /* request header */
     Ice_OutputStream_writeBlob(os, Ice_header, sizeof(Ice_header));
-    
+
     /* request body */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 1);
@@ -549,20 +549,20 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
     if (self->mode != Ice_ReferenceModeTwoway) {
         Ice_OutputStream_writeInt(os, 0);
     }
-    
+
     Ice_OutputStream_writeIdentity(os, self->identity);
     Ice_OutputStream_writeString(os, "");
     Ice_OutputStream_writeString(os, "getRegistry");
     Ice_OutputStream_writeByte(os, Ice_Idempotent);
     Ice_OutputStream_writeByte(os, 0);
-    
+
     /* encapsulated params */
     Ice_OutputStream_startWriteEncaps(os);
     Ice_OutputStream_endWriteEncaps(os);
     Ice_OutputStream_setMessageSize(os);
-    
+
     Ice_ObjectPrx_send(self);
-    
+
     /* parse reply message (only on twoway invocations) */
     if (self->mode == Ice_ReferenceModeTwoway) {
         Ice_InputStream is;
@@ -572,7 +572,7 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
         Ice_Byte replyStatus = 0;
         Ice_Int encapsSize = 0;
         Ice_Byte skipByte = 0;
-        
+
         uint16_t timeout = 5000;
         bool ready = false;
         while (!ready) {
@@ -583,14 +583,14 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
                 return;
             }
         }
-        
+
         /* reply header */
         Ice_InputStream_init(&is, self->connection.fd, self->connection.epinfo->type);
         if (memcmp(expected, is.next, 10) != 0) {
             c_throw("Ice_ProtocolException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* skip header from input stream */
         is.next += 10;
         Ice_InputStream_readInt(&is, &size);
@@ -598,11 +598,11 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
             c_throw("Ice_MemoryLimitException", __FILE__, __LINE__);
             return;
         }
-        
+
         /* reply body */
         Ice_InputStream_readInt(&is, &requestId);
             Ice_InputStream_readByte(&is, &replyStatus);
-            
+
         /* check replyStatus */
         switch (replyStatus) {
         case 0: {
@@ -634,13 +634,13 @@ Ice_Locator_getRegistry(Ice_LocatorPrxPtr self,
             c_throw("Ice_UnknownException", __FILE__, __LINE__);
             return;
         }}
-        
+
         Ice_InputStream_readInt(&is, &encapsSize);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_InputStream_readByte(&is, &skipByte);
             Ice_ObjectPrx_readFromInputStream(retval, &is);
         }
-    
+
     Ice_ObjectPrx_closeConnection(self);
 }
 
@@ -649,4 +649,3 @@ struct Ice_LocatorFinder;
 typedef struct Ice_LocatorFinder* Ice_LocatorFinderPtr;
 typedef Ice_ObjectPrx Ice_LocatorFinderPrx;
 typedef Ice_ObjectPrxPtr Ice_LocatorFinderPrxPtr;
-

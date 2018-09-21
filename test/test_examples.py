@@ -344,3 +344,15 @@ class TestIceGridLocator(prego.TestCase, TestMixin):
             "resolved proxy: 'TestApp.IceStorm/TopicManager -t -e 1.0 "
             ": tcp -h 127.0.0.1 -p 7910'",
             on_client=True, delayed=4)
+
+
+class TestIceStormOnIceGrid(prego.TestCase, TestMixin):
+    def test_works(self):
+        self.cwd = "examples/icestorm_on_icegrid"
+        self.build_example()
+
+        self.run_server('make run-registry', timeout=15)
+        self.run_server('make run-node', delayed=2)
+        self.run_server('make load-application', delayed=3)
+        self.run_server('./subscriber.py', delayed=6)
+        self.run_client("./publisher", "Hello from IceStorm!", delayed=6)
