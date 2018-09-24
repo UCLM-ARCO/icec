@@ -915,6 +915,12 @@ _resolveIndirectProxy(Ice_ObjectPrxPtr self) {
 
     /* finish initialization */
     IcePlugin_ObjectPrx_init(self, result.epinfo.type, buff);
+
+    /* FIXME: garbage collect 'result' proxy, as its ep_info slot is
+       not used anymore, something like:
+           Ice_ObjectPrx_free(&esult);
+     */
+
 }
 
 void ICEC_FUNC_ATTR

@@ -13,6 +13,10 @@ extern "C" {
 #define MAX_HOST_SIZE             16
 #define TCP_DEFAULT_TIMEOUT       60000
 
+#ifndef MAX_TCP_ENDPOINT_INSTANCES
+#define MAX_TCP_ENDPOINT_INSTANCES 10
+#endif
+
 typedef struct TCP_EndpointOptions {
     Object _base;
 

@@ -10,10 +10,6 @@
 #include <IceC/IceUtil.h>
 #include <IceC/platforms/esp8266/TCPEndpoint.h>
 
-#ifndef MAX_TCP_ENDPOINT_INSTANCES
-#define MAX_TCP_ENDPOINT_INSTANCES 5
-#endif
-
 #define TCP_PROTO_STRING "tcp"
 
 static IcePlugin_PluginListItem item;
@@ -237,7 +233,9 @@ TCP_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     opts = (TCP_EndpointOptionsPtr)self->epinfo.options;
     Ptr_check(opts);
 
+#ifdef DEBUG
     printf("[TCPEndpoint] connect to '%s':%d\n", opts->host, opts->port);
+#endif
     TCP_Connection_connect(&(self->connection), opts->host, opts->port);
     assert(self->connection.fd != -1 && "Unable to connect!");
     return true;
