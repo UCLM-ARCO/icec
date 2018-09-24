@@ -29,7 +29,7 @@ run-node:
 
 load-application:
 	sleep 2
-	icegridadmin -u user -p pass -H 127.0.0.1 -e "application add application.xml"
+	icegridadmin -u user -p pass -H 192.168.4.2 -e "application add application.xml"
 
 run-subscriber:
 	sleep 5

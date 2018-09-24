@@ -26,8 +26,8 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
 
     i = index(s, ':');
     if (i != NULL) {
-    	i++;
-    	s = i + strspn(i, "\n\r\t ");
+        i++;
+        s = i + strspn(i, "\n\r\t ");
     }
 
     end = strcspn(s, "\n\r\t ");
@@ -38,7 +38,7 @@ IceUtil_getProtocolType(const char* s, Ice_EndpointType* result) {
     IcePlugin_getProtocolType(proto, result);
 
     if (*result == 0)
-    	assert(false && "Invalid endpoint type!");
+        assert(false && "Invalid endpoint type!");
 }
 
 void ICEC_FUNC_ATTR
@@ -50,12 +50,12 @@ IceUtil_getAdapterId(const char* s, char* result) {
 
     i = index(s, '@');
     if (i != NULL) {
-    	i++;
-    	s = i + strspn(i, "\n\r\t ");
+        i++;
+        s = i + strspn(i, "\n\r\t ");
 
-	end = strcspn(s, "\n\r\t ");
-	strncpy(result, s, end);
-	result[end] = 0;
+        end = strcspn(s, "\n\r\t ");
+        strncpy(result, s, end);
+        result[end] = 0;
     }
 }
 
@@ -68,22 +68,22 @@ IceUtil_getMode(const char* s, Ice_ReferenceMode* mode) {
 
     sep = strchr(s, ':');
     if (sep == NULL)
-	sep = strchr(s, '@');
+        sep = strchr(s, '@');
 
     int limit = sep - s;
 
     for (i=0; i<limit; i++) {
-	for (j=0; j<token_size; j++) {
-	    if (s[i+j] != t[j])
-		break;
-	    if ((j+1) == token_size && (i+j+1) < limit) {
-		switch(s[i+j+1]) {
-		case 'd': *mode = Ice_ReferenceModeDatagram; return;
-		case 'o': *mode = Ice_ReferenceModeOneway; return;
-		case 't': *mode = Ice_ReferenceModeTwoway; return;
-		}
-	    }
-	}
+        for (j=0; j<token_size; j++) {
+            if (s[i+j] != t[j])
+                break;
+            if ((j+1) == token_size && (i+j+1) < limit) {
+                switch(s[i+j+1]) {
+                case 'd': *mode = Ice_ReferenceModeDatagram; return;
+                case 'o': *mode = Ice_ReferenceModeOneway; return;
+                case 't': *mode = Ice_ReferenceModeTwoway; return;
+                }
+            }
+        }
     }
 
     c_throw("Ice_InvalidEndpointException", __FILE__, __LINE__);
@@ -116,17 +116,17 @@ IceUtil_getStringParam(const char* s, char* result, char flag) {
     result[0] = 0;
 
     while (true) {
-    	s = index(s, '-');
-    	if (s == NULL) return;
-    	if (s[1] == flag) {
-    	    s += 2;  /* '-' + flag */
-    	    s += strspn(s, "\n\r\t ");
-    	    end = strcspn(s, "\n\r\t ");
-    	    strncpy(result, s, end);
-    	    result[end] = 0;
-    	    return;
-    	}
-    	s++;
+        s = index(s, '-');
+        if (s == NULL) return;
+        if (s[1] == flag) {
+            s += 2;  /* '-' + flag */
+            s += strspn(s, "\n\r\t ");
+            end = strcspn(s, "\n\r\t ");
+            strncpy(result, s, end);
+            result[end] = 0;
+            return;
+        }
+        s++;
     }
 }
 

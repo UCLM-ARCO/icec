@@ -270,8 +270,8 @@ Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* id) {
     Ice_InputStream_readString(self, buff); /* name */
     Ice_InputStream_readString(self, id); /* category */
     if (id[0] != 0) {
-	id += strlen(id);
-	*id++ = '/';
+        id += strlen(id);
+        *id++ = '/';
     }
     strcpy(id, buff);
 }
@@ -447,8 +447,8 @@ Ice_OutputStream_writeIceString(Ice_OutputStreamPtr self, Ice_String str) {
     Ptr_check(self);
 
     if (str.size == 0) {
-	Ice_OutputStream_writeByte(self, 0);
-	return;
+        Ice_OutputStream_writeByte(self, 0);
+        return;
     }
 
     Ice_OutputStream_writeSize(self, str.size);
@@ -466,9 +466,9 @@ Ice_OutputStream_writeIdentity(Ice_OutputStreamPtr self, const char* id) {
 
     idx = strcspn(id, "/");
     if (idx == strlen(id)) {
-	Ice_OutputStream_writeString(self, id);
-	Ice_OutputStream_writeByte(self, 0);
-	return;
+        Ice_OutputStream_writeString(self, id);
+        Ice_OutputStream_writeByte(self, 0);
+        return;
     }
 
     category.value = (char*) id;
@@ -897,13 +897,14 @@ Ice_ObjectAdapter_List_init(Ice_ObjectAdapter_ListPtr self) {
 
 void ICEC_FUNC_ATTR
 _resolveIndirectProxy(Ice_ObjectPrxPtr self) {
+    trace();
     Ice_ObjectPrx result;
     Ice_CommunicatorPtr ic = self->communicator;
 
     /* retrieve endpoints using locator */
     new_Ice_String(adapter_id, self->adapter_id);
     Ice_Locator_findAdapterById
-	((Ice_ObjectPrxPtr)&(ic->locator), adapter_id, &result);
+        ((Ice_ObjectPrxPtr)&(ic->locator), adapter_id, &result);
 
     /* FIXME: don't use this method, just copy relevant fields
        between both enpinfos */
@@ -927,10 +928,10 @@ Ice_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
 
     /* for indirect proxies: lazy endpoint resolution */
     if (!Ptr_initialized(&(self->epinfo))) {
-	if (self->adapter_id[0] == 0) {
-	    assert(false && "Well-Known objects not supported");
-	}
-	_resolveIndirectProxy(self);
+        if (self->adapter_id[0] == 0) {
+            assert(false && "Well-Known objects not supported");
+        }
+        _resolveIndirectProxy(self);
     }
 
     IcePlugin_ObjectPrx_connect(self);
@@ -1009,13 +1010,13 @@ Ice_ObjectPrx_readFromInputStream(Ice_ObjectPrxPtr self, Ice_InputStreamPtr is) 
     /* if no endpoints, then maybe an adapter-id */
     self->adapter_id[0] = 0;
     if (numOfEndpoints == 0) {
-	/* note that if adapter-id is empty, then is a well-known object */
-	Ice_InputStream_readString(is, self->adapter_id);
-	return;
+        /* note that if adapter-id is empty, then is a well-known object */
+        Ice_InputStream_readString(is, self->adapter_id);
+        return;
     }
 
     if (numOfEndpoints > 1)
-	prints("Warning: multiple endpoints received, using only the first\n");
+        prints("Warning: multiple endpoints received, using only the first\n");
 
     /* endpoint type (short) */
     Ice_InputStream_readShort(is, &type);
@@ -1090,7 +1091,7 @@ Ice_ObjectPrx_raisedException(Ice_ObjectPrxPtr self, const char* typeID) {
     /* check and, if positive, reset exception, avoid raising again */
     retval = streq(self->exception, typeID);
     if (retval)
-	self->exception[0] = 0;
+        self->exception[0] = 0;
 #endif
 
     return retval;
@@ -1193,9 +1194,9 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
     /* if indirect proxy... */
     atSymbol = index(str, '@');
     if (atSymbol != NULL) {
-	/* ...read the adapter id and initialize reset connection info */
-	IceUtil_getAdapterId(str, result->adapter_id);
-	return;
+        /* ...read the adapter id and initialize reset connection info */
+        IceUtil_getAdapterId(str, result->adapter_id);
+        return;
     }
 
     /* endpoint type (short) */
@@ -1207,8 +1208,8 @@ Ice_Communicator_stringToProxy(Ice_CommunicatorPtr self, const char* str,
 
 void ICEC_FUNC_ATTR
 Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
-			       Ice_ObjectPrxPtr proxy,
-			       Ice_String* result) {
+                               Ice_ObjectPrxPtr proxy,
+                               Ice_String* result) {
     uint16_t i = 0;
     uint16_t size = 0;
     char mode[] = " -d -e 1.0   ";
@@ -1221,7 +1222,7 @@ Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
     /* identity */
     size = strlen(proxy->identity);
     if (size >= (result->size - i))
-	size = result->size - i - 1;
+        size = result->size - i - 1;
     strncpy(result->value + i, proxy->identity, size);
     i += size;
 
@@ -1235,27 +1236,27 @@ Ice_Communicator_proxyToString(Ice_CommunicatorPtr self,
 
     size = strlen(mode);
     if (size >= (result->size - i))
-	size = result->size - i - 1;
+        size = result->size - i - 1;
     strncpy(result->value + i, mode, size);
     i += size;
 
     /* if is indirect object, include adapter-id (if any) */
     if (!Ptr_initialized(&(proxy->epinfo))) {
-	if (proxy->adapter_id[0] != 0) {
-	    /* write separator for indirect proxies */
-	    *(result->value + i - 2) = '@';
+        if (proxy->adapter_id[0] != 0) {
+            /* write separator for indirect proxies */
+            *(result->value + i - 2) = '@';
 
-	    /* write adapter-id */
-	    size = strlen(proxy->adapter_id);
-	    if (size >= result->size - i)
-		size = result->size - i - 1;
-	    strncpy(result->value + i, proxy->adapter_id, size);
-	    i += size;
+            /* write adapter-id */
+            size = strlen(proxy->adapter_id);
+            if (size >= result->size - i)
+                size = result->size - i - 1;
+            strncpy(result->value + i, proxy->adapter_id, size);
+            i += size;
 
-	    /* zero ending string */
-	    *(result->value + i) = 0;
-	}
-	return;
+            /* zero ending string */
+            *(result->value + i) = 0;
+        }
+        return;
     }
 
     /* add a semicolon to begin endpoint info */
@@ -1307,7 +1308,7 @@ Ice_Communicator_loopIteration(Ice_CommunicatorPtr self) {
 
 void ICEC_FUNC_ATTR
 Ice_Communicator_setDefaultLocator(Ice_CommunicatorPtr self,
-				   const char* strprx) {
+                                   const char* strprx) {
 
     trace();
     Ptr_check(self);
@@ -1315,7 +1316,7 @@ Ice_Communicator_setDefaultLocator(Ice_CommunicatorPtr self,
     /* FIXME: well-known objects are not supported either! */
     Ice_Communicator_stringToProxy(self, strprx, &(self->locator));
     assert(self->locator.adapter_id[0] == 0 &&
-	   "Could not use an indirect proxy as locator");
+           "Could not use an indirect proxy as locator");
 }
 
 static IcePlugin_PluginListItem _registered_endpoints;
@@ -1540,7 +1541,7 @@ IcePlugin_EndpointInfo_toString(Ice_EndpointInfoPtr self, Ice_String* result) {
         Ptr_check(endp);
 
         if (endp->EndpointInfo_toString != NULL &&
-	    endp->EndpointInfo_toString(self, result))
+            endp->EndpointInfo_toString(self, result))
             break;
 
         item = item->next;

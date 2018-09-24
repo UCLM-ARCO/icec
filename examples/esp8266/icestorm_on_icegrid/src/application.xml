@@ -4,7 +4,7 @@
    <application name="TestApp">
       <service-template id="IceStorm">
          <parameter name="instance-name" default="${application}.IceStorm"/>
-         <parameter name="topic-manager-endpoints" default="default"/>
+         <parameter name="topic-manager-endpoints" default="tcp -h 192.168.4.2"/>
          <parameter name="publish-endpoints" default="default"/>
          <parameter name="flush-timeout" default="1000"/>
          <service name="${instance-name}" entry="IceStormService,36:createIceStorm">
@@ -91,7 +91,7 @@
          </icebox>
       </server-template>
       <node name="node1">
-         <server-instance template="IceStorm"/>
+         <server-instance template="IceStorm" topic-manager-endpoints="tcp -h 192.168.4.2" publish-endpoints="tcp -h 192.168.4.2"/>
       </node>
    </application>
 </icegrid>

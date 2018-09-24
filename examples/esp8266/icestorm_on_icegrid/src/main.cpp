@@ -26,16 +26,31 @@ Ice_ObjectPrx manager;
 Ice_ObjectPrx topic;
 Ice_ObjectPrx publisher;
 
+Ticker timer;
+
 bool
 setup_publisher() {
     char* strprx = "TestApp.IceStorm/TopicManager -t @ TestApp.IceStorm.TopicManager";
     Ice_Communicator_stringToProxy(&ic, strprx, &manager);
 
+    char buff[256];
+    new_Ice_String(prx, buff);
+    prx.size = 256;
+    Ice_Communicator_proxyToString(&ic, &manager, &prx);
+    printf(" -- Initial Manager Prxoy: '%s'\n", buff);
+
     if (not get_topic(&manager, TOPIC_NAME, &topic))
         return false;
+
+    Ice_Communicator_proxyToString(&ic, &manager, &prx);
+    printf(" -- Resolved Manager Prxoy: '%s'\n", buff);
+    Ice_Communicator_proxyToString(&ic, &topic, &prx);
+    printf(" -- Retrieved Topic Prxoy: '%s'\n", buff);
+
     if (not get_publisher(&topic, &publisher))
         return false;
     return true;
+    return false;
 }
 
 void setup() {
@@ -65,6 +80,7 @@ static bool ready = false;
 void loop() {
     if (!ready && digitalRead(PIN_BUTTON) == 0) {
         Serial.println("Ok, starting publisher...");
+        ready = true;
 
         // get publisher or reset if fail
         if (not setup_publisher()) {
@@ -73,7 +89,9 @@ void loop() {
         }
 
         Serial.println("Publisher ready!");
-        // FIXME: setup timer to publish events
+        timer.attach(1, []() {
+            Example_Hello_sayHello(&publisher);
+        });
     }
 
     handle_ota();

@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MAX_IDENTITY_SIZE
-  #define MAX_IDENTITY_SIZE       32
+  #define MAX_IDENTITY_SIZE       64
 #endif
 
 #ifndef MAX_ADAPTER_ID_SIZE

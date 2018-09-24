@@ -6,13 +6,13 @@
 extern void prints(const char*);
 extern void printi(const int);
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32)
 #include <assert.h>
 #else
-#define assert(token) __assert(token, #token)
+#define assert(token) _icec_assert(token, #token)
 
 static void
-__assert(bool status, const char* message) {
+_icec_assert(bool status, const char* message) {
     if (status)
 	return;
 

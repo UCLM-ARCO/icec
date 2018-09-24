@@ -1482,14 +1482,14 @@ class DictionaryDecl(BaseDecl):
         self.render_unmarshaller(c)
 
     def render_dictionary_pair(self, c):
-        pair = Struct(self.full_name)
+        name = self.full_name + "_Pair"
+        pair = Struct(name)
 
         key = Param(self.key_type, "key")
         pair.append(key)
         value = Param(self.value_type, "value")
         pair.append(value)
 
-        name = self.full_name + "_Pair"
         c += Typedef(name, pair)
         c.nl()
 

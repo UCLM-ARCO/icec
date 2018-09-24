@@ -17,12 +17,12 @@ class HelloI(Example.Hello):
 class Subscriber(Ice.Application):
     def run(self, args):
         ic = self.communicator()
-        locator = ic.stringToProxy("TestIceGrid/Locator -t:tcp -h 127.0.0.1 -p 4061")
+        locator = ic.stringToProxy(
+            "TestIceGrid/Locator -t:tcp -h 192.168.4.2 -p 4061")
         locator = Ice.LocatorPrx.checkedCast(locator)
         ic.setDefaultLocator(locator)
 
-        adapter = ic.createObjectAdapterWithEndpoints(
-            'Adapter', 'tcp -h 127.0.0.1')
+        adapter = ic.createObjectAdapterWithEndpoints('Adapter', 'tcp')
         adapter.activate()
 
         proxy = adapter.addWithUUID(HelloI())
