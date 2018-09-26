@@ -30,6 +30,10 @@
 #define MAX_IDENTITY_SIZE       8
 #endif
 
+#ifndef MAX_ADAPTER_ID_SIZE
+#define MAX_ADAPTER_ID_SIZE     32
+#endif
+
 #ifndef MAX_NESTED_ENCAPS
 #define MAX_NESTED_ENCAPS       3
 #endif
