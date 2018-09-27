@@ -279,6 +279,7 @@ Ice_InputStream_readIdentity(Ice_InputStreamPtr self, char* id) {
 void ICEC_FUNC_ATTR
 Ice_OutputStream_init(Ice_OutputStreamPtr self) {
     trace();
+
     self->size = 0;
     self->next = self->data;
     self->encaps[0] = NULL;
@@ -829,7 +830,6 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 
     /* facet not supported */
     Ice_InputStream_readByte(&is, &facetSeqSize);
-
     assert(facetSeqSize == 0);
 
     /* use default servant when defined */
@@ -858,6 +858,7 @@ Ice_ObjectAdapter_incomingMessage(Ice_ObjectAdapterPtr self) {
 
     /* reply header (if twoway) */
     if (requestId > 0) {
+        /* print_dbg("is twoway invocation, prepare reply\n"); */
         Ice_OutputStream_writeBlob(&os, Ice_header, 8);
         Ice_OutputStream_writeByte(&os, Ice_replyMsg);
         Ice_OutputStream_writeByte(&os, 0);  /* compression */

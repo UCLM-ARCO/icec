@@ -184,7 +184,7 @@ typedef struct Ice_InputStream {
 
     byte data[MAX_MESSAGE_SIZE];
     byte* next;
-    int size;
+    uint32_t size;
 } Ice_InputStream;
 
 void Ice_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);

@@ -13,7 +13,7 @@ IceInternal_selectOnAdapters(Ice_ObjectAdapter_ListPtr adapters,
     bool ready;
     Ice_ObjectAdapterPtr adapter;
 
-    trace();
+    /* trace(); */
 
     for (i=0; i<MAX_NUM_OF_ADAPTERS; i++)
         result[i] = NULL;

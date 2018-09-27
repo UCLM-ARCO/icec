@@ -103,6 +103,12 @@ printi(const int v) {
     SERIAL.print(v);
     SERIAL.flush();
 }
+
+void
+printu(const unsigned int v) {
+    SERIAL.print(v);
+    SERIAL.flush();
+}
 #endif
 
 #ifdef DEBUG_LED  // ---------------------------------------------------

@@ -1,3 +1,9 @@
+icec (20180927-1) unstable; urgency=low
+
+  * New release, arduino: update ID max size
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 27 Sep 2018 14:43:31 +0200
+
 icec (20180926-1) unstable; urgency=low
 
   * New release, fix arduino platform, missing constant definition

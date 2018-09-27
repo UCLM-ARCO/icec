@@ -41,6 +41,7 @@ void hexdump(const void* addr, int len);
     void fixme(const char*);
     void prints(const char*);
     void printi(const int);
+    void printu(const unsigned int);
 #endif
 
 #ifndef DEBUG_LED
