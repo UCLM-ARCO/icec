@@ -1790,11 +1790,18 @@ if __name__ == "__main__":
                       help="Use alloca() instead of dynamic memory")
     args.add_argument('--ice', action="store_true",
                       help="Allow reserved Ice prefix in Slice identifiers")
+    args.add_argument('--underscore', action="store_true",
+                      help="Allow underscore on Slice identifiers")
     args = args.parse_args()
 
     parser = sliceparser.Parser(args.input)
     if args.ice:
         parser.addArgument("--ice")
+
+    if args.underscore:
+        # parser.addArgument("--underscore")
+        # NOTE: need latest version of sliceparser to enable this
+        pass
 
     if args.includes is not None:
         for p in args.includes:
