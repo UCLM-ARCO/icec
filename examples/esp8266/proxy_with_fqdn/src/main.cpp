@@ -25,6 +25,7 @@ Ticker timer;
 
 void get_ice_id() {
     Ice_String ice_id = Ice_ObjectIface_ice_id(&locator);
+    ice_id.value[ice_id.size] = 0;
     printf("Retrieved ice_id: '%s'\n", ice_id.value);
 }
 
@@ -35,6 +36,14 @@ void setup() {
 
     // setup WiFi, Ice, Endpoints...
     IceC_Storage_begin();
+
+    // NOTE: store wifi settings on EEPROM at least once
+    {
+        // new_Ice_String(ssid, "YOUR_SSID");
+        // new_Ice_String(key, "YOUR_KEY");
+        // store_wifi_settings(ssid, key);
+    }
+
     setup_wireless();
     setup_ota();
 

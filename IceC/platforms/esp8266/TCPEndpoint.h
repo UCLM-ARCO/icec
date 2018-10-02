@@ -10,8 +10,14 @@ extern "C" {
 #include <IceC/IceC.h>
 
 #define Ice_EndpointTypeTCP       1
-#define MAX_HOST_SIZE             16
+
+#ifndef MAX_HOST_SIZE
+#define MAX_HOST_SIZE             32
+#endif
+
+#ifndef TCP_DEFAULT_TIMEOUT
 #define TCP_DEFAULT_TIMEOUT       60000
+#endif
 
 #ifndef MAX_TCP_ENDPOINT_INSTANCES
 #define MAX_TCP_ENDPOINT_INSTANCES 10
