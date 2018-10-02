@@ -16,6 +16,8 @@ syntax: glob
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/settings.json
+.vscode/extensions.json
+.travis.yml
 
 IceC-IoT-Node/
 .gitignore
