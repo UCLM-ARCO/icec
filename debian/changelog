@@ -1,3 +1,9 @@
+icec (20181002-1) unstable; urgency=low
+
+  * New release, esp8266: increment MAX_HOST_SIZE on TCP endpoint
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 02 Oct 2018 14:59:07 +0200
+
 icec (20180927-1) unstable; urgency=low
 
   * New release, arduino: update ID max size
