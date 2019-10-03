@@ -9,6 +9,9 @@ extern "C" {
 
 #include <IceC/platform.h>
 
+#define STR_EXPAND(m) #m
+#define STR(m) STR_EXPAND(m)
+
 #define streq(S1, S2) (strcmp(S1, S2) == 0)
 
 #define TAG_OK 4444
