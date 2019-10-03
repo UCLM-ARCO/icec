@@ -1,3 +1,9 @@
+icec (20191003-1) unstable; urgency=low
+
+  * New release, add STR macro
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 03 Oct 2019 09:21:48 +0200
+
 icec (20181002-1) unstable; urgency=low
 
   * New release, esp8266: increment MAX_HOST_SIZE on TCP endpoint
